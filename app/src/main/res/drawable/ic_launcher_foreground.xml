@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 3x3 grid of squares, centered in the 72x72 safe zone -->
+    <!-- Cell size 18, gap 3: 3*18 + 2*3 = 60, offset 24 to center in 108 -->
+    <path android:fillColor="#FF1A1A1A" android:pathData="M24,24 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M45,24 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M66,24 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M24,45 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M45,45 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M66,45 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M24,66 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M45,66 h18 v18 h-18 Z"/>
+    <path android:fillColor="#FF1A1A1A" android:pathData="M66,66 h18 v18 h-18 Z"/>
+</vector>

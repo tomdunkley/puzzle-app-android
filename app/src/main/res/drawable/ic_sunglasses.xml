@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="960" android:viewportHeight="960">
+    <!-- Left lens frame -->
+    <path
+        android:pathData="M165,300 L305,300 A80,80 0 0,1 385,380 L385,460 A80,80 0 0,1 305,540 L165,540 A80,80 0 0,1 85,460 L85,380 A80,80 0 0,1 165,300 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="55"/>
+    <!-- Right lens frame -->
+    <path
+        android:pathData="M655,300 L795,300 A80,80 0 0,1 875,380 L875,460 A80,80 0 0,1 795,540 L655,540 A80,80 0 0,1 575,460 L575,380 A80,80 0 0,1 655,300 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="55"/>
+    <!-- Nose bridge -->
+    <path
+        android:pathData="M385,400 C415,450 545,450 575,400"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="55"/>
+    <!-- Left arm -->
+    <path
+        android:pathData="M85,400 L20,440"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="55"/>
+    <!-- Right arm -->
+    <path
+        android:pathData="M875,400 L940,440"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="55"/>
+</vector>
