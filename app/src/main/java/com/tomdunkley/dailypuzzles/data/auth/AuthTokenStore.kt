@@ -6,14 +6,24 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 /** Encrypted on-device storage for auth tokens -- these are sensitive, unlike normal app prefs. */
-class AuthTokenStore(context: Context) {
+class AuthTokenStore(private val context: Context) {
 
     private val prefs: SharedPreferences by lazy {
+        try {
+            buildEncryptedPrefs()
+        } catch (e: Exception) {
+            // Stale keyset file from a previous install whose Keystore key no longer exists.
+            // The encrypted tokens are unrecoverable — wipe and start clean (user re-signs in).
+            context.deleteSharedPreferences("auth_secrets")
+            buildEncryptedPrefs()
+        }
+    }
+
+    private fun buildEncryptedPrefs(): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             context,
             "auth_secrets",
             masterKey,
