@@ -42,23 +42,23 @@ import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.network.dto.LeaderboardEntryDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
-import com.tomdunkley.dailypuzzles.ui.components.NumbersAccentColor
+import com.tomdunkley.dailypuzzles.ui.components.NumbersIconColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
-import com.tomdunkley.dailypuzzles.ui.components.WordsAccentColor
+import com.tomdunkley.dailypuzzles.ui.components.WordsIconColor
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
-
-private fun gameAccentColor(gameId: String): Color = when (gameId) {
-    "boggle" -> WordsAccentColor
-    "numbers" -> NumbersAccentColor
-    else -> WordsAccentColor
-}
 
 private fun gameSolidColor(gameId: String): Color = when (gameId) {
     "boggle" -> WordsSolidColor
     "numbers" -> NumbersSolidColor
     else -> WordsSolidColor
+}
+
+private fun gameIconColor(gameId: String): Color = when (gameId) {
+    "boggle" -> WordsIconColor
+    "numbers" -> NumbersIconColor
+    else -> WordsIconColor
 }
 
 @Composable
@@ -98,8 +98,8 @@ private fun SignedInLeaderboard(
         is LeaderboardUiState.Error -> CenteredMessage(state.message)
         is LeaderboardUiState.Loaded -> {
             val selectedGame = state.games.getOrNull(state.selectedGameIndex)
-            val accentColor = gameAccentColor(selectedGame?.game ?: "boggle")
             val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
+            val iconColor = gameIconColor(selectedGame?.game ?: "boggle")
             Column(modifier = Modifier.fillMaxSize()) {
                 GameSwitcher(
                     gameTitle = selectedGame?.title ?: "Words",
@@ -157,7 +157,7 @@ private fun SignedInLeaderboard(
                                 entry,
                                 isSelf = entry.userId == state.selfUserId,
                                 solidColor = solidColor,
-                                accentColor = accentColor,
+                                iconColor = iconColor,
                                 onClick = { onViewScore(state.puzzleId, entry.userId) },
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -170,12 +170,12 @@ private fun SignedInLeaderboard(
 }
 
 @Composable
-private fun LeaderboardRow(entry: LeaderboardEntryDto, isSelf: Boolean, solidColor: Color, accentColor: Color, onClick: () -> Unit) {
+private fun LeaderboardRow(entry: LeaderboardEntryDto, isSelf: Boolean, solidColor: Color, iconColor: Color, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(if (isSelf) solidColor.copy(alpha = 0.15f) else accentColor)
+            .background(if (isSelf) iconColor.copy(alpha = 0.5f) else solidColor.copy(alpha = 0.08f))
             .padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

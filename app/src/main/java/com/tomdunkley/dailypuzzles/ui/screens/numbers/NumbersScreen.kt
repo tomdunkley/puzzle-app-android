@@ -62,7 +62,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
-import com.tomdunkley.dailypuzzles.ui.components.NumbersAccentColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.numbersOpSymbol
@@ -105,7 +104,7 @@ fun NumbersScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                backgroundColor = NumbersAccentColor,
+                backgroundColor = NumbersSolidColor.copy(alpha = 0.15f),
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

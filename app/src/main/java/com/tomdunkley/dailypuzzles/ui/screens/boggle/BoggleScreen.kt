@@ -62,7 +62,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
-import com.tomdunkley.dailypuzzles.ui.components.WordsAccentColor
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.displayLetter
 import com.tomdunkley.dailypuzzles.ui.share.buildBoggleShareText
@@ -107,7 +106,7 @@ fun BoggleScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                backgroundColor = WordsAccentColor,
+                backgroundColor = WordsSolidColor.copy(alpha = 0.15f),
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

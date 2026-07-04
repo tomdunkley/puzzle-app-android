@@ -184,7 +184,7 @@ private fun PuzzleCard(puzzle: Puzzle, status: PuzzleStatus, onClick: () -> Unit
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = CardDefaults.outlinedCardColors(containerColor = puzzle.accentColor),
+        colors = CardDefaults.outlinedCardColors(containerColor = puzzle.solidColor.copy(alpha = 0.15f)),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
     ) {
         Row(
