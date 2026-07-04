@@ -21,8 +21,8 @@ android {
         applicationId = "com.tomdunkley.dailypuzzles"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.6"
+        versionCode = 8
+        versionName = "1.7"
 
         buildConfigField("String", "API_BASE_URL", "\"https://magu24yak3.execute-api.us-east-1.amazonaws.com/\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"129236592621-b43jm9j1teakqs6ntvm0lqrq2balh477.apps.googleusercontent.com\"")
