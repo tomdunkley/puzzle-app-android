@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,6 +84,7 @@ val availablePuzzles = listOf(
 
 private var hasShownSignInPromptThisLaunch = false
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     isSignedIn: Boolean,
@@ -96,6 +98,7 @@ fun HomeScreen(
         mutableStateOf(shouldShow)
     }
     val puzzleStatuses by viewModel.puzzleStatuses.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -103,19 +106,26 @@ fun HomeScreen(
         topBar = { SectionTopBar(title = "Puzzles") },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(padding),
         ) {
-            items(availablePuzzles) { puzzle ->
-                PuzzleCard(
-                    puzzle = puzzle,
-                    status = puzzleStatuses[puzzle.id] ?: PuzzleStatus.NONE,
-                    onClick = { onPuzzleClick(puzzle.id) },
-                )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(availablePuzzles) { puzzle ->
+                    PuzzleCard(
+                        puzzle = puzzle,
+                        status = puzzleStatuses[puzzle.id] ?: PuzzleStatus.NONE,
+                        onClick = { onPuzzleClick(puzzle.id) },
+                    )
+                }
             }
         }
     }
@@ -194,63 +204,56 @@ private fun PuzzleCard(puzzle: Puzzle, status: PuzzleStatus, onClick: () -> Unit
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-                Box(
-                    modifier = Modifier.size(64.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = puzzle.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = puzzle.solidColor,
-                    )
-                    when (status) {
-                        PuzzleStatus.LOADING -> CircularProgressIndicator(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Box(
+                modifier = Modifier.size(64.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = puzzle.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = puzzle.solidColor,
+                )
+                when (status) {
+                    PuzzleStatus.COMPLETED -> Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(22.dp)
+                            .background(color = Color(0xFF2E7D32), shape = CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Completed today",
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp),
                         )
-                        PuzzleStatus.COMPLETED -> Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(22.dp)
-                                .background(color = Color(0xFF2E7D32), shape = CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = "Completed today",
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp),
-                            )
-                        }
-                        PuzzleStatus.IN_PROGRESS -> Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(22.dp)
-                                .background(color = PAUSE_YELLOW, shape = CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Pause,
-                                contentDescription = "Started, not finished",
-                                tint = Color.Black,
-                                modifier = Modifier.size(14.dp),
-                            )
-                        }
-                        PuzzleStatus.NONE -> Unit
                     }
+                    PuzzleStatus.IN_PROGRESS -> Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(22.dp)
+                            .background(color = PAUSE_YELLOW, shape = CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Pause,
+                            contentDescription = "Started, not finished",
+                            tint = Color.Black,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                    PuzzleStatus.NONE -> Unit
                 }
-                Column {
-                    Text(text = puzzle.title, style = MaterialTheme.typography.headlineSmall)
-                    Text(
-                        text = puzzle.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            }
+            Column {
+                Text(text = puzzle.title, style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = puzzle.description,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
+}

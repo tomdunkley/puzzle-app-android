@@ -76,6 +76,9 @@ fun LeaderboardScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (authState) {
+                is AuthState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
                 is AuthState.SignedIn -> SignedInLeaderboard(viewModel, onAddFriendsClick, onViewScore)
                 else -> SignInPrompt("Sign in to see today's leaderboard.", onGoToSettings)
             }
