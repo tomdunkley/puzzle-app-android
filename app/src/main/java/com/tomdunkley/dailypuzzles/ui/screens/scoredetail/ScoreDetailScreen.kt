@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
+import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.numbersOpSymbol
 import com.tomdunkley.dailypuzzles.ui.share.buildBoggleShareText
@@ -175,7 +176,7 @@ private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto) {
 
     BoggleBoardView(board = detail.board ?: emptyList())
 
-    val words = detail.validWords ?: emptyList()
+    val words = (detail.validWords ?: emptyList()).sortedByDescending { it.length }
     if (words.isNotEmpty()) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -183,7 +184,7 @@ private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto) {
         ) {
             words.forEach { word ->
                 Text(
-                    text = "$word (${word.length})",
+                    text = "$word (${scoreForWord(word)})",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.surfaceVariant)
