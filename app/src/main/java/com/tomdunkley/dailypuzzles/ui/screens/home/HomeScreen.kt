@@ -108,7 +108,7 @@ fun HomeScreen(
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refresh() },
+            onRefresh = { viewModel.refresh(showSpinner = true) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),

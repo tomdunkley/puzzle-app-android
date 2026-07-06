@@ -25,7 +25,7 @@ class HomeViewModel : ViewModel() {
      * without any loading spinners, then fetches from the network and updates.
      * Pull-to-refresh also calls this; the [isRefreshing] indicator covers the update.
      */
-    fun refresh() {
+    fun refresh(showSpinner: Boolean = false) {
         val todayId = todayUtcIso()
         _puzzleStatuses.value = availablePuzzles.associate { puzzle ->
             val todayPuzzleId = "${puzzle.id}_$todayId"
@@ -36,7 +36,7 @@ class HomeViewModel : ViewModel() {
             }
         }
         viewModelScope.launch {
-            _isRefreshing.value = true
+            if (showSpinner) _isRefreshing.value = true
             val service = AuthRepository.apiServiceForExistingSession()
             val statuses = availablePuzzles.associate { puzzle ->
                 val todayPuzzleId = "${puzzle.id}_$todayId"
@@ -51,7 +51,7 @@ class HomeViewModel : ViewModel() {
                 puzzle.id to status
             }
             _puzzleStatuses.value = statuses
-            _isRefreshing.value = false
+            if (showSpinner) _isRefreshing.value = false
         }
     }
 
