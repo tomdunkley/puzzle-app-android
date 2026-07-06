@@ -253,6 +253,8 @@ private fun LockedNotice(message: String) {
         message,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
