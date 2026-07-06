@@ -76,11 +76,19 @@ fun SettingsScreen(
         topBar = { SectionTopBar(title = "Profile") },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (authState) {
                 is AuthState.SignedIn -> SignedInSettings(viewModel, onEditAvatarClick, onAccountSettingsClick, onFriendsClick, hasPendingFriendRequests)
                 else -> SignInContent(onForgotPasswordClick)
             }
+            Text(
+                text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 8.dp),
+            )
         }
     }
 }
@@ -292,13 +300,6 @@ private fun SignedInSettings(
                 ) {
                     Text("SIGN OUT")
                 }
-
-                Text(
-                    text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
             }
         }
     }
