@@ -196,7 +196,7 @@ private fun AchievementBadge(achievement: AchievementItemDto) {
             }
 
             achievement.unlocksAvatarId != null -> {
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.onSurface))
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
                 val painter = when (achievement.unlocksAvatarId) {
                     "taunt" -> painterResource(R.drawable.ic_taunt)
                     "owl" -> painterResource(R.drawable.ic_owl)
@@ -212,7 +212,7 @@ private fun AchievementBadge(achievement: AchievementItemDto) {
                 Icon(
                     painter,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.surface,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(28.dp),
                 )
             }
