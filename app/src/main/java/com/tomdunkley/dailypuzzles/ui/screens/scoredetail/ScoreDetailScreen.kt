@@ -273,6 +273,14 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
 @Composable
 private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto) {
     Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
+    if (!detail.locked) {
+        val wordCount = detail.validWords?.size ?: 0
+        Text(
+            "$wordCount word${if (wordCount == 1) "" else "s"}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 
     if (detail.locked) {
         LockedNotice("Complete today's Words puzzle to see the board and word list.")
