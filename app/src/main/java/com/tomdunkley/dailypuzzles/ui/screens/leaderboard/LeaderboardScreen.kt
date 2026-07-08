@@ -265,7 +265,7 @@ private fun DateSwitcher(
         }
         Text(
             dateLabel,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
         IconButton(onClick = onNext, enabled = canGoNext) {
