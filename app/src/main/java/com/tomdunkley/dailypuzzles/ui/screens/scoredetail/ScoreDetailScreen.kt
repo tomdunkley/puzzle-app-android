@@ -3,6 +3,7 @@ package com.tomdunkley.dailypuzzles.ui.screens.scoredetail
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,17 +27,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
@@ -56,7 +64,9 @@ fun ScoreDetailScreen(
     viewModel: ScoreDetailViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val allWordsState by viewModel.allWordsState.collectAsState()
     val context = LocalContext.current
+    var showAllWordsDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
     val title = (uiState as? ScoreDetailUiState.Loaded)?.detail?.puzzleId?.substringAfter("_") ?: ""
@@ -121,6 +131,18 @@ fun ScoreDetailScreen(
                     }
                 }
 
+                if (state.detail.game == "boggle" && !state.detail.locked) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        onClick = {
+                            viewModel.loadAllWords(state.detail.puzzleId)
+                            showAllWordsDialog = true
+                        },
+                    ) {
+                        Text("VIEW ALL POSSIBLE WORDS")
+                    }
+                }
                 if (state.isOwnScore) {
                     Button(
                         modifier = Modifier.fillMaxWidth(),
@@ -163,6 +185,68 @@ fun ScoreDetailScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
+
+                if (showAllWordsDialog) {
+                    AllWordsDialog(
+                        state = allWordsState,
+                        onClose = { showAllWordsDialog = false },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
+    Dialog(onDismissRequest = onClose) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("All possible words", style = MaterialTheme.typography.titleLarge)
+                when (state) {
+                    AllWordsState.Idle, AllWordsState.Loading -> Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                    is AllWordsState.Error -> Text(
+                        state.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    is AllWordsState.Loaded -> FlowRow(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        state.words.forEach { entry ->
+                            Text(
+                                text = "${entry.word} (${entry.score})",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
+                }
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                    onClick = onClose,
+                ) {
+                    Text("CLOSE")
+                }
             }
         }
     }

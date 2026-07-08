@@ -4,6 +4,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class AllWordDto(
+    val word: String,
+    val score: Int,
+)
+
+@Serializable
+data class AllWordsResponseDto(
+    val words: List<AllWordDto>,
+)
+
+@Serializable
 data class ScoreSubmissionDto(
     @SerialName("puzzle_id") val puzzleId: String,
     @SerialName("duration_seconds") val durationSeconds: Int,

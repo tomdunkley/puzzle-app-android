@@ -22,6 +22,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.UpdateProfileRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserSearchResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
+import com.tomdunkley.dailypuzzles.data.network.dto.AllWordsResponseDto
 import com.tomdunkley.dailypuzzles.data.network.dto.VerifyEmailRequestDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -85,6 +86,9 @@ interface ApiService {
 
     @GET("v1/puzzles/today")
     suspend fun getTodayPuzzle(@Query("game") game: String): PuzzleDto
+
+    @GET("v1/puzzles/{puzzleId}/all-words")
+    suspend fun getPuzzleAllWords(@Path("puzzleId") puzzleId: String): AllWordsResponseDto
 
     @POST("v1/scores")
     suspend fun submitScore(@Body body: ScoreSubmissionDto): ScoreSubmissionResultDto
