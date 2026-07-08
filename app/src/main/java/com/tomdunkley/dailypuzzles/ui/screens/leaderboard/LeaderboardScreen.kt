@@ -252,7 +252,7 @@ private fun DateSwitcher(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 8.dp, top = 8.dp, bottom = 0.dp),
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
