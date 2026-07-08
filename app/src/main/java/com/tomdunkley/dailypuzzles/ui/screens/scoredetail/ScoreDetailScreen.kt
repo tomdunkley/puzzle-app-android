@@ -47,8 +47,10 @@ import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
-import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
+import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
+import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
+import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
 import com.tomdunkley.dailypuzzles.ui.components.numbersOpSymbol
 import com.tomdunkley.dailypuzzles.ui.share.buildBoggleShareText
 import com.tomdunkley.dailypuzzles.ui.share.buildNumbersShareText
@@ -69,12 +71,18 @@ fun ScoreDetailScreen(
     var showAllWordsDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
-    val title = (uiState as? ScoreDetailUiState.Loaded)?.detail?.puzzleId?.substringAfter("_") ?: ""
+    val loadedDetail = (uiState as? ScoreDetailUiState.Loaded)?.detail
+    val title = loadedDetail?.puzzleId?.substringAfter("_") ?: ""
+    val topBarColor = when (loadedDetail?.game) {
+        "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)
+        else -> WordsSolidColor.copy(alpha = 0.15f)
+    }
 
     Scaffold(
         topBar = {
             SectionTopBar(
                 title = title,
+                backgroundColor = topBarColor,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
