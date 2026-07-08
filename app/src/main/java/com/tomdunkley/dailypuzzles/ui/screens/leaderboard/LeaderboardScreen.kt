@@ -251,8 +251,8 @@ private fun DateSwitcher(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -266,7 +266,7 @@ private fun DateSwitcher(
         Text(
             dateLabel,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         IconButton(onClick = onNext, enabled = canGoNext) {
             Icon(
