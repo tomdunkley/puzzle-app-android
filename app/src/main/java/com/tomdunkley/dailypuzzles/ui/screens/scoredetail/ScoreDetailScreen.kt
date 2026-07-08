@@ -124,13 +124,11 @@ fun ScoreDetailScreen(
                         Arrangement.spacedBy(12.dp)
                     },
                 ) {
-                    if (isSignedIn) {
+                    if (isSignedIn && isNumbers) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AvatarIcon(state.detail.avatarId, state.detail.avatarColorId, avatarIconColor = state.detail.avatarIconColor, size = 40.dp)
                             Column(modifier = Modifier.padding(start = 12.dp)) {
                                 Text(state.detail.displayName, style = MaterialTheme.typography.titleLarge)
-                                // rank_today is 0 if this player has opted out of the global
-                                // leaderboard -- no rank to show in that case.
                                 if (state.detail.rankToday > 0) {
                                     Text(
                                         "Global rank #${state.detail.rankToday} today",
@@ -142,10 +140,10 @@ fun ScoreDetailScreen(
                         }
                     }
 
-                    if (state.detail.game == "numbers") {
+                    if (isNumbers) {
                         NumbersDetailContent(state.detail)
                     } else {
-                        BoggleDetailContent(state.detail)
+                        BoggleDetailContent(state.detail, isSignedIn)
                     }
                 }
 
@@ -271,15 +269,48 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
 }
 
 @Composable
-private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto) {
-    Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
-    if (!detail.locked) {
-        val wordCount = detail.validWords?.size ?: 0
-        Text(
-            "$wordCount word${if (wordCount == 1) "" else "s"}",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto, isSignedIn: Boolean) {
+    if (isSignedIn) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AvatarIcon(detail.avatarId, detail.avatarColorId, avatarIconColor = detail.avatarIconColor, size = 40.dp)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(detail.displayName, style = MaterialTheme.typography.titleLarge)
+                    if (detail.rankToday > 0) {
+                        Text(
+                            "Global rank #${detail.rankToday} today",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
+                if (!detail.locked) {
+                    val wordCount = detail.validWords?.size ?: 0
+                    Text(
+                        "$wordCount word${if (wordCount == 1) "" else "s"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    } else {
+        Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
+        if (!detail.locked) {
+            val wordCount = detail.validWords?.size ?: 0
+            Text(
+                "$wordCount word${if (wordCount == 1) "" else "s"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 
     if (detail.locked) {
