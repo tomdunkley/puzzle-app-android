@@ -74,9 +74,11 @@ fun ScoreDetailScreen(
 
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
     val loadedDetail = (uiState as? ScoreDetailUiState.Loaded)?.detail
-    val title = loadedDetail?.puzzleId?.substringAfter("_")?.let { iso ->
+    val gameLabel = when (loadedDetail?.game) { "numbers" -> "Numbers" else -> "Words" }
+    val dateOrSeed = loadedDetail?.puzzleId?.substringAfter("_")?.let { iso ->
         runCatching { formatDisplayDate(LocalDate.parse(iso)) }.getOrDefault(iso)
     } ?: ""
+    val title = if (loadedDetail != null) "$gameLabel: $dateOrSeed" else ""
     val topBarColor = when (loadedDetail?.game) {
         "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)
         else -> WordsSolidColor.copy(alpha = 0.15f)
