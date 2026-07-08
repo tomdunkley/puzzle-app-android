@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-
 private const val MAX_DATE_OFFSET = 7
 
 enum class LeaderboardScope { FRIENDS, GLOBAL }
@@ -35,12 +33,8 @@ sealed interface LeaderboardUiState {
     ) : LeaderboardUiState
 }
 
-private fun dateLabel(offset: Int, todayDate: LocalDate): String = when (offset) {
-    0 -> "Today"
-    1 -> "Yesterday"
-    else -> todayDate.minusDays(offset.toLong())
-        .format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH))
-}
+private fun dateLabel(offset: Int, todayDate: LocalDate): String =
+    todayDate.minusDays(offset.toLong()).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
 class LeaderboardViewModel : ViewModel() {
 

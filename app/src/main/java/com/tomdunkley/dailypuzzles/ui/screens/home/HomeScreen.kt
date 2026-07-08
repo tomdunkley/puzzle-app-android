@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInclusive
-import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -78,7 +78,7 @@ val availablePuzzles = listOf(
         id = "numbers",
         title = "Numbers",
         description = "Combine six numbers to get as close to the target as you can.",
-        icon = Icons.Filled.GpsFixed,
+        icon = Icons.Filled.Calculate,
         solidColor = NumbersSolidColor,
         accentColor = NumbersAccentColor,
     ),
