@@ -110,15 +110,19 @@ fun ScoreDetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Weighted so it grows to fill the available space, pushing the SHARE /
-                // SIGN IN TO SAVE buttons below down to the bottom of the screen instead
-                // of leaving a gap when the content is shorter than the screen. Scrolls as
-                // one unit (board/target included) rather than only the words/steps below
-                // scrolling within their own confined box.
+                val isNumbers = state.detail.game == "numbers"
                 Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
+                    modifier = if (isNumbers) {
+                        Modifier.weight(1f).padding(vertical = 12.dp)
+                    } else {
+                        Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 12.dp)
+                    },
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = if (isNumbers) {
+                        Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+                    } else {
+                        Arrangement.spacedBy(12.dp)
+                    },
                 ) {
                     if (isSignedIn) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
