@@ -104,6 +104,13 @@ private fun SignedInLeaderboard(
             val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
             val iconColor = gameIconColor(selectedGame?.game ?: "boggle")
             Column(modifier = Modifier.fillMaxSize()) {
+                DateSwitcher(
+                    dateLabel = state.dateLabel,
+                    canGoPrevious = state.dateOffset < 7,
+                    canGoNext = state.dateOffset > 0,
+                    onPrevious = viewModel::selectOlderDate,
+                    onNext = viewModel::selectNewerDate,
+                )
                 GameSwitcher(
                     gameTitle = selectedGame?.title ?: "Words",
                     solidColor = solidColor,
@@ -230,6 +237,44 @@ private fun ResultSummary(entry: LeaderboardEntryDto) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun DateSwitcher(
+    dateLabel: String,
+    canGoPrevious: Boolean,
+    canGoNext: Boolean,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onPrevious, enabled = canGoPrevious) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = "Older day",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoPrevious) 1f else 0.3f),
+            )
+        }
+        Text(
+            dateLabel,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        IconButton(onClick = onNext, enabled = canGoNext) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Newer day",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoNext) 1f else 0.3f),
+            )
+        }
     }
 }
 

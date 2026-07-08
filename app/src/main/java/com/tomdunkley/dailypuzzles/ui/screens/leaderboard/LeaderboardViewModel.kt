@@ -11,6 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+private const val MAX_DATE_OFFSET = 7
 
 enum class LeaderboardScope { FRIENDS, GLOBAL }
 
@@ -25,7 +30,16 @@ sealed interface LeaderboardUiState {
         val selectedGameIndex: Int,
         val scope: LeaderboardScope,
         val hasFriends: Boolean,
+        val dateLabel: String,
+        val dateOffset: Int,
     ) : LeaderboardUiState
+}
+
+private fun dateLabel(offset: Int, todayDate: LocalDate): String = when (offset) {
+    0 -> "Today"
+    1 -> "Yesterday"
+    else -> todayDate.minusDays(offset.toLong())
+        .format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH))
 }
 
 class LeaderboardViewModel : ViewModel() {
@@ -36,6 +50,8 @@ class LeaderboardViewModel : ViewModel() {
     private var games: List<GameSummaryDto> = emptyList()
     private var selectedGameIndex: Int = 0
     private var scope: LeaderboardScope = LeaderboardScope.FRIENDS
+    private var dateOffset: Int = 0
+    private var serverTodayDate: LocalDate? = null
 
     fun load() {
         viewModelScope.launch {
@@ -46,15 +62,26 @@ class LeaderboardViewModel : ViewModel() {
                 }
                 val game = games.getOrNull(selectedGameIndex)?.game ?: "boggle"
                 val me = ApiClient.authenticatedService.getMyProfile()
-                val puzzle = ApiClient.authenticatedService.getTodayPuzzle(game)
+
+                val todayDate = serverTodayDate ?: run {
+                    val todayPuzzle = ApiClient.authenticatedService.getTodayPuzzle(game)
+                    val parsed = LocalDate.parse(todayPuzzle.puzzleId.substringAfter("_"))
+                    serverTodayDate = parsed
+                    parsed
+                }
+
+                val puzzleDate = todayDate.minusDays(dateOffset.toLong())
+                val puzzleId = "${game}_${puzzleDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
+
                 val leaderboard = when (scope) {
-                    LeaderboardScope.FRIENDS -> ApiClient.authenticatedService.getLeaderboard(puzzle.puzzleId)
-                    LeaderboardScope.GLOBAL -> ApiClient.authenticatedService.getGlobalLeaderboard(puzzle.puzzleId)
+                    LeaderboardScope.FRIENDS -> ApiClient.authenticatedService.getLeaderboard(puzzleId)
+                    LeaderboardScope.GLOBAL -> ApiClient.authenticatedService.getGlobalLeaderboard(puzzleId)
                 }
                 val hasFriends = ApiClient.authenticatedService.getFriends().isNotEmpty()
-                Triple(me.userId, puzzle.puzzleId, leaderboard.entries) to hasFriends
-            }.onSuccess { (triple, hasFriends) ->
+                Triple(me.userId, puzzleId, leaderboard.entries) to Pair(hasFriends, todayDate)
+            }.onSuccess { (triple, extra) ->
                 val (selfUserId, puzzleId, entries) = triple
+                val (hasFriends, todayDate) = extra
                 _uiState.value = LeaderboardUiState.Loaded(
                     entries = entries,
                     selfUserId = selfUserId,
@@ -63,6 +90,8 @@ class LeaderboardViewModel : ViewModel() {
                     selectedGameIndex = selectedGameIndex,
                     scope = scope,
                     hasFriends = hasFriends,
+                    dateLabel = dateLabel(dateOffset, todayDate),
+                    dateOffset = dateOffset,
                 )
             }.onFailure {
                 if (!handleIfVerificationRequired(it)) {
@@ -87,6 +116,18 @@ class LeaderboardViewModel : ViewModel() {
     fun selectScope(newScope: LeaderboardScope) {
         if (scope == newScope) return
         scope = newScope
+        load()
+    }
+
+    fun selectOlderDate() {
+        if (dateOffset >= MAX_DATE_OFFSET) return
+        dateOffset++
+        load()
+    }
+
+    fun selectNewerDate() {
+        if (dateOffset <= 0) return
+        dateOffset--
         load()
     }
 }
