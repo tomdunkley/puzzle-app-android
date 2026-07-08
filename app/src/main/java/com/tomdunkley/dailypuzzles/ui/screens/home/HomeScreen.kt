@@ -15,9 +15,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.Button
@@ -89,6 +91,7 @@ private var hasShownSignInPromptThisLaunch = false
 fun HomeScreen(
     isSignedIn: Boolean,
     onPuzzleClick: (String) -> Unit,
+    onUnlimitedPuzzleClick: (String) -> Unit,
     onSignInClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
@@ -99,6 +102,10 @@ fun HomeScreen(
     }
     val puzzleStatuses by viewModel.puzzleStatuses.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isDeveloper by viewModel.isDeveloper.collectAsState()
+    val bogglePracticeHighScore by viewModel.bogglePracticeHighScore.collectAsState()
+    val numbersPracticeBestDistance by viewModel.numbersPracticeBestDistance.collectAsState()
+    val numbersPracticeBestTimeSeconds by viewModel.numbersPracticeBestTimeSeconds.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -119,12 +126,32 @@ fun HomeScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(availablePuzzles) { puzzle ->
-                    PuzzleCard(
-                        puzzle = puzzle,
-                        status = puzzleStatuses[puzzle.id] ?: PuzzleStatus.NONE,
-                        onClick = { onPuzzleClick(puzzle.id) },
-                    )
+                availablePuzzles.forEach { puzzle ->
+                    item(key = puzzle.id) {
+                        PuzzleCard(
+                            puzzle = puzzle,
+                            status = puzzleStatuses[puzzle.id] ?: PuzzleStatus.NONE,
+                            onClick = { onPuzzleClick(puzzle.id) },
+                        )
+                    }
+                    if (isDeveloper) {
+                        item(key = "${puzzle.id}_unlimited") {
+                            val practiceHighScore = when (puzzle.id) {
+                                "boggle" -> if (bogglePracticeHighScore >= 0) "$bogglePracticeHighScore pts" else ""
+                                "numbers" -> when {
+                                    numbersPracticeBestDistance < 0 -> ""
+                                    numbersPracticeBestDistance == 0 -> "Exact! in ${numbersPracticeBestTimeSeconds}s"
+                                    else -> "$numbersPracticeBestDistance away"
+                                }
+                                else -> ""
+                            }
+                            PracticeCard(
+                                puzzle = puzzle,
+                                onClick = { onUnlimitedPuzzleClick(puzzle.id) },
+                                highScore = practiceHighScore,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -188,6 +215,58 @@ private fun SignInPromptDialog(onClose: () -> Unit, onSignInClick: () -> Unit) {
 }
 
 private val PAUSE_YELLOW = Color(0xFFFFCC00)
+
+@Composable
+private fun PracticeCard(puzzle: Puzzle, onClick: () -> Unit, highScore: String) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        colors = CardDefaults.outlinedCardColors(containerColor = puzzle.solidColor.copy(alpha = 0.07f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier.size(64.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AllInclusive,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = puzzle.solidColor,
+                )
+            }
+            Column {
+                Text(text = "${puzzle.title}: Unlimited", style = MaterialTheme.typography.headlineSmall)
+                if (highScore.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(top = 2.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.EmojiEvents,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = puzzle.solidColor,
+                        )
+                        Text(
+                            text = highScore,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun PuzzleCard(puzzle: Puzzle, status: PuzzleStatus, onClick: () -> Unit) {

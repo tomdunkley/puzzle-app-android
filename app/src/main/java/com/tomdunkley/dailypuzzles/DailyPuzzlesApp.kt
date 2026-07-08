@@ -7,6 +7,8 @@ import com.tomdunkley.dailypuzzles.data.auth.AuthTokenStore
 import com.tomdunkley.dailypuzzles.data.auth.GuestSession
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleDictionary
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
+import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
+import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
@@ -21,6 +23,8 @@ class DailyPuzzlesApp : Application() {
         GuestSession.init(this)
         BoggleProgressStore.init(this)
         NumbersProgressStore.init(this)
+        DeveloperStore.init(this)
+        UnlimitedHighScoreStore.init(this)
         TrophySeenStore.init(this)
         BoggleDictionary.init(this)
         SoundFeedback.init()

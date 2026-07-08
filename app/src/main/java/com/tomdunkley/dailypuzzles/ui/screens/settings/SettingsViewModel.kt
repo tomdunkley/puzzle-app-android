@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
+import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
+import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UpdateProfileRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserProfileDto
@@ -50,6 +52,7 @@ class SettingsViewModel : ViewModel() {
                 .filter { it.unlocked }.mapNotNull { it.unlocksColorId }.toSet()
             val unlockedIconColorIds = achievementItems
                 .filter { it.unlocked }.mapNotNull { it.unlocksIconColorId }.toSet()
+            DeveloperStore.isDeveloper = profile.isDeveloper
             _uiState.value = SettingsUiState.Loaded(
                 profile = profile,
                 unlockedAchievementAvatarIds = unlockedAvatarIds,
@@ -178,6 +181,10 @@ class SettingsViewModel : ViewModel() {
                     )
                 }
         }
+    }
+
+    fun resetPracticeHighScores() {
+        UnlimitedHighScoreStore.reset()
     }
 
     fun resetDevProgress() {

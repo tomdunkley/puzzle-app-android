@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
+import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
 import com.tomdunkley.dailypuzzles.data.network.todayUtcIso
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
+import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,11 +23,27 @@ class HomeViewModel : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _isDeveloper = MutableStateFlow(DeveloperStore.isDeveloper)
+    val isDeveloper: StateFlow<Boolean> = _isDeveloper.asStateFlow()
+
+    private val _bogglePracticeHighScore = MutableStateFlow(UnlimitedHighScoreStore.boggleHighScore)
+    val bogglePracticeHighScore: StateFlow<Int> = _bogglePracticeHighScore.asStateFlow()
+
+    private val _numbersPracticeBestDistance = MutableStateFlow(UnlimitedHighScoreStore.numbersBestDistance)
+    val numbersPracticeBestDistance: StateFlow<Int> = _numbersPracticeBestDistance.asStateFlow()
+
+    private val _numbersPracticeBestTimeSeconds = MutableStateFlow(UnlimitedHighScoreStore.numbersBestTimeSeconds)
+    val numbersPracticeBestTimeSeconds: StateFlow<Int> = _numbersPracticeBestTimeSeconds.asStateFlow()
+
     /** Emits cached statuses immediately so the home cards show the last-known state
      * without any loading spinners, then fetches from the network and updates.
      * Pull-to-refresh also calls this; the [isRefreshing] indicator covers the update.
      */
     fun refresh(showSpinner: Boolean = false) {
+        _isDeveloper.value = DeveloperStore.isDeveloper
+        _bogglePracticeHighScore.value = UnlimitedHighScoreStore.boggleHighScore
+        _numbersPracticeBestDistance.value = UnlimitedHighScoreStore.numbersBestDistance
+        _numbersPracticeBestTimeSeconds.value = UnlimitedHighScoreStore.numbersBestTimeSeconds
         val todayId = todayUtcIso()
         _puzzleStatuses.value = availablePuzzles.associate { puzzle ->
             val todayPuzzleId = "${puzzle.id}_$todayId"

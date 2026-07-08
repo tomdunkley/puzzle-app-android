@@ -428,6 +428,13 @@ fun AccountSettingsScreen(
                         OutlinedButton(
                             modifier = Modifier.fillMaxWidth(),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                            onClick = { viewModel.resetPracticeHighScores() },
+                        ) {
+                            Text("RESET UNLIMITED HIGH SCORES")
+                        }
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
                             enabled = !state.isSaving,
                             onClick = { viewModel.unlockAllAchievements() },
                         ) {

@@ -1,6 +1,7 @@
 package com.tomdunkley.dailypuzzles.data.auth
 
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
+import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.network.ApiService
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
@@ -146,6 +147,7 @@ object AuthRepository {
         // badges and cached results until the next day's puzzle.
         BoggleProgressStore.clearAll()
         NumbersProgressStore.clearAll()
+        DeveloperStore.clear()
         _state.value = AuthState.SignedOut
     }
 

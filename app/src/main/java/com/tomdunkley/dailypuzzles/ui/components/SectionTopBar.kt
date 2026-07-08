@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SectionTopBar(
     title: String,
+    subtitle: String? = null,
     navigationIcon: @Composable (() -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     backgroundColor: Color? = null,
@@ -54,17 +55,28 @@ fun SectionTopBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
+                    .heightIn(min = 60.dp)
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (resolvedNavIcon != null) {
                     Row(modifier = Modifier.padding(end = 4.dp)) { resolvedNavIcon() }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(start = 6.dp),
-                    )
+                    if (subtitle != null) {
+                        Column(modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)) {
+                            Text(text = title, style = MaterialTheme.typography.headlineSmall)
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 6.dp),
+                        )
+                    }
                 } else {
                     Text(
                         text = "td",
