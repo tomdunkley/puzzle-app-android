@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
+import com.tomdunkley.dailypuzzles.util.formatDisplayDate
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
@@ -75,7 +75,7 @@ fun ScoreDetailScreen(
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
     val loadedDetail = (uiState as? ScoreDetailUiState.Loaded)?.detail
     val title = loadedDetail?.puzzleId?.substringAfter("_")?.let { iso ->
-        runCatching { LocalDate.parse(iso).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) }.getOrDefault(iso)
+        runCatching { formatDisplayDate(LocalDate.parse(iso)) }.getOrDefault(iso)
     } ?: ""
     val topBarColor = when (loadedDetail?.game) {
         "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)

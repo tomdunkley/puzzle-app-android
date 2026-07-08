@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.tomdunkley.dailypuzzles.util.formatDisplayDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 private const val MAX_DATE_OFFSET = 7
@@ -34,7 +35,7 @@ sealed interface LeaderboardUiState {
 }
 
 private fun dateLabel(offset: Int, todayDate: LocalDate): String =
-    todayDate.minusDays(offset.toLong()).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    formatDisplayDate(todayDate.minusDays(offset.toLong()))
 
 class LeaderboardViewModel : ViewModel() {
 
