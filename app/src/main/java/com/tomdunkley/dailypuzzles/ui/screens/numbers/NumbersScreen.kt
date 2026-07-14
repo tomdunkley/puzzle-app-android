@@ -85,7 +85,7 @@ fun NumbersScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) { viewModel.loadTodayPuzzle() }
-    LaunchedEffect(uiState) { onShowBottomBarChange(uiState is NumbersUiState.Results) }
+    LaunchedEffect(Unit) { onShowBottomBarChange(true) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

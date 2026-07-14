@@ -87,7 +87,7 @@ fun BoggleScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) { viewModel.loadTodayPuzzle() }
-    LaunchedEffect(uiState) { onShowBottomBarChange(uiState is BoggleUiState.Results) }
+    LaunchedEffect(Unit) { onShowBottomBarChange(true) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

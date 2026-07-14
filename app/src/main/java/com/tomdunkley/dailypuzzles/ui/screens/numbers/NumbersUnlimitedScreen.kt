@@ -89,8 +89,7 @@ fun NumbersUnlimitedScreen(
     LaunchedEffect(showIntro) { showHighScoreDetail = false }
 
     LaunchedEffect(Unit) { viewModel.loadPuzzle() }
-    val showTabs = uiState !is NumbersUiState.Playing || (uiState as NumbersUiState.Playing).isPaused
-    LaunchedEffect(showTabs) { onShowBottomBarChange(showTabs) }
+    LaunchedEffect(Unit) { onShowBottomBarChange(true) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

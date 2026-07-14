@@ -100,8 +100,7 @@ fun BoggleUnlimitedScreen(
     }
 
     LaunchedEffect(Unit) { viewModel.loadPuzzle() }
-    val showTabs = uiState !is BoggleUiState.Playing || (uiState as BoggleUiState.Playing).isPaused
-    LaunchedEffect(showTabs) { onShowBottomBarChange(showTabs) }
+    LaunchedEffect(Unit) { onShowBottomBarChange(true) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
