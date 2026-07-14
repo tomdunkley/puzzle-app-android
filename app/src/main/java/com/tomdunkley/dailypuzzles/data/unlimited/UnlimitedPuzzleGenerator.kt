@@ -23,7 +23,10 @@ object UnlimitedPuzzleGenerator {
 
     fun generateBoggleBoard(seed: Long): List<String> {
         val random = Random(seed)
-        return List(25) { LETTER_POOL[random.nextInt(LETTER_POOL.length)].toString() }
+        return List(25) {
+            val letter = LETTER_POOL[random.nextInt(LETTER_POOL.length)].toString()
+            if (letter == "Q") "QU" else letter
+        }
     }
 
     fun generateNumbersPuzzle(seed: Long): Pair<Int, List<Int>> {
