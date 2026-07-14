@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleDictionary
+import com.tomdunkley.dailypuzzles.data.boggle.BoggleSolver
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedPuzzleGenerator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +36,25 @@ class BoggleUnlimitedViewModel : ViewModel() {
     private val _boardForResults = MutableStateFlow<List<String>>(emptyList())
     val boardForResults: StateFlow<List<String>> = _boardForResults.asStateFlow()
 
+    sealed interface AllWordsState {
+        data object Idle : AllWordsState
+        data object Computing : AllWordsState
+        data class Done(val words: List<String>) : AllWordsState
+    }
+
+    private val _allWordsState = MutableStateFlow<AllWordsState>(AllWordsState.Idle)
+    val allWordsState: StateFlow<AllWordsState> = _allWordsState.asStateFlow()
+
+    fun computeAllWords(board: List<String>) {
+        if (_allWordsState.value is AllWordsState.Computing) return
+        viewModelScope.launch(Dispatchers.Default) {
+            _allWordsState.value = AllWordsState.Computing
+            _allWordsState.value = AllWordsState.Done(BoggleSolver.findAllWords(board))
+        }
+    }
+
+    fun resetAllWords() { _allWordsState.value = AllWordsState.Idle }
+
     private var currentBoard = emptyList<String>()
     private var timerJob: Job? = null
 
@@ -58,6 +79,7 @@ class BoggleUnlimitedViewModel : ViewModel() {
         currentBoard = UnlimitedPuzzleGenerator.generateBoggleBoard(UnlimitedPuzzleGenerator.seedCodeToLong(newCode))
         _showIntro.value = true
         _uiState.value = BoggleUiState.Loading
+        _allWordsState.value = AllWordsState.Idle
     }
 
     fun startGame() {

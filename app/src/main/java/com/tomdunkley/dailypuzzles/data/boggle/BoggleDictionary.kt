@@ -26,4 +26,6 @@ object BoggleDictionary {
     }
 
     suspend fun contains(word: String): Boolean = wordsDeferred.await().contains(word.uppercase())
+
+    suspend fun getAll(): Set<String> = wordsDeferred.await()
 }

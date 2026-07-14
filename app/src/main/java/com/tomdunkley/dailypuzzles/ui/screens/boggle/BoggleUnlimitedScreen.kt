@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -87,6 +88,7 @@ fun BoggleUnlimitedScreen(
     val showIntro by viewModel.showIntro.collectAsState()
     val boardForResults by viewModel.boardForResults.collectAsState()
     val isNewBestScore by viewModel.isNewBestScore.collectAsState()
+    val allWordsState by viewModel.allWordsState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var showBoardFullScreen by remember { mutableStateOf(false) }
@@ -142,6 +144,8 @@ fun BoggleUnlimitedScreen(
                     score = viewModel.practiceHighScore,
                     board = remember(showHighScoreDetail) { viewModel.highScoreBoard() },
                     words = remember(showHighScoreDetail) { viewModel.highScoreWords() },
+                    allWordsState = allWordsState,
+                    onLoadAllWords = viewModel::computeAllWords,
                 )
                 showBoardFullScreen -> {
                     val resultsState = uiState as? BoggleUiState.Results
@@ -149,6 +153,8 @@ fun BoggleUnlimitedScreen(
                         board = boardForResults,
                         score = resultsState?.score ?: 0,
                         validWords = resultsState?.validWords ?: emptyList(),
+                        allWordsState = allWordsState,
+                        onLoadAllWords = viewModel::computeAllWords,
                     )
                 }
                 showIntro -> UnlimitedIntroContent(
@@ -181,7 +187,14 @@ fun BoggleUnlimitedScreen(
 }
 
 @Composable
-private fun BoggleHighScoreDetailContent(score: Int, board: List<String>, words: List<String>) {
+private fun BoggleHighScoreDetailContent(
+    score: Int,
+    board: List<String>,
+    words: List<String>,
+    allWordsState: BoggleUnlimitedViewModel.AllWordsState,
+    onLoadAllWords: (List<String>) -> Unit,
+) {
+    var showAllWordsDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -210,11 +223,28 @@ private fun BoggleHighScoreDetailContent(score: Int, board: List<String>, words:
                 }
             }
         }
+        if (board.isNotEmpty()) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                onClick = { onLoadAllWords(board); showAllWordsDialog = true },
+            ) { Text("VIEW ALL POSSIBLE WORDS") }
+        }
+    }
+    if (showAllWordsDialog) {
+        AllWordsDialog(state = allWordsState, onClose = { showAllWordsDialog = false })
     }
 }
 
 @Composable
-private fun UnlimitedBoardScreen(board: List<String>, score: Int, validWords: List<String>) {
+private fun UnlimitedBoardScreen(
+    board: List<String>,
+    score: Int,
+    validWords: List<String>,
+    allWordsState: BoggleUnlimitedViewModel.AllWordsState,
+    onLoadAllWords: (List<String>) -> Unit,
+) {
+    var showAllWordsDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -243,6 +273,14 @@ private fun UnlimitedBoardScreen(board: List<String>, score: Int, validWords: Li
                 }
             }
         }
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+            onClick = { onLoadAllWords(board); showAllWordsDialog = true },
+        ) { Text("VIEW ALL POSSIBLE WORDS") }
+    }
+    if (showAllWordsDialog) {
+        AllWordsDialog(state = allWordsState, onClose = { showAllWordsDialog = false })
     }
 }
 
@@ -768,6 +806,54 @@ private fun UnlimitedResultsContent(
             onClick = onViewBoard,
         ) {
             Text("VIEW BOARD")
+        }
+    }
+}
+
+@Composable
+private fun AllWordsDialog(
+    state: BoggleUnlimitedViewModel.AllWordsState,
+    onClose: () -> Unit,
+) {
+    Dialog(onDismissRequest = onClose) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("All possible words", style = MaterialTheme.typography.titleLarge)
+                when (state) {
+                    BoggleUnlimitedViewModel.AllWordsState.Idle,
+                    BoggleUnlimitedViewModel.AllWordsState.Computing -> Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
+                        contentAlignment = Alignment.Center,
+                    ) { CircularProgressIndicator() }
+                    is BoggleUnlimitedViewModel.AllWordsState.Done -> FlowRow(
+                        modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        state.words.forEach { word ->
+                            Text(
+                                text = "$word (${scoreForWord(word)})",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
+                }
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                    onClick = onClose,
+                ) { Text("CLOSE") }
+            }
         }
     }
 }
