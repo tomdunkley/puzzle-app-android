@@ -18,12 +18,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 import kotlinx.coroutines.delay
 
 @Composable
-fun TrophyUnlockedBanner(count: Int, onDismiss: () -> Unit) {
-    if (count <= 0) return
-    LaunchedEffect(count) {
+fun TrophyUnlockedBanner(trophies: List<String>, onDismiss: () -> Unit) {
+    val current = trophies.firstOrNull() ?: return
+    LaunchedEffect(current) {
         delay(4000)
         onDismiss()
     }
@@ -44,7 +45,7 @@ fun TrophyUnlockedBanner(count: Int, onDismiss: () -> Unit) {
                     tint = WordsSolidColor,
                 )
                 Text(
-                    text = if (count == 1) "Trophy unlocked!" else "$count trophies unlocked!",
+                    text = "Trophy unlocked: $current",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.surface,
                 )

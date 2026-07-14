@@ -8,6 +8,7 @@ import com.tomdunkley.dailypuzzles.data.boggle.BoggleDictionary
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgress
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleResult
+import com.tomdunkley.dailypuzzles.data.trophies.TROPHY_TITLES
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 import com.tomdunkley.dailypuzzles.data.network.dto.PuzzleDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreSubmissionDto
@@ -67,10 +68,19 @@ class BoggleViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<BoggleUiState>(BoggleUiState.Loading)
     val uiState: StateFlow<BoggleUiState> = _uiState.asStateFlow()
 
-    private val _newlyUnlockedCount = MutableStateFlow(0)
-    val newlyUnlockedCount: StateFlow<Int> = _newlyUnlockedCount.asStateFlow()
+    private val _newlyUnlockedTrophies = MutableStateFlow<List<String>>(emptyList())
+    val newlyUnlockedTrophies: StateFlow<List<String>> = _newlyUnlockedTrophies.asStateFlow()
 
-    fun dismissTrophyNotification() { _newlyUnlockedCount.value = 0 }
+    fun dismissTrophyNotification() {
+        _newlyUnlockedTrophies.value = _newlyUnlockedTrophies.value.drop(1)
+    }
+
+    private val shownInGameTrophyIds = mutableSetOf<String>()
+
+    private fun showTrophyNotification(trophyIds: List<String>) {
+        val titles = trophyIds.mapNotNull { TROPHY_TITLES[it] }
+        if (titles.isNotEmpty()) _newlyUnlockedTrophies.value = _newlyUnlockedTrophies.value + titles
+    }
 
     private lateinit var puzzle: PuzzleDto
     private var timerJob: kotlinx.coroutines.Job? = null
@@ -220,16 +230,26 @@ class BoggleViewModel : ViewModel() {
             val isValid = BoggleDictionary.contains(word)
             val current = _uiState.value as? BoggleUiState.Playing ?: return@launch
             if (isValid) {
-                _uiState.value = if (word !in current.foundWords) {
-                    current.copy(foundWords = current.foundWords + word)
+                if (word !in current.foundWords) {
+                    _uiState.value = current.copy(foundWords = current.foundWords + word)
+                    checkInGameWordAchievements(word)
                 } else {
-                    current
+                    _uiState.value = current
                 }
                 showFeedback(word, WordFeedbackType.CORRECT)
             } else {
                 showFeedback(word, WordFeedbackType.INCORRECT)
             }
         }
+    }
+
+    private fun checkInGameWordAchievements(word: String) {
+        val w = word.lowercase()
+        val toShow = mutableListOf<String>()
+        if (w == "words" && shownInGameTrophyIds.add("meta")) toShow.add("meta")
+        if ("qu" in w && shownInGameTrophyIds.add("queen")) toShow.add("queen")
+        if (w.length >= 8 && shownInGameTrophyIds.add("hippopotomonstrosesquippedaliophobia")) toShow.add("hippopotomonstrosesquippedaliophobia")
+        showTrophyNotification(toShow)
     }
 
     private fun showFeedback(word: String, type: WordFeedbackType) {
@@ -280,7 +300,7 @@ class BoggleViewModel : ViewModel() {
                 .onSuccess { result ->
                     BoggleProgressStore.clear()
                     TrophySeenStore.addUnseen(result.newlyUnlocked)
-                    _newlyUnlockedCount.value = result.newlyUnlocked.size
+                    showTrophyNotification(result.newlyUnlocked.filter { it !in shownInGameTrophyIds })
                     val completed = BoggleResult(
                         puzzleId = puzzle.puzzleId,
                         date = puzzle.date,

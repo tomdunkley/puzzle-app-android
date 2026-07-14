@@ -81,7 +81,7 @@ fun BoggleScreen(
     viewModel: BoggleViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val newlyUnlockedCount by viewModel.newlyUnlockedCount.collectAsState()
+    val newlyUnlockedTrophies by viewModel.newlyUnlockedTrophies.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -147,7 +147,7 @@ fun BoggleScreen(
                 )
             }
             TrophyUnlockedBanner(
-                count = newlyUnlockedCount,
+                trophies = newlyUnlockedTrophies,
                 onDismiss = viewModel::dismissTrophyNotification,
             )
         }

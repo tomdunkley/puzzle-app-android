@@ -15,6 +15,7 @@ import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgress
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersResult
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import com.tomdunkley.dailypuzzles.data.trophies.TROPHY_TITLES
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -82,10 +83,19 @@ class NumbersViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<NumbersUiState>(NumbersUiState.Loading)
     val uiState: StateFlow<NumbersUiState> = _uiState.asStateFlow()
 
-    private val _newlyUnlockedCount = MutableStateFlow(0)
-    val newlyUnlockedCount: StateFlow<Int> = _newlyUnlockedCount.asStateFlow()
+    private val _newlyUnlockedTrophies = MutableStateFlow<List<String>>(emptyList())
+    val newlyUnlockedTrophies: StateFlow<List<String>> = _newlyUnlockedTrophies.asStateFlow()
 
-    fun dismissTrophyNotification() { _newlyUnlockedCount.value = 0 }
+    fun dismissTrophyNotification() {
+        _newlyUnlockedTrophies.value = _newlyUnlockedTrophies.value.drop(1)
+    }
+
+    private val shownInGameTrophyIds = mutableSetOf<String>()
+
+    private fun showTrophyNotification(trophyIds: List<String>) {
+        val titles = trophyIds.mapNotNull { TROPHY_TITLES[it] }
+        if (titles.isNotEmpty()) _newlyUnlockedTrophies.value = _newlyUnlockedTrophies.value + titles
+    }
 
     private lateinit var puzzle: PuzzleDto
     private var timerJob: kotlinx.coroutines.Job? = null
@@ -252,6 +262,13 @@ class NumbersViewModel : ViewModel() {
         _uiState.value = state.copy(pendingOp = if (state.pendingOp == op) null else op)
     }
 
+    private fun checkInGameNumberAchievements(result: Int) {
+        val toShow = mutableListOf<String>()
+        if (result == 69 && shownInGameTrophyIds.add("nice")) toShow.add("nice")
+        if (result >= 100_000_000 && shownInGameTrophyIds.add("massive")) toShow.add("massive")
+        showTrophyNotification(toShow)
+    }
+
     private fun showErrorMessage(message: String) {
         val state = _uiState.value as? NumbersUiState.Playing ?: return
         _uiState.value = state.copy(errorMessage = message)
@@ -287,6 +304,8 @@ class NumbersViewModel : ViewModel() {
             bestSteps = if (improved) resultTile.steps else state.bestSteps,
             allComputedValues = state.allComputedValues + result,
         )
+
+        checkInGameNumberAchievements(result)
 
         // Hitting the target exactly ends the round immediately -- no reason to make the
         // player press FINISH once there's nothing left to improve on.
@@ -355,7 +374,7 @@ class NumbersViewModel : ViewModel() {
                 .onSuccess { result ->
                     NumbersProgressStore.clear()
                     TrophySeenStore.addUnseen(result.newlyUnlocked)
-                    _newlyUnlockedCount.value = result.newlyUnlocked.size
+                    showTrophyNotification(result.newlyUnlocked.filter { it !in shownInGameTrophyIds })
                     val completed = NumbersResult(
                         puzzleId = puzzle.puzzleId,
                         date = puzzle.date,

@@ -80,7 +80,7 @@ fun NumbersScreen(
     viewModel: NumbersViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val newlyUnlockedCount by viewModel.newlyUnlockedCount.collectAsState()
+    val newlyUnlockedTrophies by viewModel.newlyUnlockedTrophies.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
@@ -150,7 +150,7 @@ fun NumbersScreen(
                 )
             }
             TrophyUnlockedBanner(
-                count = newlyUnlockedCount,
+                trophies = newlyUnlockedTrophies,
                 onDismiss = viewModel::dismissTrophyNotification,
             )
         }
