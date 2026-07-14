@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 private const val UNLIMITED_DURATION_SECONDS = 90
+private val BIG_NUMBERS = setOf(25, 50, 75, 100)
+private const val SOLUTION_CAP = 200
 
 private fun unlimitedLegalResult(a: Int, op: String, b: Int): Int? = when (op) {
     "+" -> a + b
@@ -92,22 +94,60 @@ class NumbersUnlimitedViewModel : ViewModel() {
         return Triple(target, numbers, emptyList())
     }
 
-    /** Recursive brute-force solver. Returns solution steps or null if no exact solution exists. */
+    /** Collects up to SOLUTION_CAP solutions then returns the most human-like one, or
+     *  null if the target is unreachable. Uses memoization on sorted tile multisets to
+     *  avoid re-exploring equivalent states.
+     */
     private fun solveNumbers(target: Int, numbers: List<Int>): List<NumbersStepDto>? {
         if (target in numbers) return emptyList()
         if (numbers.size < 2) return null
-        for (i in numbers.indices) {
-            for (j in numbers.indices) {
-                if (i == j) continue
-                val a = numbers[i]; val b = numbers[j]
-                val rest = numbers.filterIndexed { k, _ -> k != i && k != j }
-                solveNumbers(target, rest + (a + b))?.let { return listOf(NumbersStepDto(a, "+", b, a + b)) + it }
-                if (a > b) solveNumbers(target, rest + (a - b))?.let { return listOf(NumbersStepDto(a, "-", b, a - b)) + it }
-                if (a > 1 && b > 1) solveNumbers(target, rest + (a * b))?.let { return listOf(NumbersStepDto(a, "*", b, a * b)) + it }
-                if (b > 1 && a % b == 0) solveNumbers(target, rest + (a / b))?.let { return listOf(NumbersStepDto(a, "/", b, a / b)) + it }
+
+        data class Tile(val value: Int, val steps: List<NumbersStepDto>)
+
+        val solutions = mutableListOf<List<NumbersStepDto>>()
+        val seenStates = mutableSetOf<List<Int>>()
+
+        fun visit(tiles: List<Tile>) {
+            if (solutions.size >= SOLUTION_CAP) return
+            val state = tiles.map { it.value }.sorted()
+            if (!seenStates.add(state)) return
+            for (tile in tiles) {
+                if (tile.value == target && tile.steps.isNotEmpty()) {
+                    solutions.add(tile.steps)
+                    if (solutions.size >= SOLUTION_CAP) return
+                }
+            }
+            if (tiles.size < 2) return
+            for (i in tiles.indices) {
+                for (j in i + 1 until tiles.size) {
+                    if (solutions.size >= SOLUTION_CAP) return
+                    val a = tiles[i]; val b = tiles[j]
+                    val rest = tiles.filterIndexed { k, _ -> k != i && k != j }
+                    val combined = a.steps + b.steps
+                    fun tryOp(left: Int, op: String, right: Int, result: Int) {
+                        if (solutions.size < SOLUTION_CAP)
+                            visit(rest + Tile(result, combined + NumbersStepDto(left, op, right, result)))
+                    }
+                    tryOp(a.value, "+", b.value, a.value + b.value)
+                    if (a.value > b.value) tryOp(a.value, "-", b.value, a.value - b.value)
+                    else if (b.value > a.value) tryOp(b.value, "-", a.value, b.value - a.value)
+                    if (a.value > 1 && b.value > 1) tryOp(a.value, "*", b.value, a.value * b.value)
+                    if (b.value > 1 && a.value % b.value == 0) tryOp(a.value, "/", b.value, a.value / b.value)
+                    if (a.value > 1 && b.value % a.value == 0 && a.value != b.value)
+                        tryOp(b.value, "/", a.value, b.value / a.value)
+                }
             }
         }
-        return null
+
+        visit(numbers.map { Tile(it, emptyList()) })
+        if (solutions.isEmpty()) return null
+
+        return solutions.minWith(compareBy(
+            { it.size },
+            { steps -> -steps.mapIndexed { i, s -> if (s.a in BIG_NUMBERS || s.b in BIG_NUMBERS) steps.size - i else 0 }.sum() },
+            { steps -> steps.maxOfOrNull { it.result } ?: 0 },
+            { steps -> -steps.sumOf { s -> when { s.result % 100 == 0 -> 4; s.result % 50 == 0 -> 3; s.result % 25 == 0 -> 2; s.result % 10 == 0 -> 1; s.result % 5 == 0 -> 0; else -> -1 } } },
+        ))
     }
 
     fun startGame() {
