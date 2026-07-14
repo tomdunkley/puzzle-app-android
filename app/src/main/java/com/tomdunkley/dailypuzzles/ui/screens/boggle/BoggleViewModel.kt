@@ -67,6 +67,11 @@ class BoggleViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<BoggleUiState>(BoggleUiState.Loading)
     val uiState: StateFlow<BoggleUiState> = _uiState.asStateFlow()
 
+    private val _newlyUnlockedCount = MutableStateFlow(0)
+    val newlyUnlockedCount: StateFlow<Int> = _newlyUnlockedCount.asStateFlow()
+
+    fun dismissTrophyNotification() { _newlyUnlockedCount.value = 0 }
+
     private lateinit var puzzle: PuzzleDto
     private var timerJob: kotlinx.coroutines.Job? = null
 
@@ -275,6 +280,7 @@ class BoggleViewModel : ViewModel() {
                 .onSuccess { result ->
                     BoggleProgressStore.clear()
                     TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    _newlyUnlockedCount.value = result.newlyUnlocked.size
                     val completed = BoggleResult(
                         puzzleId = puzzle.puzzleId,
                         date = puzzle.date,

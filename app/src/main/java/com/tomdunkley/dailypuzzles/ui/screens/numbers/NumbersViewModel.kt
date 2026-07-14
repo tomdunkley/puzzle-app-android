@@ -82,6 +82,11 @@ class NumbersViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<NumbersUiState>(NumbersUiState.Loading)
     val uiState: StateFlow<NumbersUiState> = _uiState.asStateFlow()
 
+    private val _newlyUnlockedCount = MutableStateFlow(0)
+    val newlyUnlockedCount: StateFlow<Int> = _newlyUnlockedCount.asStateFlow()
+
+    fun dismissTrophyNotification() { _newlyUnlockedCount.value = 0 }
+
     private lateinit var puzzle: PuzzleDto
     private var timerJob: kotlinx.coroutines.Job? = null
     private var errorMessageJob: Job? = null
@@ -350,6 +355,7 @@ class NumbersViewModel : ViewModel() {
                 .onSuccess { result ->
                     NumbersProgressStore.clear()
                     TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    _newlyUnlockedCount.value = result.newlyUnlocked.size
                     val completed = NumbersResult(
                         puzzleId = puzzle.puzzleId,
                         date = puzzle.date,

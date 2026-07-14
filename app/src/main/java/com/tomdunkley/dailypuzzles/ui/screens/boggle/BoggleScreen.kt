@@ -62,6 +62,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
+import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.displayLetter
 import com.tomdunkley.dailypuzzles.ui.share.buildBoggleShareText
@@ -80,6 +81,7 @@ fun BoggleScreen(
     viewModel: BoggleViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val newlyUnlockedCount by viewModel.newlyUnlockedCount.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -144,6 +146,10 @@ fun BoggleScreen(
                     onSignInClick = onSignInClick,
                 )
             }
+            TrophyUnlockedBanner(
+                count = newlyUnlockedCount,
+                onDismiss = viewModel::dismissTrophyNotification,
+            )
         }
     }
 }

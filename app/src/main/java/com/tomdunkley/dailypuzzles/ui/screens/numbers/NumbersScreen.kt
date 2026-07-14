@@ -64,6 +64,7 @@ import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
+import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
 import com.tomdunkley.dailypuzzles.ui.components.numbersOpSymbol
 import com.tomdunkley.dailypuzzles.ui.share.buildNumbersShareText
 import com.tomdunkley.dailypuzzles.ui.share.shareText
@@ -79,6 +80,7 @@ fun NumbersScreen(
     viewModel: NumbersViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val newlyUnlockedCount by viewModel.newlyUnlockedCount.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
@@ -147,6 +149,10 @@ fun NumbersScreen(
                     modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
                 )
             }
+            TrophyUnlockedBanner(
+                count = newlyUnlockedCount,
+                onDismiss = viewModel::dismissTrophyNotification,
+            )
         }
     }
 }
