@@ -15,6 +15,7 @@ import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgress
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersResult
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
 import com.tomdunkley.dailypuzzles.data.trophies.TROPHY_TITLES
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 import kotlinx.coroutines.Job
@@ -266,7 +267,22 @@ class NumbersViewModel : ViewModel() {
         val toShow = mutableListOf<String>()
         if (result == 69 && shownInGameTrophyIds.add("nice")) toShow.add("nice")
         if (result >= 100_000_000 && shownInGameTrophyIds.add("massive")) toShow.add("massive")
-        showTrophyNotification(toShow)
+        if (toShow.isNotEmpty()) {
+            showTrophyNotification(toShow)
+            claimAchievements(toShow)
+        }
+    }
+
+    private fun claimAchievements(ids: List<String>) {
+        ids.forEach { id ->
+            viewModelScope.launch {
+                runCatching {
+                    AuthRepository.apiServiceForCurrentSession().claimAchievement(ClaimAchievementRequest(id))
+                }.onSuccess { result ->
+                    TrophySeenStore.addUnseen(result.newlyUnlocked)
+                }
+            }
+        }
     }
 
     private fun showErrorMessage(message: String) {

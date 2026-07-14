@@ -22,6 +22,8 @@ import com.tomdunkley.dailypuzzles.data.network.dto.UpdateProfileRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserSearchResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
+import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementResponse
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordsResponseDto
 import com.tomdunkley.dailypuzzles.data.network.dto.VerifyEmailRequestDto
 import retrofit2.http.Body
@@ -128,6 +130,9 @@ interface ApiService {
 
     @GET("v1/users/me/achievements")
     suspend fun getMyAchievements(): AchievementSummaryDto
+
+    @POST("v1/users/me/achievements/claim")
+    suspend fun claimAchievement(@Body body: ClaimAchievementRequest): ClaimAchievementResponse
 
     @POST("v1/dev/reset-progress")
     suspend fun resetDevProgress()

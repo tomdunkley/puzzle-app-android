@@ -8,6 +8,7 @@ import com.tomdunkley.dailypuzzles.data.boggle.BoggleDictionary
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgress
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleResult
+import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
 import com.tomdunkley.dailypuzzles.data.trophies.TROPHY_TITLES
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 import com.tomdunkley.dailypuzzles.data.network.dto.PuzzleDto
@@ -249,7 +250,22 @@ class BoggleViewModel : ViewModel() {
         if (w == "words" && shownInGameTrophyIds.add("meta")) toShow.add("meta")
         if ("qu" in w && shownInGameTrophyIds.add("queen")) toShow.add("queen")
         if (w.length >= 8 && shownInGameTrophyIds.add("hippopotomonstrosesquippedaliophobia")) toShow.add("hippopotomonstrosesquippedaliophobia")
-        showTrophyNotification(toShow)
+        if (toShow.isNotEmpty()) {
+            showTrophyNotification(toShow)
+            claimAchievements(toShow)
+        }
+    }
+
+    private fun claimAchievements(ids: List<String>) {
+        ids.forEach { id ->
+            viewModelScope.launch {
+                runCatching {
+                    AuthRepository.apiServiceForCurrentSession().claimAchievement(ClaimAchievementRequest(id))
+                }.onSuccess { result ->
+                    TrophySeenStore.addUnseen(result.newlyUnlocked)
+                }
+            }
+        }
     }
 
     private fun showFeedback(word: String, type: WordFeedbackType) {

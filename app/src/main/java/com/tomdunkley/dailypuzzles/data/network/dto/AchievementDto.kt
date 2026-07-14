@@ -16,6 +16,12 @@ data class AchievementItemDto(
 )
 
 @Serializable
+data class ClaimAchievementRequest(@SerialName("achievement_id") val achievementId: String)
+
+@Serializable
+data class ClaimAchievementResponse(@SerialName("newly_unlocked") val newlyUnlocked: List<String> = emptyList())
+
+@Serializable
 data class AchievementSummaryDto(
     val achievements: List<AchievementItemDto>,
     @SerialName("unlocked_ids") val unlockedIds: List<String>,
