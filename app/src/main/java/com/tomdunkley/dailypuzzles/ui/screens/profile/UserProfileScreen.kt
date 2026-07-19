@@ -135,6 +135,7 @@ private fun ProfileContent(
         }
 
         when (profile.friendshipStatus) {
+            "self" -> Unit
             "friends" -> OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
