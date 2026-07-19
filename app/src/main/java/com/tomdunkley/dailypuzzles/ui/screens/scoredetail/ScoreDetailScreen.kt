@@ -2,6 +2,7 @@ package com.tomdunkley.dailypuzzles.ui.screens.scoredetail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +66,7 @@ fun ScoreDetailScreen(
     isSignedIn: Boolean,
     onBack: () -> Unit,
     onSignInClick: () -> Unit,
+    onViewProfile: ((String) -> Unit)? = null,
     viewModel: ScoreDetailViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -125,7 +127,17 @@ fun ScoreDetailScreen(
                     },
                 ) {
                     if (isSignedIn && isNumbers) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(
+                                    if (onViewProfile != null && !state.isOwnScore)
+                                        Modifier.clickable { onViewProfile(userId) }
+                                    else Modifier,
+                                )
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             AvatarIcon(state.detail.avatarId, state.detail.avatarColorId, avatarIconColor = state.detail.avatarIconColor, size = 40.dp)
                             Column(modifier = Modifier.padding(start = 12.dp)) {
                                 Text(state.detail.displayName, style = MaterialTheme.typography.titleLarge)
@@ -143,7 +155,11 @@ fun ScoreDetailScreen(
                     if (isNumbers) {
                         NumbersDetailContent(state.detail)
                     } else {
-                        BoggleDetailContent(state.detail, isSignedIn)
+                        BoggleDetailContent(
+                            state.detail,
+                            isSignedIn,
+                            onViewProfile = if (!state.isOwnScore) onViewProfile else null,
+                        )
                     }
                 }
 
@@ -269,14 +285,23 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
 }
 
 @Composable
-private fun ColumnScope.BoggleDetailContent(detail: ScoreDetailDto, isSignedIn: Boolean) {
+private fun ColumnScope.BoggleDetailContent(
+    detail: ScoreDetailDto,
+    isSignedIn: Boolean,
+    onViewProfile: ((String) -> Unit)? = null,
+) {
     if (isSignedIn) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .then(if (onViewProfile != null) Modifier.clickable { onViewProfile(detail.userId) } else Modifier)
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 AvatarIcon(detail.avatarId, detail.avatarColorId, avatarIconColor = detail.avatarIconColor, size = 40.dp)
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text(detail.displayName, style = MaterialTheme.typography.titleLarge)

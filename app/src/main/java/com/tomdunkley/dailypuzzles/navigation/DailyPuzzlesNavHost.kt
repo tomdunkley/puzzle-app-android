@@ -310,6 +310,7 @@ fun DailyPuzzlesNavHost() {
                             launchSingleTop = true
                         }
                     },
+                    onViewProfile = { userId -> navController.navigate(Routes.userProfile(userId)) },
                 )
             }
             composable(
