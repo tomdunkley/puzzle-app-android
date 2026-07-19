@@ -495,7 +495,7 @@ private fun ResultsContent(
         }
         if (isSignedIn) {
             if (state.rankToday > 0) {
-                Text("Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
+                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(
@@ -503,7 +503,9 @@ private fun ResultsContent(
                     iconTint = NumbersSolidColor,
                     icon = Icons.Filled.LocalFireDepartment,
                 )
-                if (state.dailyBestDistance != null) {
+                if (state.isNewDailyBest) {
+                    BestScorePill(text = "New best!", iconTint = NumbersSolidColor)
+                } else if (state.dailyBestDistance != null) {
                     val bestText = if (state.dailyBestDistance == 0) {
                         "Exact (${state.dailyBestDurationSeconds ?: 0}s)"
                     } else {

@@ -40,6 +40,7 @@ data class ScoreSubmissionResultDto(
     @SerialName("daily_best_distance") val dailyBestDistance: Int? = null,
     @SerialName("daily_best_result_value") val dailyBestResultValue: Int? = null,
     @SerialName("daily_best_duration_seconds") val dailyBestDurationSeconds: Int? = null,
+    @SerialName("is_new_daily_best") val isNewDailyBest: Boolean = false,
 )
 
 @Serializable

@@ -273,12 +273,9 @@ private fun SignedInSettings(
 
                 HorizontalDivider()
 
-                Button(
+                OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface,
-                        contentColor = MaterialTheme.colorScheme.surface,
-                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
                     onClick = { onViewProfileClick(state.profile.userId) },
                 ) {
                     Text("VIEW PROFILE")

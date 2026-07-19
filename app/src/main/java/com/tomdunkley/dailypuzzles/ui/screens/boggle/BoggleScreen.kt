@@ -487,9 +487,16 @@ private fun ResultsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
         Text("Score: ${state.score}", style = MaterialTheme.typography.headlineMedium)
+        if (state.validWords.isNotEmpty()) {
+            Text(
+                "${state.validWords.size} words found",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (isSignedIn) {
             if (state.rankToday > 0) {
-                Text("Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
+                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(
@@ -497,7 +504,9 @@ private fun ResultsContent(
                     iconTint = WordsSolidColor,
                     icon = Icons.Filled.LocalFireDepartment,
                 )
-                if (state.dailyBestScore != null && state.dailyBestScore > 0) {
+                if (state.isNewDailyBest) {
+                    BestScorePill(text = "New best!", iconTint = WordsSolidColor)
+                } else if (state.dailyBestScore != null) {
                     val bestText = if (state.dailyBestWordCount != null) {
                         "${state.dailyBestScore} pts (words: ${state.dailyBestWordCount})"
                     } else {
@@ -508,11 +517,6 @@ private fun ResultsContent(
             }
         }
         if (state.validWords.isNotEmpty()) {
-            Text(
-                "${state.validWords.size} words found",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             FlowRow(
                 modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),

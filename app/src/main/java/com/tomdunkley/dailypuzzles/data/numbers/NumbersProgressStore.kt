@@ -41,6 +41,7 @@ data class NumbersResult(
     val dailyBestDistance: Int? = null,
     val dailyBestResultValue: Int? = null,
     val dailyBestDurationSeconds: Int? = null,
+    val isNewDailyBest: Boolean = false,
 )
 
 /** Plain (unencrypted) on-device cache of in-progress Numbers state -- mirrors

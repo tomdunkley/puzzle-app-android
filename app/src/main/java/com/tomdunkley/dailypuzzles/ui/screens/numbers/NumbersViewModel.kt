@@ -60,6 +60,7 @@ sealed interface NumbersUiState {
         val dailyBestDistance: Int? = null,
         val dailyBestResultValue: Int? = null,
         val dailyBestDurationSeconds: Int? = null,
+        val isNewDailyBest: Boolean = false,
     ) : NumbersUiState
 }
 
@@ -412,6 +413,7 @@ class NumbersViewModel : ViewModel() {
                         dailyBestDistance = result.dailyBestDistance,
                         dailyBestResultValue = result.dailyBestResultValue,
                         dailyBestDurationSeconds = result.dailyBestDurationSeconds,
+                        isNewDailyBest = result.isNewDailyBest,
                     )
                     NumbersProgressStore.saveResult(completed)
                     _uiState.value = completed.toUiState()
@@ -445,4 +447,5 @@ private fun NumbersResult.toUiState(): NumbersUiState.Results = NumbersUiState.R
     dailyBestDistance = dailyBestDistance,
     dailyBestResultValue = dailyBestResultValue,
     dailyBestDurationSeconds = dailyBestDurationSeconds,
+    isNewDailyBest = isNewDailyBest,
 )

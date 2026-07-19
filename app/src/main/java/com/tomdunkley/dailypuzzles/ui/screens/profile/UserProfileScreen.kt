@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -176,11 +177,14 @@ private fun ProfileContent(
         HorizontalDivider()
 
         Text("TROPHIES", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            "${profile.trophyCount} / ${profile.totalTrophies}",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Filled.EmojiEvents, contentDescription = null, modifier = Modifier.size(22.dp))
+            Text(
+                "${profile.trophyCount} / ${profile.totalTrophies}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+        }
 
         HorizontalDivider()
 
@@ -231,6 +235,11 @@ private fun TodayScoreRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        "Today: ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     if (gameId == "numbers") {
                         val distance = today.distance ?: 0
                         if (distance == 0) {
@@ -264,11 +273,22 @@ private fun TodayScoreRow(
         }
         if (best != null) {
             val bestText = if (gameId == "numbers") {
-                if ((best.distance ?: 1) == 0) "Best: Exact!" else "Best: ${best.resultValue} (${best.distance} away)"
+                if ((best.distance ?: 1) == 0) "Exact!" else "${best.resultValue} (${best.distance} away)"
             } else {
-                "Best: ${best.score} pts (words: ${best.wordCount ?: 0})"
+                "${best.score} pts (words: ${best.wordCount ?: 0})"
             }
-            Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    Icons.Filled.EmojiEvents,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
