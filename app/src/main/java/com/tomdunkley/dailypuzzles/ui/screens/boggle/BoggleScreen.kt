@@ -495,9 +495,6 @@ private fun ResultsContent(
             )
         }
         if (isSignedIn) {
-            if (state.rankToday > 0) {
-                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
-            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(
                     text = "${state.currentStreak} day streak",
@@ -514,6 +511,9 @@ private fun ResultsContent(
                     }
                     BestScorePill(text = bestText, iconTint = WordsSolidColor)
                 }
+            }
+            if (state.rankToday > 0) {
+                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
         }
         if (state.validWords.isNotEmpty()) {
