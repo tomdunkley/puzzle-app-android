@@ -122,18 +122,6 @@ private fun SignedInLeaderboard(
                 ScopeSwitcher(scope = state.scope, onScopeChange = viewModel::selectScope)
                 if (state.scope == LeaderboardScope.FRIENDS && !state.hasFriends) {
                     CenteredContent {
-                        val self = state.entries.firstOrNull()
-                        if (self != null) {
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text("You: ", style = MaterialTheme.typography.titleMedium)
-                                ResultSummary(self)
-                            }
-                        } else {
-                            Text(
-                                text = "No scores yet today.",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
                         Text(
                             text = "Add friends to compare scores.",
                             style = MaterialTheme.typography.bodyMedium,
