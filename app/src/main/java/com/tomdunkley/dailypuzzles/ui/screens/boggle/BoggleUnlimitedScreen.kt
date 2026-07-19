@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -745,26 +746,10 @@ private fun UnlimitedResultsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
         Text("Score: ${state.score}", style = MaterialTheme.typography.headlineMedium)
-        if (isNewBest) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Filled.EmojiEvents,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = WordsSolidColor,
-                )
-                Spacer(modifier = Modifier.size(6.dp))
-                Text("New best!", style = MaterialTheme.typography.titleMedium, color = WordsSolidColor)
-            }
-        } else if (highScore >= 0) {
-            Text(
-                "Best: $highScore pts",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (highScore >= 0) {
+            BestScorePill(
+                text = if (isNewBest) "New best: $highScore pts" else "Best: $highScore pts",
+                iconTint = WordsSolidColor,
             )
         }
         if (state.validWords.isNotEmpty()) {

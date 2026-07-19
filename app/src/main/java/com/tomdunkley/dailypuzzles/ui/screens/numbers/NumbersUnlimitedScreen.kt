@@ -65,6 +65,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -689,24 +690,14 @@ private fun UnlimitedResultsContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        if (isNewBest) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Filled.EmojiEvents,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = NumbersSolidColor,
-                )
-                Spacer(modifier = Modifier.size(6.dp))
-                Text("New best!", style = MaterialTheme.typography.titleMedium, color = NumbersSolidColor)
+        if (bestDistance >= 0) {
+            val bestText = when {
+                isNewBest && bestDistance == 0 -> "New best: exact in ${bestTimeSeconds}s"
+                isNewBest -> "New best: $bestDistance away"
+                bestDistance == 0 -> "Best: exact in ${bestTimeSeconds}s"
+                else -> "Best: $bestDistance away"
             }
-        } else if (bestDistance >= 0) {
-            val bestText = if (bestDistance == 0) "Best: exact in ${bestTimeSeconds}s" else "Best: $bestDistance away"
-            Text(bestText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            BestScorePill(text = bestText, iconTint = NumbersSolidColor)
         }
         if (state.steps.isNotEmpty()) {
             Text(

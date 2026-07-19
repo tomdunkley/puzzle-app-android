@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
@@ -495,10 +496,9 @@ private fun ResultsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (state.dailyBestScore != null && state.dailyBestScore > 0) {
-                Text(
-                    "Daily best: ${state.dailyBestScore} pts",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                BestScorePill(
+                    text = "Daily best: ${state.dailyBestScore} pts",
+                    iconTint = WordsSolidColor,
                 )
             }
         }

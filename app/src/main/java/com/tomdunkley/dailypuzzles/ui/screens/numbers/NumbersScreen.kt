@@ -61,6 +61,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -509,10 +510,9 @@ private fun ResultsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (state.dailyBestDistance != null) {
-                Text(
-                    if (state.dailyBestDistance == 0) "Daily best: Exact!" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                BestScorePill(
+                    text = if (state.dailyBestDistance == 0) "Daily best: Exact!" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
+                    iconTint = NumbersSolidColor,
                 )
             }
         }
