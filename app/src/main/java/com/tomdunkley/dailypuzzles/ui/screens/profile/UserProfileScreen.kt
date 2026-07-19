@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -273,22 +272,11 @@ private fun TodayScoreRow(
         }
         if (best != null) {
             val bestText = if (gameId == "numbers") {
-                if ((best.distance ?: 1) == 0) "Exact!" else "${best.resultValue} (${best.distance} away)"
+                if ((best.distance ?: 1) == 0) "Best: Exact!" else "Best: ${best.resultValue} (${best.distance} away)"
             } else {
-                "${best.score} pts (words: ${best.wordCount ?: 0})"
+                "Best: ${best.score} pts (words: ${best.wordCount ?: 0})"
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    Icons.Filled.EmojiEvents,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
