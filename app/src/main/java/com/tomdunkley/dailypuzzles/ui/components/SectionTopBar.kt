@@ -36,6 +36,7 @@ fun SectionTopBar(
     navigationIcon: @Composable (() -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     backgroundColor: Color? = null,
+    actions: @Composable () -> Unit = {},
 ) {
     val resolvedNavIcon: @Composable (() -> Unit)? = when {
         onBack != null -> ({
@@ -62,7 +63,7 @@ fun SectionTopBar(
                 if (resolvedNavIcon != null) {
                     Row(modifier = Modifier.padding(end = 4.dp)) { resolvedNavIcon() }
                     if (subtitle != null) {
-                        Column(modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)) {
+                        Column(modifier = Modifier.weight(1f).padding(start = 6.dp, top = 8.dp, bottom = 8.dp)) {
                             Text(text = title, style = MaterialTheme.typography.headlineSmall)
                             Text(
                                 text = subtitle,
@@ -74,7 +75,7 @@ fun SectionTopBar(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(start = 6.dp),
+                            modifier = Modifier.weight(1f).padding(start = 6.dp),
                         )
                     }
                 } else {
@@ -88,9 +89,10 @@ fun SectionTopBar(
                     Text(
                         text = " $title",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(start = 10.dp),
+                        modifier = Modifier.weight(1f).padding(start = 10.dp),
                     )
                 }
+                actions()
             }
             HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.onSurface)
         }

@@ -59,8 +59,27 @@ fun AchievementsScreen(
         onDispose { TrophySeenStore.markAllSeen() }
     }
 
+    val loaded = uiState as? AchievementsUiState.Loaded
+    val countText = loaded?.let { s ->
+        val unlocked = s.achievements.count { it.unlocked }
+        "$unlocked / ${s.achievements.size}"
+    }
+
     Scaffold(
-        topBar = { SectionTopBar(title = "Trophies") },
+        topBar = {
+            SectionTopBar(
+                title = "Trophies",
+                actions = {
+                    if (countText != null) {
+                        Text(
+                            text = countText,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    }
+                },
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         if (!isSignedIn) {
