@@ -117,10 +117,14 @@ class NumbersViewModel : ViewModel() {
                 .onSuccess { (service, dto) ->
                     puzzle = dto
                     if (dto.alreadyPlayed) {
-                        val detail = runCatching {
-                            val userId = service.getMyProfile().userId
-                            service.getScoreDetail(dto.puzzleId, userId)
-                        }.getOrNull()
+                        val userId = runCatching { service.getMyProfile().userId }.getOrNull()
+                        val detail = if (userId != null) {
+                            runCatching { service.getScoreDetail(dto.puzzleId, userId) }.getOrNull()
+                        } else null
+                        val saved = NumbersProgressStore.loadResult(dto.puzzleId)
+                        val publicProfile = if (saved?.dailyBestDistance == null && userId != null) {
+                            runCatching { service.getPublicProfile(userId) }.getOrNull()
+                        } else null
                         val result = NumbersResult(
                             puzzleId = dto.puzzleId,
                             date = dto.date,
@@ -133,6 +137,10 @@ class NumbersViewModel : ViewModel() {
                             durationSeconds = detail?.durationSeconds ?: 0,
                             rankToday = detail?.rankToday ?: 0,
                             currentStreak = dto.streak?.current ?: 0,
+                            dailyBestDistance = saved?.dailyBestDistance ?: publicProfile?.numbersDailyBest?.distance,
+                            dailyBestResultValue = saved?.dailyBestResultValue ?: publicProfile?.numbersDailyBest?.resultValue,
+                            dailyBestDurationSeconds = saved?.dailyBestDurationSeconds ?: publicProfile?.numbersDailyBest?.durationSeconds,
+                            isNewDailyBest = saved?.isNewDailyBest ?: false,
                         )
                         NumbersProgressStore.saveResult(result)
                         _uiState.value = result.toUiState()

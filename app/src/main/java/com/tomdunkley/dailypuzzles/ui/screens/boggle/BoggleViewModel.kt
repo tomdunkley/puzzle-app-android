@@ -101,10 +101,17 @@ class BoggleViewModel : ViewModel() {
                     if (dto.alreadyPlayed) {
                         // Reuses the exact same Results state/UI a just-finished game lands on --
                         // "already played today" and "you just finished" are the same screen.
-                        val detail = runCatching {
-                            val userId = service.getMyProfile().userId
-                            service.getScoreDetail(dto.puzzleId, userId)
-                        }.getOrNull()
+                        val userId = runCatching { service.getMyProfile().userId }.getOrNull()
+                        val detail = if (userId != null) {
+                            runCatching { service.getScoreDetail(dto.puzzleId, userId) }.getOrNull()
+                        } else null
+                        // Prefer the local result saved at submission time (has isNewDailyBest).
+                        // Fall back to the public profile's daily-best data for the first load
+                        // after playing (before the submission result was saved) or legacy plays.
+                        val saved = BoggleProgressStore.loadResult(dto.puzzleId)
+                        val publicProfile = if (saved?.dailyBestScore == null && userId != null) {
+                            runCatching { service.getPublicProfile(userId) }.getOrNull()
+                        } else null
                         val result = BoggleResult(
                             puzzleId = dto.puzzleId,
                             date = dto.date,
@@ -112,6 +119,9 @@ class BoggleViewModel : ViewModel() {
                             validWords = detail?.validWords ?: emptyList(),
                             rankToday = detail?.rankToday ?: 0,
                             currentStreak = dto.streak?.current ?: 0,
+                            dailyBestScore = saved?.dailyBestScore ?: publicProfile?.boggleDailyBest?.score,
+                            dailyBestWordCount = saved?.dailyBestWordCount ?: publicProfile?.boggleDailyBest?.wordCount,
+                            isNewDailyBest = saved?.isNewDailyBest ?: false,
                         )
                         BoggleProgressStore.saveResult(result)
                         _uiState.value = result.toUiState()
