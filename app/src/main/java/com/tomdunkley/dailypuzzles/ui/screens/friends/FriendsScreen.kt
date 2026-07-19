@@ -1,5 +1,6 @@
 package com.tomdunkley.dailypuzzles.ui.screens.friends
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
 fun FriendsScreen(
     onBack: () -> Unit,
     onGoToSettings: () -> Unit,
+    onViewProfile: (userId: String) -> Unit = {},
     onMutation: () -> Unit = {},
     viewModel: FriendsViewModel = viewModel(),
 ) {
@@ -57,7 +59,7 @@ fun FriendsScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (val state = authState) {
-                is AuthState.SignedIn -> SignedInContent(state, viewModel, onMutation)
+                is AuthState.SignedIn -> SignedInContent(state, viewModel, onViewProfile, onMutation)
                 else -> SignInPrompt("Sign in to view your friends.", onGoToSettings)
             }
         }
@@ -68,6 +70,7 @@ fun FriendsScreen(
 private fun SignedInContent(
     state: AuthState.SignedIn,
     viewModel: FriendsViewModel,
+    onViewProfile: (userId: String) -> Unit,
     onMutation: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -116,11 +119,11 @@ private fun SignedInContent(
                 )
             }
             if (loaded.searchQuery.isNotBlank()) {
-                item { SectionLabel("Search results") }
+                item(key = "search_header") { SectionLabel("Search results") }
                 if (loaded.isSearching) {
-                    item { CircularProgressIndicator() }
+                    item(key = "search_spinner") { CircularProgressIndicator() }
                 } else if (loaded.searchResults.isEmpty()) {
-                    item {
+                    item(key = "search_empty") {
                         Text(
                             "No one found.",
                             style = MaterialTheme.typography.bodyMedium,
@@ -128,26 +131,33 @@ private fun SignedInContent(
                         )
                     }
                 } else {
-                    items(loaded.searchResults, key = { it.userId }) { result ->
-                        SearchResultRow(result, onSendRequest = { viewModel.sendRequest(result.userId) })
+                    // Key prefix "s:" avoids duplicate-key crash when a search result is
+                    // also in the friends list or incoming-requests list.
+                    items(loaded.searchResults, key = { "s:${it.userId}" }) { result ->
+                        SearchResultRow(
+                            result,
+                            onSendRequest = { viewModel.sendRequest(result.userId) },
+                            onViewProfile = { onViewProfile(result.userId) },
+                        )
                     }
                 }
-                item { HorizontalDivider() }
+                item(key = "search_divider") { HorizontalDivider() }
             }
             if (loaded.incomingRequests.isNotEmpty()) {
-                item { SectionLabel("Friend requests") }
-                items(loaded.incomingRequests, key = { it.userId }) { request ->
+                item(key = "req_header") { SectionLabel("Friend requests") }
+                items(loaded.incomingRequests, key = { "r:${it.userId}" }) { request ->
                     IncomingRequestRow(
                         request,
                         onAccept = { viewModel.acceptRequest(request.userId); onMutation() },
                         onDecline = { viewModel.declineRequest(request.userId); onMutation() },
+                        onViewProfile = { onViewProfile(request.userId) },
                     )
                 }
-                item { HorizontalDivider() }
+                item(key = "req_divider") { HorizontalDivider() }
             }
-            item { SectionLabel("Your friends") }
+            item(key = "friends_header") { SectionLabel("Your friends") }
             if (loaded.friends.isEmpty()) {
-                item {
+                item(key = "friends_empty") {
                     Text(
                         "No friends yet -- search above to add some.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -155,8 +165,12 @@ private fun SignedInContent(
                     )
                 }
             } else {
-                items(loaded.friends, key = { it.userId }) { friend ->
-                    FriendRow(friend, onRemove = { pendingUnfriend = friend })
+                items(loaded.friends, key = { "f:${it.userId}" }) { friend ->
+                    FriendRow(
+                        friend,
+                        onRemove = { pendingUnfriend = friend },
+                        onViewProfile = { onViewProfile(friend.userId) },
+                    )
                 }
             }
         }
@@ -188,33 +202,48 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun SearchResultRow(result: UserSearchResultDto, onSendRequest: () -> Unit) {
+private fun SearchResultRow(
+    result: UserSearchResultDto,
+    onSendRequest: () -> Unit,
+    onViewProfile: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.weight(1f).clickable(onClick = onViewProfile),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             AvatarIcon(result.avatarId, result.avatarColorId, avatarIconColor = result.avatarIconColor, size = 32.dp)
             Text(result.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
         }
         when (result.friendshipStatus) {
-            "friends" -> Text("Friends", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            "request_sent" -> Text("Requested", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            "request_received" -> Text("Check requests below", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            "friends" -> Text("Friends", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp))
+            "request_sent" -> Text("Requested", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp))
+            "request_received" -> Text("Check requests below", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp))
             else -> TextButton(onClick = onSendRequest) { Text("ADD") }
         }
     }
 }
 
 @Composable
-private fun IncomingRequestRow(request: FriendRequestSummaryDto, onAccept: () -> Unit, onDecline: () -> Unit) {
+private fun IncomingRequestRow(
+    request: FriendRequestSummaryDto,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+    onViewProfile: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.weight(1f).clickable(onClick = onViewProfile),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             AvatarIcon(request.avatarId, request.avatarColorId, avatarIconColor = request.avatarIconColor, size = 32.dp)
             Text(request.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
         }
@@ -226,13 +255,20 @@ private fun IncomingRequestRow(request: FriendRequestSummaryDto, onAccept: () ->
 }
 
 @Composable
-private fun FriendRow(friend: FriendSummaryDto, onRemove: () -> Unit) {
+private fun FriendRow(
+    friend: FriendSummaryDto,
+    onRemove: () -> Unit,
+    onViewProfile: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.weight(1f).clickable(onClick = onViewProfile),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             AvatarIcon(friend.avatarId, friend.avatarColorId, avatarIconColor = friend.avatarIconColor, size = 32.dp)
             Text(friend.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
         }

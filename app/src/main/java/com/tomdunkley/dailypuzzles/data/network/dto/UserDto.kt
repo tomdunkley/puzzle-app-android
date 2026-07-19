@@ -27,6 +27,41 @@ data class UserProfileDto(
 )
 
 @Serializable
+data class TodayGameScoreDto(
+    val game: String,
+    val score: Int? = null,
+    @SerialName("word_count") val wordCount: Int? = null,
+    @SerialName("result_value") val resultValue: Int? = null,
+    val distance: Int? = null,
+)
+
+@Serializable
+data class DailyBestScoreDto(
+    val game: String,
+    val score: Int? = null,
+    @SerialName("word_count") val wordCount: Int? = null,
+    @SerialName("result_value") val resultValue: Int? = null,
+    val distance: Int? = null,
+    @SerialName("puzzle_id") val puzzleId: String,
+)
+
+@Serializable
+data class PublicUserProfileDto(
+    @SerialName("user_id") val userId: String,
+    @SerialName("display_name") val displayName: String,
+    @SerialName("avatar_id") val avatarId: String? = null,
+    @SerialName("avatar_color_id") val avatarColorId: String? = null,
+    @SerialName("avatar_icon_color") val avatarIconColor: String? = null,
+    @SerialName("friendship_status") val friendshipStatus: String,
+    @SerialName("today_boggle") val todayBoggle: TodayGameScoreDto? = null,
+    @SerialName("today_numbers") val todayNumbers: TodayGameScoreDto? = null,
+    @SerialName("boggle_daily_best") val boggleDailyBest: DailyBestScoreDto? = null,
+    @SerialName("numbers_daily_best") val numbersDailyBest: DailyBestScoreDto? = null,
+    @SerialName("trophy_count") val trophyCount: Int = 0,
+    @SerialName("total_trophies") val totalTrophies: Int = 0,
+)
+
+@Serializable
 data class UpdateProfileRequestDto(
     @SerialName("display_name") val displayName: String? = null,
     @SerialName("avatar_id") val avatarId: String? = null,

@@ -22,6 +22,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.UpdateProfileRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserSearchResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
+import com.tomdunkley.dailypuzzles.data.network.dto.PublicUserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
 import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementResponse
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordsResponseDto
@@ -76,6 +77,9 @@ interface ApiService {
 
     @GET("v1/users/me")
     suspend fun getMyProfile(): UserProfileDto
+
+    @GET("v1/users/{userId}/profile")
+    suspend fun getPublicProfile(@Path("userId") userId: String): PublicUserProfileDto
 
     @PATCH("v1/users/me")
     suspend fun updateMyProfile(@Body body: UpdateProfileRequestDto): UserProfileDto

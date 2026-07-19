@@ -68,6 +68,7 @@ import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
 import com.tomdunkley.dailypuzzles.ui.components.numbersOpSymbol
 import com.tomdunkley.dailypuzzles.ui.share.buildNumbersShareText
 import com.tomdunkley.dailypuzzles.ui.share.shareText
+import kotlinx.coroutines.launch
 
 private val CORRECT_GREEN = Color(0xFF2E7D32)
 
@@ -75,6 +76,7 @@ private val CORRECT_GREEN = Color(0xFF2E7D32)
 fun NumbersScreen(
     isSignedIn: Boolean,
     onBack: () -> Unit,
+    onViewDetail: (puzzleId: String, userId: String) -> Unit = { _, _ -> },
     onSignInClick: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
     viewModel: NumbersViewModel = viewModel(),
@@ -122,24 +124,32 @@ fun NumbersScreen(
                     CircularProgressIndicator()
                     Text("Submitting your score...", style = MaterialTheme.typography.bodyMedium)
                 }
-                is NumbersUiState.Results -> ResultsContent(
-                    state = state,
-                    isSignedIn = isSignedIn,
-                    onShare = {
-                        shareText(
-                            context,
-                            buildNumbersShareText(
-                                date = state.date,
-                                target = state.target,
-                                resultValue = state.resultValue,
-                                distance = state.distance,
-                                durationSeconds = state.durationSeconds,
-                                rankToday = if (isSignedIn && state.rankToday > 0) state.rankToday else null,
-                            ),
-                        )
-                    },
-                    onSignInClick = onSignInClick,
-                )
+                is NumbersUiState.Results -> {
+                    val scope = androidx.compose.runtime.rememberCoroutineScope()
+                    ResultsContent(
+                        state = state,
+                        isSignedIn = isSignedIn,
+                        onShare = {
+                            shareText(
+                                context,
+                                buildNumbersShareText(
+                                    date = state.date,
+                                    target = state.target,
+                                    resultValue = state.resultValue,
+                                    distance = state.distance,
+                                    durationSeconds = state.durationSeconds,
+                                    rankToday = if (isSignedIn && state.rankToday > 0) state.rankToday else null,
+                                ),
+                            )
+                        },
+                        onViewDetail = {
+                            scope.launch {
+                                viewModel.ownUserId()?.let { onViewDetail(state.puzzleId, it) }
+                            }
+                        },
+                        onSignInClick = onSignInClick,
+                    )
+                }
             }
 
             val errorMessage = (uiState as? NumbersUiState.Playing)?.errorMessage
@@ -338,12 +348,19 @@ private fun NumberTile(
     val textColor = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
 
     Box(modifier = modifier.aspectRatio(1f)) {
-        // Main selectable area — fills the square
+        // Visual background — always full tile size
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundColor)
-                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface))
+                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)),
+        )
+        // Clickable area — shrunken to 60% when selected so accidental deselect requires
+        // a deliberate central tap, while non-selected tiles remain fully tappable.
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .then(if (selected) Modifier.fillMaxSize(0.6f) else Modifier.fillMaxSize())
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
@@ -451,6 +468,7 @@ private fun ResultsContent(
     state: NumbersUiState.Results,
     isSignedIn: Boolean,
     onShare: () -> Unit,
+    onViewDetail: () -> Unit,
     onSignInClick: () -> Unit,
 ) {
     var showSolution by remember { mutableStateOf(false) }
@@ -490,6 +508,13 @@ private fun ResultsContent(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (state.dailyBestDistance != null) {
+                Text(
+                    if (state.dailyBestDistance == 0) "Daily best: Exact!" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (state.steps.isNotEmpty()) {
             Text(
@@ -515,6 +540,15 @@ private fun ResultsContent(
             onClick = onShare,
         ) {
             Text("SHARE")
+        }
+        if (isSignedIn) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                onClick = onViewDetail,
+            ) {
+                Text("VIEW DETAIL")
+            }
         }
         OutlinedButton(
             modifier = Modifier.fillMaxWidth(),

@@ -23,8 +23,10 @@ object Routes {
     const val CHANGE_PASSWORD = "change_password"
     const val AVATAR_PICKER = "avatar_picker"
     const val SCORE_DETAIL = "score_detail/{puzzleId}/{userId}"
+    const val USER_PROFILE = "user_profile/{userId}"
 
     fun scoreDetail(puzzleId: String, userId: String) = "score_detail/$puzzleId/$userId"
+    fun userProfile(userId: String) = "user_profile/$userId"
 }
 
 data class BottomNavItem(

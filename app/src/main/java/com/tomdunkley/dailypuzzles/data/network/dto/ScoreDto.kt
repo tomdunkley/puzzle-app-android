@@ -35,6 +35,10 @@ data class ScoreSubmissionResultDto(
     val distance: Int? = null,
     val steps: List<NumbersStepDto>? = null,
     @SerialName("newly_unlocked") val newlyUnlocked: List<String> = emptyList(),
+    @SerialName("daily_best_score") val dailyBestScore: Int? = null,
+    @SerialName("daily_best_word_count") val dailyBestWordCount: Int? = null,
+    @SerialName("daily_best_distance") val dailyBestDistance: Int? = null,
+    @SerialName("daily_best_result_value") val dailyBestResultValue: Int? = null,
 )
 
 @Serializable

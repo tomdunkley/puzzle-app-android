@@ -57,6 +57,8 @@ sealed interface NumbersUiState {
         val currentStreak: Int,
         val puzzleId: String,
         val date: String,
+        val dailyBestDistance: Int? = null,
+        val dailyBestResultValue: Int? = null,
     ) : NumbersUiState
 }
 
@@ -366,6 +368,9 @@ class NumbersViewModel : ViewModel() {
         )
     }
 
+    suspend fun ownUserId(): String? =
+        runCatching { AuthRepository.apiServiceForCurrentSession().getMyProfile().userId }.getOrNull()
+
     fun finishEarly() {
         timerJob?.cancel()
         submit()
@@ -403,6 +408,8 @@ class NumbersViewModel : ViewModel() {
                         durationSeconds = elapsed,
                         rankToday = result.rankToday,
                         currentStreak = result.currentStreak,
+                        dailyBestDistance = result.dailyBestDistance,
+                        dailyBestResultValue = result.dailyBestResultValue,
                     )
                     NumbersProgressStore.saveResult(completed)
                     _uiState.value = completed.toUiState()
@@ -433,4 +440,6 @@ private fun NumbersResult.toUiState(): NumbersUiState.Results = NumbersUiState.R
     currentStreak = currentStreak,
     puzzleId = puzzleId,
     date = date,
+    dailyBestDistance = dailyBestDistance,
+    dailyBestResultValue = dailyBestResultValue,
 )

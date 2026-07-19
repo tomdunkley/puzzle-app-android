@@ -52,6 +52,7 @@ sealed interface BoggleUiState {
         val currentStreak: Int,
         val puzzleId: String,
         val date: String,
+        val dailyBestScore: Int? = null,
     ) : BoggleUiState
 }
 
@@ -324,6 +325,7 @@ class BoggleViewModel : ViewModel() {
                         validWords = result.validWords ?: emptyList(),
                         rankToday = result.rankToday,
                         currentStreak = result.currentStreak,
+                        dailyBestScore = result.dailyBestScore,
                     )
                     BoggleProgressStore.saveResult(completed)
                     _uiState.value = completed.toUiState()
@@ -349,4 +351,5 @@ private fun BoggleResult.toUiState(): BoggleUiState.Results = BoggleUiState.Resu
     currentStreak = currentStreak,
     puzzleId = puzzleId,
     date = date,
+    dailyBestScore = dailyBestScore,
 )

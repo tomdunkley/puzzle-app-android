@@ -494,6 +494,13 @@ private fun ResultsContent(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (state.dailyBestScore != null && state.dailyBestScore > 0) {
+                Text(
+                    "Daily best: ${state.dailyBestScore} pts",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (state.validWords.isNotEmpty()) {
             Text(

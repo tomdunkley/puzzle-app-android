@@ -44,6 +44,7 @@ import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.scoredetail.ScoreDetailScreen
 import com.tomdunkley.dailypuzzles.ui.screens.achievements.AchievementsScreen
+import com.tomdunkley.dailypuzzles.ui.screens.profile.UserProfileScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.AccountSettingsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.AvatarPickerScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.ChangePasswordScreen
@@ -199,6 +200,9 @@ fun DailyPuzzlesNavHost() {
                 NumbersScreen(
                     isSignedIn = authState is AuthState.SignedIn,
                     onBack = { navController.popBackStack() },
+                    onViewDetail = { puzzleId, userId ->
+                        navController.navigate(Routes.scoreDetail(puzzleId, userId))
+                    },
                     onSignInClick = {
                         navController.navigate(Routes.SETTINGS) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -230,6 +234,7 @@ fun DailyPuzzlesNavHost() {
                         }
                     },
                     onMutation = { appViewModel.refreshFriendRequestBadge() },
+                    onViewProfile = { userId -> navController.navigate(Routes.userProfile(userId)) },
                 )
             }
             composable(Routes.LEADERBOARD) {
@@ -304,6 +309,18 @@ fun DailyPuzzlesNavHost() {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                         }
+                    },
+                )
+            }
+            composable(
+                Routes.USER_PROFILE,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                UserProfileScreen(
+                    userId = backStackEntry.arguments?.getString("userId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onViewScore = { puzzleId, userId ->
+                        navController.navigate(Routes.scoreDetail(puzzleId, userId))
                     },
                 )
             }
