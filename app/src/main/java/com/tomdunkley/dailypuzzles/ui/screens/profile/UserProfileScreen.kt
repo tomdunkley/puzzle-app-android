@@ -1,5 +1,7 @@
 package com.tomdunkley.dailypuzzles.ui.screens.profile
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,13 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -37,8 +44,9 @@ import com.tomdunkley.dailypuzzles.data.network.dto.DailyBestScoreDto
 import com.tomdunkley.dailypuzzles.data.network.dto.PublicUserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TodayGameScoreDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
+import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
-import androidx.compose.foundation.BorderStroke
+import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 
 @Composable
 fun UserProfileScreen(
@@ -177,22 +185,38 @@ private fun ProfileContent(
 
         Text("TODAY'S RESULTS", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(0.dp))
-        TodayScoreRow("Words", profile.todayBoggle, profile.boggleDailyBest, userId, onViewScore)
+        TodayScoreRow("boggle", "Words", profile.todayBoggle, profile.boggleDailyBest, userId, onViewScore)
         Spacer(Modifier.height(4.dp))
-        TodayScoreRow("Numbers", profile.todayNumbers, profile.numbersDailyBest, userId, onViewScore)
+        TodayScoreRow("numbers", "Numbers", profile.todayNumbers, profile.numbersDailyBest, userId, onViewScore)
     }
 }
 
 @Composable
 private fun TodayScoreRow(
+    gameId: String,
     gameName: String,
     today: TodayGameScoreDto?,
     best: DailyBestScoreDto?,
     userId: String,
     onViewScore: (puzzleId: String, userId: String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(gameName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    val solidColor = if (gameId == "boggle") WordsSolidColor else NumbersSolidColor
+    val gameIcon = if (gameId == "boggle") Icons.Filled.GridOn else Icons.Filled.Calculate
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(solidColor.copy(alpha = 0.08f))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(gameIcon, contentDescription = null, tint = solidColor, modifier = Modifier.size(18.dp))
+            Text(gameName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = solidColor)
+        }
         if (today == null) {
             Text(
                 "Not played today",
@@ -200,27 +224,48 @@ private fun TodayScoreRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            val todayText = if (today.game == "numbers") {
-                if ((today.distance ?: 1) == 0) "Solved!" else "${today.resultValue} (${today.distance} away)"
-            } else {
-                "${today.score} pts"
-            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Today: $todayText", style = MaterialTheme.typography.bodyMedium)
-                TextButton(onClick = { onViewScore(best?.puzzleId ?: return@TextButton, userId) }) {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    if (gameId == "numbers") {
+                        val distance = today.distance ?: 0
+                        if (distance == 0) {
+                            Text("Got it", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                " (${today.durationSeconds ?: 0}s)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            Text("${today.resultValue ?: 0}", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                " ($distance away)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Text("${today.score ?: 0}", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            " (words: ${today.wordCount ?: 0})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                OutlinedButton(onClick = { onViewScore(today.puzzleId ?: return@OutlinedButton, userId) }) {
                     Text("VIEW")
                 }
             }
         }
         if (best != null) {
-            val bestText = if (best.game == "numbers") {
+            val bestText = if (gameId == "numbers") {
                 if ((best.distance ?: 1) == 0) "Best: Exact!" else "Best: ${best.resultValue} (${best.distance} away)"
             } else {
-                "Best: ${best.score} pts"
+                "Best: ${best.score} pts (words: ${best.wordCount ?: 0})"
             }
             Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

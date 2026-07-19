@@ -33,6 +33,8 @@ data class TodayGameScoreDto(
     @SerialName("word_count") val wordCount: Int? = null,
     @SerialName("result_value") val resultValue: Int? = null,
     val distance: Int? = null,
+    @SerialName("duration_seconds") val durationSeconds: Int? = null,
+    @SerialName("puzzle_id") val puzzleId: String? = null,
 )
 
 @Serializable
