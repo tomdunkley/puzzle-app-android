@@ -131,7 +131,7 @@ fun ScoreDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .then(
-                                    if (onViewProfile != null && !state.isOwnScore)
+                                    if (onViewProfile != null)
                                         Modifier.clickable { onViewProfile(userId) }
                                     else Modifier,
                                 )
@@ -158,7 +158,7 @@ fun ScoreDetailScreen(
                         BoggleDetailContent(
                             state.detail,
                             isSignedIn,
-                            onViewProfile = if (!state.isOwnScore) onViewProfile else null,
+                            onViewProfile = onViewProfile,
                         )
                     }
                 }

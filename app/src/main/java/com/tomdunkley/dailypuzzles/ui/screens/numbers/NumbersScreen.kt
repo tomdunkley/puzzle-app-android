@@ -77,7 +77,6 @@ private val CORRECT_GREEN = Color(0xFF2E7D32)
 fun NumbersScreen(
     isSignedIn: Boolean,
     onBack: () -> Unit,
-    onViewDetail: (puzzleId: String, userId: String) -> Unit = { _, _ -> },
     onSignInClick: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
     viewModel: NumbersViewModel = viewModel(),
@@ -126,7 +125,6 @@ fun NumbersScreen(
                     Text("Submitting your score...", style = MaterialTheme.typography.bodyMedium)
                 }
                 is NumbersUiState.Results -> {
-                    val scope = androidx.compose.runtime.rememberCoroutineScope()
                     ResultsContent(
                         state = state,
                         isSignedIn = isSignedIn,
@@ -142,11 +140,6 @@ fun NumbersScreen(
                                     rankToday = if (isSignedIn && state.rankToday > 0) state.rankToday else null,
                                 ),
                             )
-                        },
-                        onViewDetail = {
-                            scope.launch {
-                                viewModel.ownUserId()?.let { onViewDetail(state.puzzleId, it) }
-                            }
                         },
                         onSignInClick = onSignInClick,
                     )
@@ -469,7 +462,6 @@ private fun ResultsContent(
     state: NumbersUiState.Results,
     isSignedIn: Boolean,
     onShare: () -> Unit,
-    onViewDetail: () -> Unit,
     onSignInClick: () -> Unit,
 ) {
     var showSolution by remember { mutableStateOf(false) }
@@ -511,7 +503,7 @@ private fun ResultsContent(
             )
             if (state.dailyBestDistance != null) {
                 BestScorePill(
-                    text = if (state.dailyBestDistance == 0) "Daily best: Exact!" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
+                    text = if (state.dailyBestDistance == 0) "Daily best: Exact (${state.dailyBestDurationSeconds ?: 0}s)" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
                     iconTint = NumbersSolidColor,
                 )
             }
@@ -540,15 +532,6 @@ private fun ResultsContent(
             onClick = onShare,
         ) {
             Text("SHARE")
-        }
-        if (isSignedIn) {
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                onClick = onViewDetail,
-            ) {
-                Text("VIEW DETAIL")
-            }
         }
         OutlinedButton(
             modifier = Modifier.fillMaxWidth(),

@@ -40,6 +40,7 @@ data class NumbersResult(
     val solution: List<NumbersStepDto> = emptyList(),
     val dailyBestDistance: Int? = null,
     val dailyBestResultValue: Int? = null,
+    val dailyBestDurationSeconds: Int? = null,
 )
 
 /** Plain (unencrypted) on-device cache of in-progress Numbers state -- mirrors

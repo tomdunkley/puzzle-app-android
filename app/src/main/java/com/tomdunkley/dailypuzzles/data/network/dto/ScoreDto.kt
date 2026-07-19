@@ -39,6 +39,7 @@ data class ScoreSubmissionResultDto(
     @SerialName("daily_best_word_count") val dailyBestWordCount: Int? = null,
     @SerialName("daily_best_distance") val dailyBestDistance: Int? = null,
     @SerialName("daily_best_result_value") val dailyBestResultValue: Int? = null,
+    @SerialName("daily_best_duration_seconds") val dailyBestDurationSeconds: Int? = null,
 )
 
 @Serializable

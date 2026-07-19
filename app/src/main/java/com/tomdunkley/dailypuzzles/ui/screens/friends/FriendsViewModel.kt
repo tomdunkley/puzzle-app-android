@@ -25,6 +25,7 @@ sealed interface FriendsUiState {
         val searchQuery: String = "",
         val searchResults: List<UserSearchResultDto> = emptyList(),
         val isSearching: Boolean = false,
+        val ownUserId: String = "",
     ) : FriendsUiState
 }
 
@@ -39,15 +40,18 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = FriendsUiState.Loading
             runCatching {
+                val profile = ApiClient.authenticatedService.getMyProfile()
                 val friends = ApiClient.authenticatedService.getFriends()
                 val incoming = ApiClient.authenticatedService.getIncomingRequests()
                 val outgoing = ApiClient.authenticatedService.getOutgoingRequests()
-                Triple(friends, incoming, outgoing)
-            }.onSuccess { (friends, incoming, outgoing) ->
+                Triple(friends, incoming, outgoing) to profile.userId
+            }.onSuccess { (trio, ownUserId) ->
+                val (friends, incoming, outgoing) = trio
                 _uiState.value = FriendsUiState.Loaded(
                     friends = friends,
                     incomingRequests = incoming,
                     outgoingRequests = outgoing,
+                    ownUserId = ownUserId,
                 )
             }.onFailure {
                 _uiState.value = FriendsUiState.Error(it.toUserMessage("Couldn't load your friends"))
@@ -132,6 +136,7 @@ class FriendsViewModel : ViewModel() {
                     outgoingRequests = outgoing,
                     searchQuery = previous?.searchQuery ?: "",
                     searchResults = previous?.searchResults ?: emptyList(),
+                    ownUserId = previous?.ownUserId ?: "",
                 )
                 // Re-run the search so status chips (e.g. "Requested" -> "Friends") update too.
                 previous?.searchQuery?.takeIf { it.isNotBlank() }?.let { onSearchQueryChanged(it) }

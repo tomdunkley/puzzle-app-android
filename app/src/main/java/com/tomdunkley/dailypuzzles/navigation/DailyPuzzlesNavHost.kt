@@ -200,9 +200,6 @@ fun DailyPuzzlesNavHost() {
                 NumbersScreen(
                     isSignedIn = authState is AuthState.SignedIn,
                     onBack = { navController.popBackStack() },
-                    onViewDetail = { puzzleId, userId ->
-                        navController.navigate(Routes.scoreDetail(puzzleId, userId))
-                    },
                     onSignInClick = {
                         navController.navigate(Routes.SETTINGS) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
