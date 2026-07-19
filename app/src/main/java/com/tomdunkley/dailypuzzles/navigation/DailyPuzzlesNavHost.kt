@@ -265,6 +265,7 @@ fun DailyPuzzlesNavHost() {
                     onEditAvatarClick = { navController.navigate(Routes.AVATAR_PICKER) },
                     onAccountSettingsClick = { navController.navigate(Routes.ACCOUNT_SETTINGS) },
                     onFriendsClick = { navController.navigate(Routes.FRIENDS) },
+                    onViewProfileClick = { userId -> navController.navigate(Routes.userProfile(userId)) },
                     hasPendingFriendRequests = hasPendingFriendRequests,
                 )
             }

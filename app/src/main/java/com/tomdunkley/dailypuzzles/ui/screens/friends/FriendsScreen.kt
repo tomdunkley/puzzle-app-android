@@ -22,8 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -108,24 +106,7 @@ private fun SignedInContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Signed in as ${state.displayName}", style = MaterialTheme.typography.titleMedium)
-                    if (loaded.ownUserId.isNotBlank()) {
-                        Button(
-                            onClick = { onViewProfile(loaded.ownUserId) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.onSurface,
-                                contentColor = MaterialTheme.colorScheme.surface,
-                            ),
-                        ) {
-                            Text("VIEW PROFILE")
-                        }
-                    }
-                }
+                Text("Signed in as ${state.displayName}", style = MaterialTheme.typography.titleMedium)
             }
             item {
                 OutlinedTextField(

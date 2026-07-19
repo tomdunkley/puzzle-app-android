@@ -67,6 +67,7 @@ fun SettingsScreen(
     onEditAvatarClick: () -> Unit,
     onAccountSettingsClick: () -> Unit,
     onFriendsClick: () -> Unit,
+    onViewProfileClick: (userId: String) -> Unit = {},
     hasPendingFriendRequests: Boolean = false,
     viewModel: SettingsViewModel = viewModel(),
 ) {
@@ -78,7 +79,7 @@ fun SettingsScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (authState) {
-                is AuthState.SignedIn -> SignedInSettings(viewModel, onEditAvatarClick, onAccountSettingsClick, onFriendsClick, hasPendingFriendRequests)
+                is AuthState.SignedIn -> SignedInSettings(viewModel, onEditAvatarClick, onAccountSettingsClick, onFriendsClick, onViewProfileClick, hasPendingFriendRequests)
                 else -> SignInContent(onForgotPasswordClick)
             }
             Text(
@@ -231,6 +232,7 @@ private fun SignedInSettings(
     onEditAvatarClick: () -> Unit,
     onAccountSettingsClick: () -> Unit,
     onFriendsClick: () -> Unit,
+    onViewProfileClick: (userId: String) -> Unit,
     hasPendingFriendRequests: Boolean,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -270,6 +272,17 @@ private fun SignedInSettings(
                 }
 
                 HorizontalDivider()
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface,
+                    ),
+                    onClick = { onViewProfileClick(state.profile.userId) },
+                ) {
+                    Text("VIEW PROFILE")
+                }
 
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
