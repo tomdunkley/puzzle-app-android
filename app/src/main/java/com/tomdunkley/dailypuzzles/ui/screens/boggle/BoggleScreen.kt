@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -490,16 +491,20 @@ private fun ResultsContent(
             if (state.rankToday > 0) {
                 Text("Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
-            Text(
-                "${state.currentStreak} day streak",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (state.dailyBestScore != null && state.dailyBestScore > 0) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(
-                    text = "Daily best: ${state.dailyBestScore} pts",
+                    text = "${state.currentStreak} day streak",
                     iconTint = WordsSolidColor,
+                    icon = Icons.Filled.LocalFireDepartment,
                 )
+                if (state.dailyBestScore != null && state.dailyBestScore > 0) {
+                    val bestText = if (state.dailyBestWordCount != null) {
+                        "${state.dailyBestScore} pts (words: ${state.dailyBestWordCount})"
+                    } else {
+                        "${state.dailyBestScore} pts"
+                    }
+                    BestScorePill(text = bestText, iconTint = WordsSolidColor)
+                }
             }
         }
         if (state.validWords.isNotEmpty()) {

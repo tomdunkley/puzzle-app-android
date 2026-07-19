@@ -16,10 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun BestScorePill(text: String, iconTint: Color, modifier: Modifier = Modifier) {
+fun BestScorePill(
+    text: String,
+    iconTint: Color,
+    modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Filled.EmojiEvents,
+) {
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -29,7 +35,7 @@ fun BestScorePill(text: String, iconTint: Color, modifier: Modifier = Modifier) 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            Icons.Filled.EmojiEvents,
+            icon,
             contentDescription = null,
             modifier = Modifier.size(20.dp),
             tint = iconTint,

@@ -22,6 +22,7 @@ data class BoggleResult(
     val rankToday: Int,
     val currentStreak: Int,
     val dailyBestScore: Int? = null,
+    val dailyBestWordCount: Int? = null,
 )
 
 /** Plain (unencrypted) on-device cache of in-progress Boggle state -- nothing sensitive

@@ -61,6 +61,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
@@ -496,16 +497,20 @@ private fun ResultsContent(
             if (state.rankToday > 0) {
                 Text("Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
-            Text(
-                "${state.currentStreak} day streak",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (state.dailyBestDistance != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(
-                    text = if (state.dailyBestDistance == 0) "Daily best: Exact (${state.dailyBestDurationSeconds ?: 0}s)" else "Daily best: ${state.dailyBestResultValue} (${state.dailyBestDistance} away)",
+                    text = "${state.currentStreak} day streak",
                     iconTint = NumbersSolidColor,
+                    icon = Icons.Filled.LocalFireDepartment,
                 )
+                if (state.dailyBestDistance != null) {
+                    val bestText = if (state.dailyBestDistance == 0) {
+                        "Exact (${state.dailyBestDurationSeconds ?: 0}s)"
+                    } else {
+                        "${state.dailyBestResultValue} (${state.dailyBestDistance} away)"
+                    }
+                    BestScorePill(text = bestText, iconTint = NumbersSolidColor)
+                }
             }
         }
         if (state.steps.isNotEmpty()) {
