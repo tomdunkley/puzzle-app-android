@@ -52,9 +52,9 @@ object AuthRepository {
         GuestSession.clear()
     }
 
-    suspend fun register(email: String, password: String, displayName: String): Result<Unit> = runCatching {
+    suspend fun register(email: String, password: String): Result<Unit> = runCatching {
         val tokens = ApiClient.plainService.register(
-            RegisterRequestDto(email, password, displayName, GuestSession.accessToken),
+            RegisterRequestDto(email, password, GuestSession.accessToken),
         )
         onSignedIn(tokens)
         GuestSession.clear()

@@ -102,7 +102,6 @@ private fun SignInContent(onForgotPasswordClick: () -> Unit) {
     var isRegisterMode by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var displayName by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -118,15 +117,6 @@ private fun SignInContent(onForgotPasswordClick: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        if (isRegisterMode) {
-            OutlinedTextField(
-                value = displayName,
-                onValueChange = { displayName = it },
-                label = { Text("Display name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        }
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -168,7 +158,7 @@ private fun SignInContent(onForgotPasswordClick: () -> Unit) {
                 errorMessage = null
                 coroutineScope.launch {
                     val result = if (isRegisterMode) {
-                        AuthRepository.register(email, password, displayName)
+                        AuthRepository.register(email, password)
                     } else {
                         AuthRepository.login(email, password)
                     }

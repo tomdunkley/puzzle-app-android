@@ -22,7 +22,6 @@ data class RefreshRequestDto(@SerialName("refresh_token") val refreshToken: Stri
 data class RegisterRequestDto(
     val email: String,
     val password: String,
-    @SerialName("display_name") val displayName: String,
     @SerialName("guest_access_token") val guestAccessToken: String? = null,
 )
 
