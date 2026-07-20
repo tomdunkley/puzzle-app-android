@@ -15,3 +15,6 @@ keystore.properties
 .kotlin/
 dump.xml
 home.png
+
+# Local Netlify folder
+.netlify
