@@ -280,7 +280,6 @@ class NumbersViewModel : ViewModel() {
         if (result == 69 && shownInGameTrophyIds.add("nice")) toShow.add("nice")
         if (result >= 100_000_000 && shownInGameTrophyIds.add("massive")) toShow.add("massive")
         if (toShow.isNotEmpty()) {
-            showTrophyNotification(toShow)
             claimAchievements(toShow)
         }
     }
@@ -291,7 +290,10 @@ class NumbersViewModel : ViewModel() {
                 runCatching {
                     AuthRepository.apiServiceForCurrentSession().claimAchievement(ClaimAchievementRequest(id))
                 }.onSuccess { result ->
-                    TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    if (result.newlyUnlocked.isNotEmpty()) {
+                        showTrophyNotification(result.newlyUnlocked)
+                        TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    }
                 }
             }
         }

@@ -264,7 +264,6 @@ class BoggleViewModel : ViewModel() {
         if ("qu" in w && shownInGameTrophyIds.add("queen")) toShow.add("queen")
         if (w.length >= 8 && shownInGameTrophyIds.add("hippopotomonstrosesquippedaliophobia")) toShow.add("hippopotomonstrosesquippedaliophobia")
         if (toShow.isNotEmpty()) {
-            showTrophyNotification(toShow)
             claimAchievements(toShow)
         }
     }
@@ -275,7 +274,10 @@ class BoggleViewModel : ViewModel() {
                 runCatching {
                     AuthRepository.apiServiceForCurrentSession().claimAchievement(ClaimAchievementRequest(id))
                 }.onSuccess { result ->
-                    TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    if (result.newlyUnlocked.isNotEmpty()) {
+                        showTrophyNotification(result.newlyUnlocked)
+                        TrophySeenStore.addUnseen(result.newlyUnlocked)
+                    }
                 }
             }
         }
