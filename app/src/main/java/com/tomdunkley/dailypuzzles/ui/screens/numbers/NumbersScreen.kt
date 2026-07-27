@@ -493,28 +493,6 @@ private fun ResultsContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        if (isSignedIn) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BestScorePill(
-                    text = "${state.currentStreak} day streak",
-                    iconTint = NumbersSolidColor,
-                    icon = Icons.Filled.LocalFireDepartment,
-                )
-                if (state.isNewDailyBest) {
-                    BestScorePill(text = "New best!", iconTint = NumbersSolidColor)
-                } else if (state.dailyBestDistance != null) {
-                    val bestText = if (state.dailyBestDistance == 0) {
-                        "Exact (${state.dailyBestDurationSeconds ?: 0}s)"
-                    } else {
-                        "${state.dailyBestResultValue} (${state.dailyBestDistance} away)"
-                    }
-                    BestScorePill(text = bestText, iconTint = NumbersSolidColor)
-                }
-            }
-            if (state.rankToday > 0) {
-                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
-            }
-        }
         if (state.steps.isNotEmpty()) {
             Text(
                 "How you got there:",
@@ -554,6 +532,28 @@ private fun ResultsContent(
                 onClick = onSignInClick,
             ) {
                 Text("SIGN IN TO SAVE")
+            }
+        }
+        if (isSignedIn) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BestScorePill(
+                    text = "${state.currentStreak} day streak",
+                    iconTint = NumbersSolidColor,
+                    icon = Icons.Filled.LocalFireDepartment,
+                )
+                if (state.isNewDailyBest) {
+                    BestScorePill(text = "New best!", iconTint = NumbersSolidColor)
+                } else if (state.dailyBestDistance != null) {
+                    val bestText = if (state.dailyBestDistance == 0) {
+                        "Exact (${state.dailyBestDurationSeconds ?: 0}s)"
+                    } else {
+                        "${state.dailyBestResultValue} (${state.dailyBestDistance} away)"
+                    }
+                    BestScorePill(text = bestText, iconTint = NumbersSolidColor)
+                }
+            }
+            if (state.rankToday > 0) {
+                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
