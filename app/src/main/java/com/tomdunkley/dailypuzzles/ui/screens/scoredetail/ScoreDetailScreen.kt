@@ -113,6 +113,31 @@ fun ScoreDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 val isNumbers = state.detail.game == "numbers"
+                if (isSignedIn && isNumbers) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (onViewProfile != null)
+                                    Modifier.clickable { onViewProfile(userId) }
+                                else Modifier,
+                            )
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AvatarIcon(state.detail.avatarId, state.detail.avatarColorId, avatarIconColor = state.detail.avatarIconColor, size = 40.dp)
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(state.detail.displayName, style = MaterialTheme.typography.titleLarge)
+                            if (state.detail.rankToday > 0) {
+                                Text(
+                                    "Global rank #${state.detail.rankToday} today",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
                 Column(
                     modifier = if (isNumbers) {
                         Modifier.weight(1f).padding(vertical = 12.dp)
@@ -126,32 +151,6 @@ fun ScoreDetailScreen(
                         Arrangement.spacedBy(12.dp)
                     },
                 ) {
-                    if (isSignedIn && isNumbers) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (onViewProfile != null)
-                                        Modifier.clickable { onViewProfile(userId) }
-                                    else Modifier,
-                                )
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            AvatarIcon(state.detail.avatarId, state.detail.avatarColorId, avatarIconColor = state.detail.avatarIconColor, size = 40.dp)
-                            Column(modifier = Modifier.padding(start = 12.dp)) {
-                                Text(state.detail.displayName, style = MaterialTheme.typography.titleLarge)
-                                if (state.detail.rankToday > 0) {
-                                    Text(
-                                        "Global rank #${state.detail.rankToday} today",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
-                    }
-
                     if (isNumbers) {
                         NumbersDetailContent(state.detail)
                     } else {
