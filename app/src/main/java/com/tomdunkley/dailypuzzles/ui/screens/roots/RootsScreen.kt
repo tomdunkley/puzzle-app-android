@@ -131,7 +131,7 @@ fun RootsLoadingContent() {
 @Composable
 fun RootsErrorContent(message: String, onBack: () -> Unit) {
     Scaffold(
-        topBar = { SectionTopBar(title = "Roots", onBack = onBack, backgroundColor = RootsAccentColor) },
+        topBar = { SectionTopBar(title = "Routes", onBack = onBack, backgroundColor = RootsAccentColor) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -163,7 +163,7 @@ private fun PlayingContent(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Roots",
+                title = "Routes",
                 subtitle = formatTime(state.elapsedSeconds),
                 onBack = if (!state.isPaused) onPause else null,
                 backgroundColor = RootsAccentColor,
@@ -252,7 +252,7 @@ private fun ResultsContent(
     val context = LocalContext.current
     Scaffold(
         topBar = {
-            SectionTopBar(title = "Roots", onBack = onBack, backgroundColor = RootsAccentColor)
+            SectionTopBar(title = "Routes", onBack = onBack, backgroundColor = RootsAccentColor)
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
@@ -330,7 +330,7 @@ private fun ResultsContent(
                     shareText(context, text)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = RootsSolidColor,
+                    containerColor = Color.Black,
                     contentColor = Color.White,
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -415,7 +415,8 @@ fun RootsGridCanvas(
                     val x = cluePx + c * cellPx
                     val y = cluePx + r * cellPx
                     drawRect(color = surfaceColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
-                    if (path.contains(RootsCell(r, c))) {
+                    val cell = RootsCell(r, c)
+                    if (path.contains(cell) && cell != startCell && cell != endCell) {
                         drawRect(color = pathBgColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
                     }
                 }
@@ -580,7 +581,7 @@ private fun buildRootsShareText(
             if (r < gridSize - 1) append("\n")
         }
     }
-    return "td Puzzles — Roots — $date\nSolved in ${formatTime(durationSeconds)}$rankClause\n\n$grid"
+    return "td Puzzles — Routes — $date\nSolved in ${formatTime(durationSeconds)}$rankClause\n\n$grid"
 }
 
 private fun shareText(context: Context, text: String) {

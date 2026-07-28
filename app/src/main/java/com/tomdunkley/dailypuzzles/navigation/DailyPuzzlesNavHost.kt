@@ -170,14 +170,14 @@ fun DailyPuzzlesNavHost() {
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE)
                             "numbers" -> navController.navigate(Routes.NUMBERS)
-                            "roots" -> navController.navigate(Routes.ROOTS)
+                            "routes" -> navController.navigate(Routes.ROOTS)
                         }
                     },
                     onUnlimitedPuzzleClick = { puzzleId ->
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE_UNLIMITED)
                             "numbers" -> navController.navigate(Routes.NUMBERS_UNLIMITED)
-                            "roots" -> navController.navigate(Routes.ROOTS_UNLIMITED)
+                            "routes" -> navController.navigate(Routes.ROOTS_UNLIMITED)
                         }
                     },
                     onSignInClick = {

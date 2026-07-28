@@ -78,7 +78,7 @@ class RootsViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = RootsUiState.Loading
             runCatching {
-                AuthRepository.apiServiceForCurrentSession().getTodayPuzzle("roots")
+                AuthRepository.apiServiceForCurrentSession().getTodayPuzzle("routes")
             }
                 .onSuccess { dto ->
                     puzzleId = dto.puzzleId
@@ -137,7 +137,7 @@ class RootsViewModel : ViewModel() {
                 .onFailure {
                     if (handleIfVerificationRequired(it)) return@onFailure
                     val cached = if (it.isOffline()) {
-                        RootsProgressStore.loadResult("roots_${todayUtcIso()}")
+                        RootsProgressStore.loadResult("routes_${todayUtcIso()}")
                     } else null
                     if (cached != null) {
                         val personalBest = RootsProgressStore.personalBestSeconds()

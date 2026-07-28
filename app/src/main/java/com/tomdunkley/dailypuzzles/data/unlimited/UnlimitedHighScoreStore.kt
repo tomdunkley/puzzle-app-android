@@ -40,14 +40,14 @@ object UnlimitedHighScoreStore {
         }
     }
 
-    val rootsBestTimeSeconds: Int get() = prefs.getInt("roots_best_time", -1)
+    val rootsBestTimeSeconds: Int get() = prefs.getInt("routes_best_time", -1)
 
     fun updateRootsTime(timeSeconds: Int, seed: String) {
         val current = rootsBestTimeSeconds
         if (current < 0 || timeSeconds < current) {
             prefs.edit()
-                .putInt("roots_best_time", timeSeconds)
-                .putString("roots_best_seed", seed)
+                .putInt("routes_best_time", timeSeconds)
+                .putString("routes_best_seed", seed)
                 .apply()
         }
     }

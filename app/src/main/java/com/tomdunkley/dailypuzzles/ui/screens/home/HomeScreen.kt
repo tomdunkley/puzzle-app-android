@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -86,10 +86,10 @@ val availablePuzzles = listOf(
         accentColor = NumbersAccentColor,
     ),
     Puzzle(
-        id = "roots",
-        title = "Roots",
+        id = "routes",
+        title = "Routes",
         description = "Use the number of cells in each row and column to find the path.",
-        icon = Icons.Filled.AccountTree,
+        icon = Icons.Filled.Route,
         solidColor = RootsSolidColor,
         accentColor = RootsAccentColor,
     ),

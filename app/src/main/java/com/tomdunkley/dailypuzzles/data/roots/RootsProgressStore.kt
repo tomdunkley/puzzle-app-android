@@ -39,7 +39,7 @@ object RootsProgressStore {
     private lateinit var prefs: SharedPreferences
 
     fun init(context: Context) {
-        prefs = context.getSharedPreferences("roots_progress", Context.MODE_PRIVATE)
+        prefs = context.getSharedPreferences("routes_progress", Context.MODE_PRIVATE)
     }
 
     fun load(puzzleId: String): RootsProgress? {

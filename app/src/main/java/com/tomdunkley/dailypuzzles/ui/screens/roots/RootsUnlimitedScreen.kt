@@ -118,7 +118,7 @@ private fun StartContent(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Roots: Unlimited",
+                title = "Routes: Unlimited",
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
             )
@@ -216,7 +216,7 @@ private fun UnlimitedPlayingContent(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Roots: Unlimited",
+                title = "Routes: Unlimited",
                 subtitle = formatTime(state.elapsedSeconds),
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
@@ -297,7 +297,7 @@ private fun UnlimitedResultsContent(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Roots: Unlimited",
+                title = "Routes: Unlimited",
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
             )
@@ -325,7 +325,7 @@ private fun UnlimitedResultsContent(
                 )
             }
             Text(
-                "Puzzle: ${state.seed}  (${state.gridSize}x${state.gridSize})",
+                "Puzzle: ${state.seed}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

@@ -77,14 +77,14 @@ class HomeViewModel : ViewModel() {
     private fun hasSavedProgress(gameId: String, puzzleId: String): Boolean = when (gameId) {
         "boggle" -> BoggleProgressStore.load(puzzleId) != null
         "numbers" -> NumbersProgressStore.load(puzzleId) != null
-        "roots" -> RootsProgressStore.load(puzzleId) != null
+        "routes" -> RootsProgressStore.load(puzzleId) != null
         else -> false
     }
 
     private fun hasCachedResult(gameId: String, puzzleId: String): Boolean = when (gameId) {
         "boggle" -> BoggleProgressStore.loadResult(puzzleId) != null
         "numbers" -> NumbersProgressStore.loadResult(puzzleId) != null
-        "roots" -> RootsProgressStore.loadResult(puzzleId) != null
+        "routes" -> RootsProgressStore.loadResult(puzzleId) != null
         else -> false
     }
 }
