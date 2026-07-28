@@ -494,12 +494,6 @@ private fun ResultsContent(
                 }
             }
         }
-        Text("Target: ${state.target}", style = MaterialTheme.typography.titleLarge)
-        Text(
-            state.numbers.joinToString(", "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         if (state.distance == 0) {
             Text(
                 "You got it in ${state.durationSeconds}s!",
@@ -515,6 +509,12 @@ private fun ResultsContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+        Text("Target: ${state.target}", style = MaterialTheme.typography.titleLarge)
+        Text(
+            state.numbers.joinToString(", "),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (state.steps.isNotEmpty()) {
             Text(
                 "How you got there:",
