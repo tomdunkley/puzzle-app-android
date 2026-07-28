@@ -167,6 +167,7 @@ object AuthRepository {
         val profile = ApiClient.authenticatedService.getMyProfile()
         tokenStore.displayName = profile.displayName
         tokenStore.emailVerified = profile.emailVerified
+        DeveloperStore.isDeveloper = profile.isDeveloper
         _state.value = if (profile.emailVerified) {
             AuthState.SignedIn(profile.displayName)
         } else {
