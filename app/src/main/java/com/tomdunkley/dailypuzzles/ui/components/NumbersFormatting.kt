@@ -7,6 +7,6 @@ fun numbersOpSymbol(op: String): String = when (op) {
     "+" -> "+"
     "-" -> "−"
     "*" -> "×"
-    "/" -> "÷"
+    "/" -> "/"
     else -> op
 }

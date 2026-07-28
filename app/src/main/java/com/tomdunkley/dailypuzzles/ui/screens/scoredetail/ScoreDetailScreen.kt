@@ -122,7 +122,7 @@ fun ScoreDetailScreen(
                                     Modifier.clickable { onViewProfile(userId) }
                                 else Modifier,
                             )
-                            .padding(vertical = 4.dp),
+                            .padding(top = 12.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         AvatarIcon(state.detail.avatarId, state.detail.avatarColorId, avatarIconColor = state.detail.avatarIconColor, size = 40.dp)
