@@ -261,8 +261,6 @@ private fun SignedInSettings(
                     }
                 }
 
-                HorizontalDivider()
-
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
@@ -283,6 +281,8 @@ private fun SignedInSettings(
                     }
                 }
 
+                HorizontalDivider()
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
@@ -291,12 +291,13 @@ private fun SignedInSettings(
                     Text("SETTINGS")
                 }
 
-                HorizontalDivider()
-
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                     onClick = { AuthRepository.signOut() },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
                     Text("SIGN OUT")
                 }
@@ -334,8 +335,6 @@ fun AccountSettingsScreen(
                         Text("Signed in as $email", style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-
-                    HorizontalDivider()
 
                     Row(
                         modifier = Modifier
@@ -399,8 +398,6 @@ fun AccountSettingsScreen(
                             },
                         )
                     }
-
-                    HorizontalDivider()
 
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
