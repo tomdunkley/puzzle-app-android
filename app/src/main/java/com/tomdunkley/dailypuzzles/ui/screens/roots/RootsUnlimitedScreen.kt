@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -160,35 +161,40 @@ private fun StartContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text("Seed: ", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            state.seed,
-                            style = MaterialTheme.typography.headlineSmall,
+                            "Seed: ",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Text(state.seed, style = MaterialTheme.typography.headlineMedium)
                         IconButton(onClick = { editValue = state.seed; isEditing = true }) {
-                            Icon(Icons.Filled.Edit, contentDescription = "Edit seed")
+                            Icon(
+                                Icons.Filled.Edit,
+                                contentDescription = "Edit seed",
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
-                }
-
-                if (state.bestTimeSeconds >= 0) {
-                    BestScorePill(
-                        text = "Best (${state.gridSize}x${state.gridSize}): ${formatTime(state.bestTimeSeconds)}",
-                        iconTint = RootsSolidColor,
-                        icon = Icons.Filled.EmojiEvents,
-                    )
                 }
 
                 Button(
                     onClick = onStart,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RootsSolidColor,
-                        contentColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface,
                     ),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                    Text("START", modifier = Modifier.padding(start = 4.dp))
+                    Text("START")
+                }
+
+                if (state.bestTimeSeconds >= 0) {
+                    BestScorePill(
+                        text = "Best: ${formatTime(state.bestTimeSeconds)}",
+                        iconTint = RootsSolidColor,
+                        icon = Icons.Filled.EmojiEvents,
+                    )
                 }
             }
         }
@@ -313,7 +319,7 @@ private fun UnlimitedResultsContent(
             )
             if (state.isNewBest) {
                 BestScorePill(
-                    text = "New best for ${state.gridSize}x${state.gridSize}!",
+                    text = "New best!",
                     iconTint = RootsSolidColor,
                     icon = Icons.Filled.EmojiEvents,
                 )

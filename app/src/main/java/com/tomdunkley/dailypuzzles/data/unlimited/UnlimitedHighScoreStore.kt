@@ -40,15 +40,14 @@ object UnlimitedHighScoreStore {
         }
     }
 
-    fun rootsBestTimeSeconds(gridSize: Int): Int = prefs.getInt("roots_best_time_${gridSize}", -1)
-    fun rootsBestSeed(gridSize: Int): String = prefs.getString("roots_best_seed_${gridSize}", "") ?: ""
+    val rootsBestTimeSeconds: Int get() = prefs.getInt("roots_best_time", -1)
 
-    fun updateRootsTime(gridSize: Int, timeSeconds: Int, seed: String) {
-        val current = rootsBestTimeSeconds(gridSize)
+    fun updateRootsTime(timeSeconds: Int, seed: String) {
+        val current = rootsBestTimeSeconds
         if (current < 0 || timeSeconds < current) {
             prefs.edit()
-                .putInt("roots_best_time_${gridSize}", timeSeconds)
-                .putString("roots_best_seed_${gridSize}", seed)
+                .putInt("roots_best_time", timeSeconds)
+                .putString("roots_best_seed", seed)
                 .apply()
         }
     }

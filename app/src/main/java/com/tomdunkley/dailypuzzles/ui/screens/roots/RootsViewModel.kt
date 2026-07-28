@@ -190,59 +190,80 @@ class RootsViewModel : ViewModel() {
         }
     }
 
+    private enum class DragMode { PATH, CROSS_MARKER, NONE }
+    private var dragMode = DragMode.NONE
+
     fun onDragStart(cell: RootsCell) {
         val state = _uiState.value as? RootsUiState.Playing ?: return
         val path = state.currentPath
         val idx = path.indexOf(cell)
         if (idx >= 0) {
             _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
+            dragMode = DragMode.PATH
             return
         }
         if (cell == state.startCell || cell == state.endCell) {
             _uiState.value = state.copy(currentPath = listOf(cell))
+            dragMode = DragMode.PATH
+            return
         }
+        dragMode = DragMode.CROSS_MARKER
+        _uiState.value = state.copy(
+            crossMarkers = state.crossMarkers + cell,
+            tickMarkers = state.tickMarkers - cell,
+        )
     }
 
     fun onCellDrag(cell: RootsCell) {
         val state = _uiState.value as? RootsUiState.Playing ?: return
-        val path = state.currentPath
-
-        if (path.isEmpty()) {
-            if (cell == state.startCell || cell == state.endCell) {
-                _uiState.value = state.copy(currentPath = listOf(cell))
+        when (dragMode) {
+            DragMode.CROSS_MARKER -> {
+                if (cell == state.startCell || cell == state.endCell) return
+                if (state.currentPath.contains(cell)) return
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers + cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
             }
-            return
-        }
-
-        val pathHead = path.last()
-        if (cell == pathHead) return
-
-        val existingIdx = path.indexOf(cell)
-        if (existingIdx >= 0) {
-            _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
-            return
-        }
-
-        if (!isAdjacent(cell, pathHead)) return
-
-        val newPath = path + cell
-        val updatedState = state.copy(
-            currentPath = newPath,
-            crossMarkers = state.crossMarkers - cell,
-            tickMarkers = state.tickMarkers - cell,
-        )
-        _uiState.value = updatedState
-
-        if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
-            SoundFeedback.correct()
-            timerJob?.cancel()
-            submit(updatedState)
+            else -> {
+                val path = state.currentPath
+                if (path.isEmpty()) {
+                    if (cell == state.startCell || cell == state.endCell) {
+                        _uiState.value = state.copy(currentPath = listOf(cell))
+                    }
+                    return
+                }
+                val pathHead = path.last()
+                if (cell == pathHead) return
+                val existingIdx = path.indexOf(cell)
+                if (existingIdx >= 0) {
+                    _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
+                    return
+                }
+                if (!isAdjacent(cell, pathHead)) return
+                val newPath = path + cell
+                val updatedState = state.copy(
+                    currentPath = newPath,
+                    crossMarkers = state.crossMarkers - cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
+                _uiState.value = updatedState
+                if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
+                    SoundFeedback.correct()
+                    timerJob?.cancel()
+                    submit(updatedState)
+                }
+            }
         }
     }
 
     fun onTapCell(cell: RootsCell) {
         val state = _uiState.value as? RootsUiState.Playing ?: return
-        if (cell == state.startCell || cell == state.endCell) return
+        if (cell == state.startCell) {
+            _uiState.value = state.copy(currentPath = listOf(cell))
+            return
+        }
+        if (cell == state.endCell) return
 
         val idx = state.currentPath.indexOf(cell)
         if (idx >= 0) {

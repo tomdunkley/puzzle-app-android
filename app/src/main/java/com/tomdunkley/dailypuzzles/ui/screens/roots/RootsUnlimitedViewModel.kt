@@ -105,7 +105,7 @@ class RootsUnlimitedViewModel : ViewModel() {
                 0 -> 4; 1 -> 5; else -> 6
             }
         }
-        val best = if (code.isEmpty()) -1 else UnlimitedHighScoreStore.rootsBestTimeSeconds(gridSize)
+        val best = if (code.isEmpty()) -1 else UnlimitedHighScoreStore.rootsBestTimeSeconds
         return RootsUnlimitedUiState.Start(seed = code, gridSize = gridSize, bestTimeSeconds = best)
     }
 
@@ -133,6 +133,9 @@ class RootsUnlimitedViewModel : ViewModel() {
         _uiState.value = state.copy(isPaused = false)
     }
 
+    private enum class DragMode { PATH, CROSS_MARKER, NONE }
+    private var dragMode = DragMode.NONE
+
     fun onDragStart(cell: RootsCell) {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
@@ -140,49 +143,73 @@ class RootsUnlimitedViewModel : ViewModel() {
         val idx = path.indexOf(cell)
         if (idx >= 0) {
             _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
+            dragMode = DragMode.PATH
             return
         }
         if (cell == state.startCell || cell == state.endCell) {
             _uiState.value = state.copy(currentPath = listOf(cell))
+            dragMode = DragMode.PATH
+            return
         }
+        dragMode = DragMode.CROSS_MARKER
+        _uiState.value = state.copy(
+            crossMarkers = state.crossMarkers + cell,
+            tickMarkers = state.tickMarkers - cell,
+        )
     }
 
     fun onCellDrag(cell: RootsCell) {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
-        val path = state.currentPath
-        if (path.isEmpty()) {
-            if (cell == state.startCell || cell == state.endCell) {
-                _uiState.value = state.copy(currentPath = listOf(cell))
+        when (dragMode) {
+            DragMode.CROSS_MARKER -> {
+                if (cell == state.startCell || cell == state.endCell) return
+                if (state.currentPath.contains(cell)) return
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers + cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
             }
-            return
-        }
-        val pathHead = path.last()
-        if (cell == pathHead) return
-        val existingIdx = path.indexOf(cell)
-        if (existingIdx >= 0) {
-            _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
-            return
-        }
-        if (!isAdjacent(cell, pathHead)) return
-        val newPath = path + cell
-        val updatedState = state.copy(
-            currentPath = newPath,
-            crossMarkers = state.crossMarkers - cell,
-            tickMarkers = state.tickMarkers - cell,
-        )
-        _uiState.value = updatedState
-        if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
-            SoundFeedback.correct()
-            timerJob?.cancel()
-            submitResult(updatedState)
+            else -> {
+                val path = state.currentPath
+                if (path.isEmpty()) {
+                    if (cell == state.startCell || cell == state.endCell) {
+                        _uiState.value = state.copy(currentPath = listOf(cell))
+                    }
+                    return
+                }
+                val pathHead = path.last()
+                if (cell == pathHead) return
+                val existingIdx = path.indexOf(cell)
+                if (existingIdx >= 0) {
+                    _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
+                    return
+                }
+                if (!isAdjacent(cell, pathHead)) return
+                val newPath = path + cell
+                val updatedState = state.copy(
+                    currentPath = newPath,
+                    crossMarkers = state.crossMarkers - cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
+                _uiState.value = updatedState
+                if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
+                    SoundFeedback.correct()
+                    timerJob?.cancel()
+                    submitResult(updatedState)
+                }
+            }
         }
     }
 
     fun onTapCell(cell: RootsCell) {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
-        if (cell == state.startCell || cell == state.endCell) return
+        if (cell == state.startCell) {
+            _uiState.value = state.copy(currentPath = listOf(cell))
+            return
+        }
+        if (cell == state.endCell) return
 
         val idx = state.currentPath.indexOf(cell)
         if (idx >= 0) {
@@ -216,9 +243,9 @@ class RootsUnlimitedViewModel : ViewModel() {
 
     private fun submitResult(state: RootsUnlimitedUiState.Playing) {
         val elapsed = state.elapsedSeconds
-        val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds(state.gridSize)
+        val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds
         val isNew = prevBest < 0 || elapsed < prevBest
-        UnlimitedHighScoreStore.updateRootsTime(state.gridSize, elapsed, _seed.value)
+        UnlimitedHighScoreStore.updateRootsTime(elapsed, _seed.value)
         _uiState.value = RootsUnlimitedUiState.Results(
             gridSize = state.gridSize,
             startCell = state.startCell,

@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -88,8 +88,8 @@ val availablePuzzles = listOf(
     Puzzle(
         id = "roots",
         title = "Roots",
-        description = "Find the path between two points using the right number of cells in each row and column.",
-        icon = Icons.Filled.Timeline,
+        description = "Use the number of cells in each row and column to find the path.",
+        icon = Icons.Filled.AccountTree,
         solidColor = RootsSolidColor,
         accentColor = RootsAccentColor,
     ),
