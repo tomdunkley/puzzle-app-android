@@ -36,6 +36,9 @@ class HomeViewModel : ViewModel() {
     private val _numbersPracticeBestTimeSeconds = MutableStateFlow(UnlimitedHighScoreStore.numbersBestTimeSeconds)
     val numbersPracticeBestTimeSeconds: StateFlow<Int> = _numbersPracticeBestTimeSeconds.asStateFlow()
 
+    private val _routesPracticeBestTimeSeconds = MutableStateFlow(UnlimitedHighScoreStore.rootsBestTimeSeconds)
+    val routesPracticeBestTimeSeconds: StateFlow<Int> = _routesPracticeBestTimeSeconds.asStateFlow()
+
     /** Emits cached statuses immediately so the home cards show the last-known state
      * without any loading spinners, then fetches from the network and updates.
      * Pull-to-refresh also calls this; the [isRefreshing] indicator covers the update.
@@ -45,6 +48,7 @@ class HomeViewModel : ViewModel() {
         _bogglePracticeHighScore.value = UnlimitedHighScoreStore.boggleHighScore
         _numbersPracticeBestDistance.value = UnlimitedHighScoreStore.numbersBestDistance
         _numbersPracticeBestTimeSeconds.value = UnlimitedHighScoreStore.numbersBestTimeSeconds
+        _routesPracticeBestTimeSeconds.value = UnlimitedHighScoreStore.rootsBestTimeSeconds
         val todayId = todayUtcIso()
         _puzzleStatuses.value = availablePuzzles.associate { puzzle ->
             val todayPuzzleId = "${puzzle.id}_$todayId"

@@ -133,7 +133,7 @@ class RootsUnlimitedViewModel : ViewModel() {
         _uiState.value = state.copy(isPaused = false)
     }
 
-    private enum class DragMode { PATH, CROSS_MARKER, NONE }
+    private enum class DragMode { PATH, CROSS_MARKER, TICK_MARKER, CLEAR_MARKER, NONE }
     private var dragMode = DragMode.NONE
 
     fun onDragStart(cell: RootsCell) {
@@ -151,11 +151,26 @@ class RootsUnlimitedViewModel : ViewModel() {
             dragMode = DragMode.PATH
             return
         }
-        dragMode = DragMode.CROSS_MARKER
-        _uiState.value = state.copy(
-            crossMarkers = state.crossMarkers + cell,
-            tickMarkers = state.tickMarkers - cell,
-        )
+        when {
+            state.crossMarkers.contains(cell) -> {
+                dragMode = DragMode.TICK_MARKER
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers - cell,
+                    tickMarkers = state.tickMarkers + cell,
+                )
+            }
+            state.tickMarkers.contains(cell) -> {
+                dragMode = DragMode.CLEAR_MARKER
+                _uiState.value = state.copy(tickMarkers = state.tickMarkers - cell)
+            }
+            else -> {
+                dragMode = DragMode.CROSS_MARKER
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers + cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
+            }
+        }
     }
 
     fun onCellDrag(cell: RootsCell) {
@@ -167,6 +182,22 @@ class RootsUnlimitedViewModel : ViewModel() {
                 if (state.currentPath.contains(cell)) return
                 _uiState.value = state.copy(
                     crossMarkers = state.crossMarkers + cell,
+                    tickMarkers = state.tickMarkers - cell,
+                )
+            }
+            DragMode.TICK_MARKER -> {
+                if (cell == state.startCell || cell == state.endCell) return
+                if (state.currentPath.contains(cell)) return
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers - cell,
+                    tickMarkers = state.tickMarkers + cell,
+                )
+            }
+            DragMode.CLEAR_MARKER -> {
+                if (cell == state.startCell || cell == state.endCell) return
+                if (state.currentPath.contains(cell)) return
+                _uiState.value = state.copy(
+                    crossMarkers = state.crossMarkers - cell,
                     tickMarkers = state.tickMarkers - cell,
                 )
             }

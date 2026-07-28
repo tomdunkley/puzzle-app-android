@@ -348,11 +348,11 @@ private fun UnlimitedResultsContent(
             Button(
                 onClick = onNewGame,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = RootsSolidColor,
+                    containerColor = Color.Black,
                     contentColor = Color.White,
                 ),
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("NEW PUZZLE") }
+            ) { Text("NEW GAME") }
             OutlinedButton(
                 onClick = onBack,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),

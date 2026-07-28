@@ -117,6 +117,7 @@ fun HomeScreen(
     val bogglePracticeHighScore by viewModel.bogglePracticeHighScore.collectAsState()
     val numbersPracticeBestDistance by viewModel.numbersPracticeBestDistance.collectAsState()
     val numbersPracticeBestTimeSeconds by viewModel.numbersPracticeBestTimeSeconds.collectAsState()
+    val routesPracticeBestTimeSeconds by viewModel.routesPracticeBestTimeSeconds.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -154,6 +155,11 @@ fun HomeScreen(
                                     numbersPracticeBestDistance == 0 -> "Exact! in ${numbersPracticeBestTimeSeconds}s"
                                     else -> "$numbersPracticeBestDistance away"
                                 }
+                                "routes" -> if (routesPracticeBestTimeSeconds >= 0) {
+                                    val m = routesPracticeBestTimeSeconds / 60
+                                    val s = routesPracticeBestTimeSeconds % 60
+                                    if (m > 0) "${m}m ${s.toString().padStart(2, '0')}s" else "${s}s"
+                                } else ""
                                 else -> ""
                             }
                             PracticeCard(
