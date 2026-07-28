@@ -486,6 +486,28 @@ private fun ResultsContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
+        if (isSignedIn) {
+            if (state.rankToday > 0) {
+                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BestScorePill(
+                    text = "${state.currentStreak} day streak",
+                    iconTint = WordsSolidColor,
+                    icon = Icons.Filled.LocalFireDepartment,
+                )
+                if (state.isNewDailyBest) {
+                    BestScorePill(text = "New best!", iconTint = WordsSolidColor)
+                } else if (state.dailyBestScore != null) {
+                    val bestText = if (state.dailyBestWordCount != null) {
+                        "${state.dailyBestScore} pts (words: ${state.dailyBestWordCount})"
+                    } else {
+                        "${state.dailyBestScore} pts"
+                    }
+                    BestScorePill(text = bestText, iconTint = WordsSolidColor)
+                }
+            }
+        }
         Text("Score: ${state.score}", style = MaterialTheme.typography.headlineMedium)
         if (state.validWords.isNotEmpty()) {
             Text(
@@ -535,28 +557,6 @@ private fun ResultsContent(
                 onClick = onSignInClick,
             ) {
                 Text("SIGN IN TO SAVE")
-            }
-        }
-        if (isSignedIn) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BestScorePill(
-                    text = "${state.currentStreak} day streak",
-                    iconTint = WordsSolidColor,
-                    icon = Icons.Filled.LocalFireDepartment,
-                )
-                if (state.isNewDailyBest) {
-                    BestScorePill(text = "New best!", iconTint = WordsSolidColor)
-                } else if (state.dailyBestScore != null) {
-                    val bestText = if (state.dailyBestWordCount != null) {
-                        "${state.dailyBestScore} pts (words: ${state.dailyBestWordCount})"
-                    } else {
-                        "${state.dailyBestScore} pts"
-                    }
-                    BestScorePill(text = bestText, iconTint = WordsSolidColor)
-                }
-            }
-            if (state.rankToday > 0) {
-                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
