@@ -1,4 +1,4 @@
-package com.tomdunkley.dailypuzzles.ui.screens.lines
+package com.tomdunkley.dailypuzzles.ui.screens.roots
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -13,16 +13,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,9 +36,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -41,18 +52,17 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
-import com.tomdunkley.dailypuzzles.ui.components.LinesAccentColor
-import com.tomdunkley.dailypuzzles.ui.components.LinesSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsAccentColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 
 @Composable
-fun LinesUnlimitedScreen(
+fun RootsUnlimitedScreen(
     onBack: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
-    viewModel: LinesUnlimitedViewModel = viewModel(),
+    viewModel: RootsUnlimitedViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val seed by viewModel.seed.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -65,16 +75,18 @@ fun LinesUnlimitedScreen(
 
     LaunchedEffect(Unit) { viewModel.loadPuzzle() }
 
-    val showBottomBar = uiState is LinesUnlimitedUiState.Results
+    val showBottomBar = uiState is RootsUnlimitedUiState.Results
     LaunchedEffect(showBottomBar) { onShowBottomBarChange(showBottomBar) }
 
     when (val state = uiState) {
-        is LinesUnlimitedUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = LinesSolidColor)
-        }
-        is LinesUnlimitedUiState.Playing -> UnlimitedPlayingContent(
+        is RootsUnlimitedUiState.Start -> StartContent(
             state = state,
-            seed = seed,
+            onSeedChange = { viewModel.setSeed(it) },
+            onStart = { viewModel.startGame() },
+            onBack = onBack,
+        )
+        is RootsUnlimitedUiState.Playing -> UnlimitedPlayingContent(
+            state = state,
             onPause = { viewModel.persistProgress() },
             onResume = { viewModel.resume() },
             onClearPath = { viewModel.clearPath() },
@@ -83,7 +95,7 @@ fun LinesUnlimitedScreen(
             onTapCell = { viewModel.onTapCell(it) },
             onBack = onBack,
         )
-        is LinesUnlimitedUiState.Results -> UnlimitedResultsContent(
+        is RootsUnlimitedUiState.Results -> UnlimitedResultsContent(
             state = state,
             onNewGame = { viewModel.newGame() },
             onBack = onBack,
@@ -92,24 +104,116 @@ fun LinesUnlimitedScreen(
 }
 
 @Composable
+private fun StartContent(
+    state: RootsUnlimitedUiState.Start,
+    onSeedChange: (String) -> Unit,
+    onStart: () -> Unit,
+    onBack: () -> Unit,
+) {
+    var isEditing by remember { mutableStateOf(false) }
+    var editValue by remember(state.seed) { mutableStateOf(state.seed) }
+    val focusRequester = remember { FocusRequester() }
+
+    Scaffold(
+        topBar = {
+            SectionTopBar(
+                title = "Roots: Unlimited",
+                onBack = onBack,
+                backgroundColor = RootsAccentColor,
+            )
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(32.dp),
+            ) {
+                if (isEditing) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        OutlinedTextField(
+                            value = editValue,
+                            onValueChange = { editValue = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(8) },
+                            label = { Text("Seed") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                onSeedChange(editValue)
+                                isEditing = false
+                            }),
+                            modifier = Modifier.weight(1f).focusRequester(focusRequester),
+                        )
+                        IconButton(onClick = {
+                            onSeedChange(editValue)
+                            isEditing = false
+                        }) {
+                            Icon(Icons.Filled.Check, contentDescription = "Confirm seed")
+                        }
+                    }
+                    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("Seed: ", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            state.seed,
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
+                        IconButton(onClick = { editValue = state.seed; isEditing = true }) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Edit seed")
+                        }
+                    }
+                }
+
+                if (state.bestTimeSeconds >= 0) {
+                    BestScorePill(
+                        text = "Best (${state.gridSize}x${state.gridSize}): ${formatTime(state.bestTimeSeconds)}",
+                        iconTint = RootsSolidColor,
+                        icon = Icons.Filled.EmojiEvents,
+                    )
+                }
+
+                Button(
+                    onClick = onStart,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RootsSolidColor,
+                        contentColor = Color.White,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = null)
+                    Text("START", modifier = Modifier.padding(start = 4.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun UnlimitedPlayingContent(
-    state: LinesUnlimitedUiState.Playing,
-    seed: String,
+    state: RootsUnlimitedUiState.Playing,
+    seed: String = "",
     onPause: () -> Unit,
     onResume: () -> Unit,
     onClearPath: () -> Unit,
-    onDragStart: (com.tomdunkley.dailypuzzles.data.lines.LinesCell) -> Unit,
-    onCellDrag: (com.tomdunkley.dailypuzzles.data.lines.LinesCell) -> Unit,
-    onTapCell: (com.tomdunkley.dailypuzzles.data.lines.LinesCell) -> Unit,
+    onDragStart: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
+    onCellDrag: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
+    onTapCell: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Lines: Unlimited",
-                subtitle = "$seed — ${formatTime(state.elapsedSeconds)}",
+                title = "Roots: Unlimited",
+                subtitle = formatTime(state.elapsedSeconds),
                 onBack = onBack,
-                backgroundColor = LinesAccentColor,
+                backgroundColor = RootsAccentColor,
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -120,7 +224,7 @@ private fun UnlimitedPlayingContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.weight(1f))
-                LinesGridCanvas(
+                RootsGridCanvas(
                     n = state.gridSize,
                     startCell = state.startCell,
                     endCell = state.endCell,
@@ -128,6 +232,7 @@ private fun UnlimitedPlayingContent(
                     colClues = state.colClues,
                     path = state.currentPath,
                     crossMarkers = state.crossMarkers,
+                    tickMarkers = state.tickMarkers,
                     interactive = !state.isPaused,
                     onDragStart = onDragStart,
                     onCellDrag = onCellDrag,
@@ -146,7 +251,7 @@ private fun UnlimitedPlayingContent(
             if (state.isPaused) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
@@ -162,7 +267,7 @@ private fun UnlimitedPlayingContent(
                             Button(
                                 onClick = onResume,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = LinesSolidColor,
+                                    containerColor = RootsSolidColor,
                                     contentColor = Color.White,
                                 ),
                             ) {
@@ -179,16 +284,16 @@ private fun UnlimitedPlayingContent(
 
 @Composable
 private fun UnlimitedResultsContent(
-    state: LinesUnlimitedUiState.Results,
+    state: RootsUnlimitedUiState.Results,
     onNewGame: () -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Lines: Unlimited",
+                title = "Roots: Unlimited",
                 onBack = onBack,
-                backgroundColor = LinesAccentColor,
+                backgroundColor = RootsAccentColor,
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -208,18 +313,18 @@ private fun UnlimitedResultsContent(
             )
             if (state.isNewBest) {
                 BestScorePill(
-                    text = "New best for ${state.gridSize}×${state.gridSize}! 🎉",
-                    iconTint = LinesSolidColor,
+                    text = "New best for ${state.gridSize}x${state.gridSize}!",
+                    iconTint = RootsSolidColor,
                     icon = Icons.Filled.EmojiEvents,
                 )
             }
             Text(
-                "Puzzle: ${state.seed}  (${state.gridSize}×${state.gridSize})",
+                "Puzzle: ${state.seed}  (${state.gridSize}x${state.gridSize})",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-            LinesGridCanvas(
+            RootsGridCanvas(
                 n = state.gridSize,
                 startCell = state.startCell,
                 endCell = state.endCell,
@@ -227,6 +332,7 @@ private fun UnlimitedResultsContent(
                 colClues = state.colClues,
                 path = state.solution,
                 crossMarkers = emptySet(),
+                tickMarkers = emptySet(),
                 interactive = false,
                 onDragStart = {},
                 onCellDrag = {},
@@ -236,7 +342,7 @@ private fun UnlimitedResultsContent(
             Button(
                 onClick = onNewGame,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LinesSolidColor,
+                    containerColor = RootsSolidColor,
                     contentColor = Color.White,
                 ),
                 modifier = Modifier.fillMaxWidth(),

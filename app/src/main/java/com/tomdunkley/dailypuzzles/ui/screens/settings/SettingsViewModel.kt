@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
-import com.tomdunkley.dailypuzzles.data.lines.LinesProgressStore
+import com.tomdunkley.dailypuzzles.data.roots.RootsProgressStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
@@ -198,7 +198,7 @@ class SettingsViewModel : ViewModel() {
                     // otherwise keep showing today's puzzles as already played/in-progress.
                     BoggleProgressStore.clearAll()
                     NumbersProgressStore.clearAll()
-                    LinesProgressStore.clearAll()
+                    RootsProgressStore.clearAll()
                     _uiState.value = state.copy(isSaving = false)
                 }
                 .onFailure {

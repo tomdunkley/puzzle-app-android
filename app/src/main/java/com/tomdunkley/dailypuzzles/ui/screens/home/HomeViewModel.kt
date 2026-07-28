@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
-import com.tomdunkley.dailypuzzles.data.lines.LinesProgressStore
+import com.tomdunkley.dailypuzzles.data.roots.RootsProgressStore
 import com.tomdunkley.dailypuzzles.data.network.todayUtcIso
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
@@ -77,14 +77,14 @@ class HomeViewModel : ViewModel() {
     private fun hasSavedProgress(gameId: String, puzzleId: String): Boolean = when (gameId) {
         "boggle" -> BoggleProgressStore.load(puzzleId) != null
         "numbers" -> NumbersProgressStore.load(puzzleId) != null
-        "lines" -> LinesProgressStore.load(puzzleId) != null
+        "roots" -> RootsProgressStore.load(puzzleId) != null
         else -> false
     }
 
     private fun hasCachedResult(gameId: String, puzzleId: String): Boolean = when (gameId) {
         "boggle" -> BoggleProgressStore.loadResult(puzzleId) != null
         "numbers" -> NumbersProgressStore.loadResult(puzzleId) != null
-        "lines" -> LinesProgressStore.loadResult(puzzleId) != null
+        "roots" -> RootsProgressStore.loadResult(puzzleId) != null
         else -> false
     }
 }

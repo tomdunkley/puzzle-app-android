@@ -1,13 +1,13 @@
-package com.tomdunkley.dailypuzzles.ui.screens.lines
+package com.tomdunkley.dailypuzzles.ui.screens.roots
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
-import com.tomdunkley.dailypuzzles.data.lines.LinesCell
-import com.tomdunkley.dailypuzzles.data.lines.LinesProgress
-import com.tomdunkley.dailypuzzles.data.lines.LinesProgressStore
-import com.tomdunkley.dailypuzzles.data.lines.LinesResult
+import com.tomdunkley.dailypuzzles.data.roots.RootsCell
+import com.tomdunkley.dailypuzzles.data.roots.RootsProgress
+import com.tomdunkley.dailypuzzles.data.roots.RootsProgressStore
+import com.tomdunkley.dailypuzzles.data.roots.RootsResult
 import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreSubmissionDto
 import com.tomdunkley.dailypuzzles.data.network.handleIfVerificationRequired
@@ -25,27 +25,28 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-sealed interface LinesUiState {
-    data object Loading : LinesUiState
-    data class Error(val message: String) : LinesUiState
+sealed interface RootsUiState {
+    data object Loading : RootsUiState
+    data class Error(val message: String) : RootsUiState
     data class Playing(
         val gridSize: Int,
-        val startCell: LinesCell,
-        val endCell: LinesCell,
-        val solution: List<LinesCell>,
+        val startCell: RootsCell,
+        val endCell: RootsCell,
+        val solution: List<RootsCell>,
         val rowClues: List<Int>,
         val colClues: List<Int>,
-        val currentPath: List<LinesCell>,
-        val crossMarkers: Set<LinesCell>,
+        val currentPath: List<RootsCell>,
+        val crossMarkers: Set<RootsCell>,
+        val tickMarkers: Set<RootsCell>,
         val elapsedSeconds: Int,
         val isPaused: Boolean = false,
-    ) : LinesUiState
-    data object Submitting : LinesUiState
+    ) : RootsUiState
+    data object Submitting : RootsUiState
     data class Results(
         val gridSize: Int,
-        val startCell: LinesCell,
-        val endCell: LinesCell,
-        val solution: List<LinesCell>,
+        val startCell: RootsCell,
+        val endCell: RootsCell,
+        val solution: List<RootsCell>,
         val rowClues: List<Int>,
         val colClues: List<Int>,
         val durationSeconds: Int,
@@ -53,15 +54,14 @@ sealed interface LinesUiState {
         val currentStreak: Int,
         val puzzleId: String,
         val date: String,
-        val dailyBestDurationSeconds: Int? = null,
-        val isNewDailyBest: Boolean = false,
-    ) : LinesUiState
+        val personalBestSeconds: Int?,
+    ) : RootsUiState
 }
 
-class LinesViewModel : ViewModel() {
+class RootsViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow<LinesUiState>(LinesUiState.Loading)
-    val uiState: StateFlow<LinesUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<RootsUiState>(RootsUiState.Loading)
+    val uiState: StateFlow<RootsUiState> = _uiState.asStateFlow()
 
     private val _newlyUnlockedTrophies = MutableStateFlow<List<String>>(emptyList())
     val newlyUnlockedTrophies: StateFlow<List<String>> = _newlyUnlockedTrophies.asStateFlow()
@@ -76,9 +76,9 @@ class LinesViewModel : ViewModel() {
 
     fun loadTodayPuzzle() {
         viewModelScope.launch {
-            _uiState.value = LinesUiState.Loading
+            _uiState.value = RootsUiState.Loading
             runCatching {
-                AuthRepository.apiServiceForCurrentSession().getTodayPuzzle("lines")
+                AuthRepository.apiServiceForCurrentSession().getTodayPuzzle("roots")
             }
                 .onSuccess { dto ->
                     puzzleId = dto.puzzleId
@@ -87,24 +87,23 @@ class LinesViewModel : ViewModel() {
                     val seed = seedFromPuzzleId(dto.puzzleId)
 
                     if (dto.alreadyPlayed) {
-                        val saved = LinesProgressStore.loadResult(dto.puzzleId)
-                        val result = LinesResult(
+                        val saved = RootsProgressStore.loadResult(dto.puzzleId)
+                        val result = RootsResult(
                             puzzleId = dto.puzzleId,
                             date = dto.date,
                             gridSize = gridSize,
                             durationSeconds = saved?.durationSeconds ?: 0,
                             rankToday = saved?.rankToday ?: 0,
                             currentStreak = dto.streak?.current ?: 0,
-                            dailyBestDurationSeconds = saved?.dailyBestDurationSeconds,
-                            isNewDailyBest = saved?.isNewDailyBest ?: false,
                         )
-                        LinesProgressStore.saveResult(result)
-                        _uiState.value = result.toUiState(seed)
+                        RootsProgressStore.saveResult(result)
+                        val personalBest = RootsProgressStore.personalBestSeconds()
+                        _uiState.value = result.toUiState(seed, personalBest.takeIf { it >= 0 })
                     } else {
-                        val puzzle = LinesPuzzleGenerator.generate(seed, gridSize)
-                        val saved = LinesProgressStore.load(dto.puzzleId)
+                        val puzzle = RootsPuzzleGenerator.generate(seed, gridSize)
+                        val saved = RootsProgressStore.load(dto.puzzleId)
                         if (saved != null && saved.gridSize == gridSize) {
-                            _uiState.value = LinesUiState.Playing(
+                            _uiState.value = RootsUiState.Playing(
                                 gridSize = puzzle.gridSize,
                                 startCell = puzzle.startCell,
                                 endCell = puzzle.endCell,
@@ -113,12 +112,13 @@ class LinesViewModel : ViewModel() {
                                 colClues = puzzle.colClues,
                                 currentPath = saved.currentPath,
                                 crossMarkers = saved.crossMarkers.toSet(),
+                                tickMarkers = saved.tickMarkers.toSet(),
                                 elapsedSeconds = saved.elapsedSeconds,
                                 isPaused = saved.isPaused,
                             )
                             if (!saved.isPaused) startTimer()
                         } else {
-                            _uiState.value = LinesUiState.Playing(
+                            _uiState.value = RootsUiState.Playing(
                                 gridSize = puzzle.gridSize,
                                 startCell = puzzle.startCell,
                                 endCell = puzzle.endCell,
@@ -127,6 +127,7 @@ class LinesViewModel : ViewModel() {
                                 colClues = puzzle.colClues,
                                 currentPath = emptyList(),
                                 crossMarkers = emptySet(),
+                                tickMarkers = emptySet(),
                                 elapsedSeconds = 0,
                             )
                             startTimer()
@@ -136,24 +137,25 @@ class LinesViewModel : ViewModel() {
                 .onFailure {
                     if (handleIfVerificationRequired(it)) return@onFailure
                     val cached = if (it.isOffline()) {
-                        LinesProgressStore.loadResult("lines_${todayUtcIso()}")
+                        RootsProgressStore.loadResult("roots_${todayUtcIso()}")
                     } else null
                     if (cached != null) {
-                        _uiState.value = cached.toUiState(seedFromPuzzleId(cached.puzzleId))
+                        val personalBest = RootsProgressStore.personalBestSeconds()
+                        _uiState.value = cached.toUiState(seedFromPuzzleId(cached.puzzleId), personalBest.takeIf { it >= 0 })
                     } else {
-                        _uiState.value = LinesUiState.Error(it.toUserMessage("Couldn't load today's puzzle"))
+                        _uiState.value = RootsUiState.Error(it.toUserMessage("Couldn't load today's puzzle"))
                     }
                 }
         }
     }
 
     fun persistProgress() {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
+        val state = _uiState.value as? RootsUiState.Playing ?: return
         timerJob?.cancel()
         val paused = state.copy(isPaused = true)
         _uiState.value = paused
-        LinesProgressStore.save(
-            LinesProgress(
+        RootsProgressStore.save(
+            RootsProgress(
                 puzzleId = puzzleId,
                 gridSize = paused.gridSize,
                 startCell = paused.startCell,
@@ -163,6 +165,7 @@ class LinesViewModel : ViewModel() {
                 colClues = paused.colClues,
                 currentPath = paused.currentPath,
                 crossMarkers = paused.crossMarkers.toList(),
+                tickMarkers = paused.tickMarkers.toList(),
                 elapsedSeconds = paused.elapsedSeconds,
                 isPaused = true,
             ),
@@ -170,7 +173,7 @@ class LinesViewModel : ViewModel() {
     }
 
     fun resume() {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
+        val state = _uiState.value as? RootsUiState.Playing ?: return
         if (!state.isPaused) return
         _uiState.value = state.copy(isPaused = false)
         startTimer()
@@ -181,17 +184,29 @@ class LinesViewModel : ViewModel() {
         timerJob = viewModelScope.launch {
             while (true) {
                 delay(1000)
-                val current = _uiState.value as? LinesUiState.Playing ?: return@launch
+                val current = _uiState.value as? RootsUiState.Playing ?: return@launch
                 _uiState.value = current.copy(elapsedSeconds = current.elapsedSeconds + 1)
             }
         }
     }
 
-    fun onCellDrag(cell: LinesCell) {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
+    fun onDragStart(cell: RootsCell) {
+        val state = _uiState.value as? RootsUiState.Playing ?: return
+        val path = state.currentPath
+        val idx = path.indexOf(cell)
+        if (idx >= 0) {
+            _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
+            return
+        }
+        if (cell == state.startCell || cell == state.endCell) {
+            _uiState.value = state.copy(currentPath = listOf(cell))
+        }
+    }
+
+    fun onCellDrag(cell: RootsCell) {
+        val state = _uiState.value as? RootsUiState.Playing ?: return
         val path = state.currentPath
 
-        // Start drawing: can initiate from either endpoint when path is empty
         if (path.isEmpty()) {
             if (cell == state.startCell || cell == state.endCell) {
                 _uiState.value = state.copy(currentPath = listOf(cell))
@@ -200,87 +215,67 @@ class LinesViewModel : ViewModel() {
         }
 
         val pathHead = path.last()
-        val pathTail = path.first()
-
-        // Check if this extends the head
         if (cell == pathHead) return
+
         val existingIdx = path.indexOf(cell)
         if (existingIdx >= 0) {
-            // Trim path back to this cell
             _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
             return
         }
 
-        // Must be adjacent to head to extend
-        if (!isAdjacent(cell, pathHead)) {
-            // Try from the tail instead (drawing from the other end)
-            if (path.size == 1 && (pathTail == state.startCell || pathTail == state.endCell)) {
-                if (isAdjacent(cell, pathTail)) {
-                    _uiState.value = state.copy(currentPath = listOf(cell, pathTail))
-                }
-            }
-            return
-        }
+        if (!isAdjacent(cell, pathHead)) return
 
         val newPath = path + cell
         val updatedState = state.copy(
             currentPath = newPath,
             crossMarkers = state.crossMarkers - cell,
+            tickMarkers = state.tickMarkers - cell,
         )
         _uiState.value = updatedState
 
-        if (LinesPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
+        if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
             SoundFeedback.correct()
             timerJob?.cancel()
             submit(updatedState)
         }
     }
 
-    fun onDragStart(cell: LinesCell) {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
-        val path = state.currentPath
+    fun onTapCell(cell: RootsCell) {
+        val state = _uiState.value as? RootsUiState.Playing ?: return
+        if (cell == state.startCell || cell == state.endCell) return
 
-        if (path.isEmpty()) {
-            if (cell == state.startCell || cell == state.endCell) {
-                _uiState.value = state.copy(currentPath = listOf(cell))
-            }
+        val idx = state.currentPath.indexOf(cell)
+        if (idx >= 0) {
+            _uiState.value = state.copy(currentPath = state.currentPath.subList(0, idx + 1))
             return
         }
 
-        // If dragging from an endpoint that IS in the path, trim to just that endpoint
-        if (cell == state.startCell || cell == state.endCell) {
-            val idx = path.indexOf(cell)
-            if (idx >= 0) {
-                _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
-                return
+        val updatedCross: Set<RootsCell>
+        val updatedTick: Set<RootsCell>
+        when {
+            state.crossMarkers.contains(cell) -> {
+                updatedCross = state.crossMarkers - cell
+                updatedTick = state.tickMarkers + cell
+            }
+            state.tickMarkers.contains(cell) -> {
+                updatedCross = state.crossMarkers
+                updatedTick = state.tickMarkers - cell
+            }
+            else -> {
+                updatedCross = state.crossMarkers + cell
+                updatedTick = state.tickMarkers
             }
         }
-
-        // If dragging from the current head or tail, keep path as-is (will extend via onCellDrag)
-        if (cell == path.last() || cell == path.first()) return
-
-        // Tapping the head/tail's adjacent position already handled in onCellDrag
-    }
-
-    fun onTapCell(cell: LinesCell) {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
-        if (cell == state.startCell || cell == state.endCell) return
-        if (state.currentPath.contains(cell)) return
-        val updated = if (state.crossMarkers.contains(cell)) {
-            state.crossMarkers - cell
-        } else {
-            state.crossMarkers + cell
-        }
-        _uiState.value = state.copy(crossMarkers = updated)
+        _uiState.value = state.copy(crossMarkers = updatedCross, tickMarkers = updatedTick)
     }
 
     fun clearPath() {
-        val state = _uiState.value as? LinesUiState.Playing ?: return
+        val state = _uiState.value as? RootsUiState.Playing ?: return
         _uiState.value = state.copy(currentPath = emptyList())
     }
 
-    private fun submit(state: LinesUiState.Playing) {
-        _uiState.value = LinesUiState.Submitting
+    private fun submit(state: RootsUiState.Playing) {
+        _uiState.value = RootsUiState.Submitting
         viewModelScope.launch {
             runCatching {
                 AuthRepository.apiServiceForCurrentSession().submitScore(
@@ -292,7 +287,7 @@ class LinesViewModel : ViewModel() {
                 )
             }
                 .onSuccess { result ->
-                    LinesProgressStore.clear()
+                    RootsProgressStore.clear()
                     TrophySeenStore.addUnseen(result.newlyUnlocked)
                     if (result.newlyUnlocked.isNotEmpty()) {
                         val titles = result.newlyUnlocked.mapNotNull { TROPHY_TITLES[it] }
@@ -301,23 +296,23 @@ class LinesViewModel : ViewModel() {
                         }
                         claimAchievements(result.newlyUnlocked)
                     }
-                    val linesResult = LinesResult(
+                    RootsProgressStore.updatePersonalBest(state.elapsedSeconds)
+                    val personalBest = RootsProgressStore.personalBestSeconds()
+                    val rootsResult = RootsResult(
                         puzzleId = puzzleId,
                         date = puzzleDate,
                         gridSize = state.gridSize,
                         durationSeconds = state.elapsedSeconds,
                         rankToday = result.rankToday,
                         currentStreak = result.currentStreak,
-                        dailyBestDurationSeconds = result.dailyBestDurationSeconds,
-                        isNewDailyBest = result.isNewDailyBest,
                     )
-                    LinesProgressStore.saveResult(linesResult)
+                    RootsProgressStore.saveResult(rootsResult)
                     val seed = seedFromPuzzleId(puzzleId)
-                    _uiState.value = linesResult.toUiState(seed)
+                    _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 })
                 }
                 .onFailure {
                     if (!handleIfVerificationRequired(it)) {
-                        _uiState.value = LinesUiState.Error(it.toUserMessage("Couldn't submit your score"))
+                        _uiState.value = RootsUiState.Error(it.toUserMessage("Couldn't submit your score"))
                     }
                 }
         }
@@ -341,15 +336,12 @@ class LinesViewModel : ViewModel() {
         }
     }
 
-    suspend fun ownUserId(): String? =
-        runCatching { AuthRepository.apiServiceForCurrentSession().getMyProfile().userId }.getOrNull()
-
     override fun onCleared() {
         timerJob?.cancel()
     }
 
     companion object {
-        private fun isAdjacent(a: LinesCell, b: LinesCell) =
+        private fun isAdjacent(a: RootsCell, b: RootsCell) =
             (kotlin.math.abs(a.row - b.row) + kotlin.math.abs(a.col - b.col)) == 1
 
         fun gridSizeForDate(dateStr: String): Int {
@@ -370,9 +362,9 @@ class LinesViewModel : ViewModel() {
     }
 }
 
-private fun LinesResult.toUiState(seed: Long): LinesUiState.Results {
-    val puzzle = LinesPuzzleGenerator.generate(seed, gridSize)
-    return LinesUiState.Results(
+private fun RootsResult.toUiState(seed: Long, personalBestSeconds: Int?): RootsUiState.Results {
+    val puzzle = RootsPuzzleGenerator.generate(seed, gridSize)
+    return RootsUiState.Results(
         gridSize = gridSize,
         startCell = puzzle.startCell,
         endCell = puzzle.endCell,
@@ -384,7 +376,6 @@ private fun LinesResult.toUiState(seed: Long): LinesUiState.Results {
         currentStreak = currentStreak,
         puzzleId = puzzleId,
         date = date,
-        dailyBestDurationSeconds = dailyBestDurationSeconds,
-        isNewDailyBest = isNewDailyBest,
+        personalBestSeconds = personalBestSeconds,
     )
 }

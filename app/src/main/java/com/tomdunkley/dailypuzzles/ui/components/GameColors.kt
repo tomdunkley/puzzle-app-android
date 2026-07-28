@@ -14,6 +14,6 @@ val NumbersIconColor = Color(0xFF64B5F6)    // blue 300
 val WordsAccentColor = Color(0xFFFFF3E0)    // orange 50
 val NumbersAccentColor = Color(0xFFE3F2FD)  // blue 50
 
-val LinesSolidColor = Color(0xFF2E7D32)     // green 800
-val LinesIconColor = Color(0xFF81C784)      // green 300
-val LinesAccentColor = Color(0xFFE8F5E9)    // green 50
+val RootsSolidColor = Color(0xFF2E7D32)     // green 800
+val RootsIconColor = Color(0xFF81C784)      // green 300
+val RootsAccentColor = Color(0xFFE8F5E9)    // green 50

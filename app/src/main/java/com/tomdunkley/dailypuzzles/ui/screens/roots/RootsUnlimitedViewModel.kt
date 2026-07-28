@@ -1,9 +1,9 @@
-package com.tomdunkley.dailypuzzles.ui.screens.lines
+package com.tomdunkley.dailypuzzles.ui.screens.roots
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
-import com.tomdunkley.dailypuzzles.data.lines.LinesCell
+import com.tomdunkley.dailypuzzles.data.roots.RootsCell
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedPuzzleGenerator
 import kotlinx.coroutines.Job
@@ -12,45 +12,48 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
-sealed interface LinesUnlimitedUiState {
-    data object Loading : LinesUnlimitedUiState
+sealed interface RootsUnlimitedUiState {
+    data class Start(
+        val seed: String,
+        val gridSize: Int,
+        val bestTimeSeconds: Int,
+    ) : RootsUnlimitedUiState
     data class Playing(
         val gridSize: Int,
-        val startCell: LinesCell,
-        val endCell: LinesCell,
-        val solution: List<LinesCell>,
+        val startCell: RootsCell,
+        val endCell: RootsCell,
+        val solution: List<RootsCell>,
         val rowClues: List<Int>,
         val colClues: List<Int>,
-        val currentPath: List<LinesCell>,
-        val crossMarkers: Set<LinesCell>,
+        val currentPath: List<RootsCell>,
+        val crossMarkers: Set<RootsCell>,
+        val tickMarkers: Set<RootsCell>,
         val elapsedSeconds: Int,
         val isPaused: Boolean = false,
-    ) : LinesUnlimitedUiState
+    ) : RootsUnlimitedUiState
     data class Results(
         val gridSize: Int,
-        val startCell: LinesCell,
-        val endCell: LinesCell,
-        val solution: List<LinesCell>,
+        val startCell: RootsCell,
+        val endCell: RootsCell,
+        val solution: List<RootsCell>,
         val rowClues: List<Int>,
         val colClues: List<Int>,
         val durationSeconds: Int,
         val seed: String,
         val isNewBest: Boolean,
-    ) : LinesUnlimitedUiState
+    ) : RootsUnlimitedUiState
 }
 
-class LinesUnlimitedViewModel : ViewModel() {
+class RootsUnlimitedViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow<LinesUnlimitedUiState>(LinesUnlimitedUiState.Loading)
-    val uiState: StateFlow<LinesUnlimitedUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<RootsUnlimitedUiState>(buildStartState(""))
+    val uiState: StateFlow<RootsUnlimitedUiState> = _uiState.asStateFlow()
 
     private val _seed = MutableStateFlow("")
     val seed: StateFlow<String> = _seed.asStateFlow()
 
     private var timerJob: Job? = null
-    private var currentPuzzle: LinesPuzzle? = null
 
     fun loadPuzzle() {
         if (_seed.value.isNotEmpty()) return
@@ -61,15 +64,17 @@ class LinesUnlimitedViewModel : ViewModel() {
         timerJob?.cancel()
         val code = UnlimitedPuzzleGenerator.generateSeedCode()
         _seed.value = code
-        startGame(code)
+        _uiState.value = buildStartState(code)
     }
 
     fun setSeed(code: String) {
-        _seed.value = code
-        startGame(code)
+        val upper = code.uppercase().trim()
+        _seed.value = upper
+        _uiState.value = buildStartState(upper)
     }
 
-    private fun startGame(code: String) {
+    fun startGame() {
+        val code = _seed.value
         timerJob?.cancel()
         val baseSeed = UnlimitedPuzzleGenerator.seedCodeToLong(code)
         val gridSize = (baseSeed % 3).toInt().let { rem ->
@@ -77,9 +82,8 @@ class LinesUnlimitedViewModel : ViewModel() {
                 0 -> 4; 1 -> 5; else -> 6
             }
         }
-        val puzzle = LinesPuzzleGenerator.generate(baseSeed, gridSize)
-        currentPuzzle = puzzle
-        _uiState.value = LinesUnlimitedUiState.Playing(
+        val puzzle = RootsPuzzleGenerator.generate(baseSeed, gridSize)
+        _uiState.value = RootsUnlimitedUiState.Playing(
             gridSize = puzzle.gridSize,
             startCell = puzzle.startCell,
             endCell = puzzle.endCell,
@@ -88,9 +92,21 @@ class LinesUnlimitedViewModel : ViewModel() {
             colClues = puzzle.colClues,
             currentPath = emptyList(),
             crossMarkers = emptySet(),
+            tickMarkers = emptySet(),
             elapsedSeconds = 0,
         )
         startTimer()
+    }
+
+    private fun buildStartState(code: String): RootsUnlimitedUiState.Start {
+        val baseSeed = if (code.isEmpty()) 0L else UnlimitedPuzzleGenerator.seedCodeToLong(code)
+        val gridSize = (baseSeed % 3).toInt().let { rem ->
+            when (if (rem < 0) rem + 3 else rem) {
+                0 -> 4; 1 -> 5; else -> 6
+            }
+        }
+        val best = if (code.isEmpty()) -1 else UnlimitedHighScoreStore.rootsBestTimeSeconds(gridSize)
+        return RootsUnlimitedUiState.Start(seed = code, gridSize = gridSize, bestTimeSeconds = best)
     }
 
     private fun startTimer() {
@@ -98,7 +114,7 @@ class LinesUnlimitedViewModel : ViewModel() {
         timerJob = viewModelScope.launch {
             while (true) {
                 delay(1000)
-                val current = _uiState.value as? LinesUnlimitedUiState.Playing ?: return@launch
+                val current = _uiState.value as? RootsUnlimitedUiState.Playing ?: return@launch
                 if (!current.isPaused) {
                     _uiState.value = current.copy(elapsedSeconds = current.elapsedSeconds + 1)
                 }
@@ -107,36 +123,32 @@ class LinesUnlimitedViewModel : ViewModel() {
     }
 
     fun persistProgress() {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         _uiState.value = state.copy(isPaused = true)
     }
 
     fun resume() {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (!state.isPaused) return
         _uiState.value = state.copy(isPaused = false)
     }
 
-    fun onDragStart(cell: LinesCell) {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+    fun onDragStart(cell: RootsCell) {
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
         val path = state.currentPath
-        if (path.isEmpty()) {
-            if (cell == state.startCell || cell == state.endCell) {
-                _uiState.value = state.copy(currentPath = listOf(cell))
-            }
+        val idx = path.indexOf(cell)
+        if (idx >= 0) {
+            _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
             return
         }
         if (cell == state.startCell || cell == state.endCell) {
-            val idx = path.indexOf(cell)
-            if (idx >= 0) {
-                _uiState.value = state.copy(currentPath = path.subList(0, idx + 1))
-            }
+            _uiState.value = state.copy(currentPath = listOf(cell))
         }
     }
 
-    fun onCellDrag(cell: LinesCell) {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+    fun onCellDrag(cell: RootsCell) {
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
         val path = state.currentPath
         if (path.isEmpty()) {
@@ -157,39 +169,57 @@ class LinesUnlimitedViewModel : ViewModel() {
         val updatedState = state.copy(
             currentPath = newPath,
             crossMarkers = state.crossMarkers - cell,
+            tickMarkers = state.tickMarkers - cell,
         )
         _uiState.value = updatedState
-        if (LinesPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
+        if (RootsPuzzleGenerator.checkSolved(newPath, state.rowClues, state.colClues, state.startCell, state.endCell)) {
             SoundFeedback.correct()
             timerJob?.cancel()
             submitResult(updatedState)
         }
     }
 
-    fun onTapCell(cell: LinesCell) {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+    fun onTapCell(cell: RootsCell) {
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
         if (cell == state.startCell || cell == state.endCell) return
-        if (state.currentPath.contains(cell)) return
-        val updated = if (state.crossMarkers.contains(cell)) {
-            state.crossMarkers - cell
-        } else {
-            state.crossMarkers + cell
+
+        val idx = state.currentPath.indexOf(cell)
+        if (idx >= 0) {
+            _uiState.value = state.copy(currentPath = state.currentPath.subList(0, idx + 1))
+            return
         }
-        _uiState.value = state.copy(crossMarkers = updated)
+
+        val updatedCross: Set<RootsCell>
+        val updatedTick: Set<RootsCell>
+        when {
+            state.crossMarkers.contains(cell) -> {
+                updatedCross = state.crossMarkers - cell
+                updatedTick = state.tickMarkers + cell
+            }
+            state.tickMarkers.contains(cell) -> {
+                updatedCross = state.crossMarkers
+                updatedTick = state.tickMarkers - cell
+            }
+            else -> {
+                updatedCross = state.crossMarkers + cell
+                updatedTick = state.tickMarkers
+            }
+        }
+        _uiState.value = state.copy(crossMarkers = updatedCross, tickMarkers = updatedTick)
     }
 
     fun clearPath() {
-        val state = _uiState.value as? LinesUnlimitedUiState.Playing ?: return
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         _uiState.value = state.copy(currentPath = emptyList())
     }
 
-    private fun submitResult(state: LinesUnlimitedUiState.Playing) {
+    private fun submitResult(state: RootsUnlimitedUiState.Playing) {
         val elapsed = state.elapsedSeconds
-        val prevBest = UnlimitedHighScoreStore.linesBestTimeSeconds(state.gridSize)
+        val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds(state.gridSize)
         val isNew = prevBest < 0 || elapsed < prevBest
-        UnlimitedHighScoreStore.updateLinesTime(state.gridSize, elapsed, _seed.value)
-        _uiState.value = LinesUnlimitedUiState.Results(
+        UnlimitedHighScoreStore.updateRootsTime(state.gridSize, elapsed, _seed.value)
+        _uiState.value = RootsUnlimitedUiState.Results(
             gridSize = state.gridSize,
             startCell = state.startCell,
             endCell = state.endCell,
@@ -207,7 +237,7 @@ class LinesUnlimitedViewModel : ViewModel() {
     }
 
     companion object {
-        private fun isAdjacent(a: LinesCell, b: LinesCell) =
+        private fun isAdjacent(a: RootsCell, b: RootsCell) =
             (kotlin.math.abs(a.row - b.row) + kotlin.math.abs(a.col - b.col)) == 1
     }
 }

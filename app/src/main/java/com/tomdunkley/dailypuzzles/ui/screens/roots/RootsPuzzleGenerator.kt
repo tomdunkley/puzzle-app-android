@@ -1,32 +1,31 @@
-package com.tomdunkley.dailypuzzles.ui.screens.lines
+package com.tomdunkley.dailypuzzles.ui.screens.roots
 
-import com.tomdunkley.dailypuzzles.data.lines.LinesCell
+import com.tomdunkley.dailypuzzles.data.roots.RootsCell
 import kotlin.random.Random
 
-data class LinesPuzzle(
+data class RootsPuzzle(
     val gridSize: Int,
-    val startCell: LinesCell,
-    val endCell: LinesCell,
-    val solution: List<LinesCell>,
+    val startCell: RootsCell,
+    val endCell: RootsCell,
+    val solution: List<RootsCell>,
     val rowClues: List<Int>,
     val colClues: List<Int>,
 )
 
-object LinesPuzzleGenerator {
+object RootsPuzzleGenerator {
 
     private val DIRS = listOf(
-        LinesCell(-1, 0), LinesCell(1, 0),
-        LinesCell(0, -1), LinesCell(0, 1),
+        RootsCell(-1, 0), RootsCell(1, 0),
+        RootsCell(0, -1), RootsCell(0, 1),
     )
 
     fun gridSizeForDayOfWeek(dayOfWeek: Int): Int = when (dayOfWeek) {
-        // dayOfWeek: 1=Mon, 7=Sun (Java Calendar / ISO)
-        2 -> 4   // Monday
-        7, 1 -> 6 // Saturday, Sunday
+        2 -> 4
+        7, 1 -> 6
         else -> 5
     }
 
-    fun generate(seed: Long, gridSize: Int): LinesPuzzle {
+    fun generate(seed: Long, gridSize: Int): RootsPuzzle {
         val random = Random(seed)
         repeat(500) {
             val puzzle = tryGenerate(random, gridSize)
@@ -35,12 +34,12 @@ object LinesPuzzleGenerator {
         return generateFallback(gridSize)
     }
 
-    private fun tryGenerate(random: Random, n: Int): LinesPuzzle? {
-        val start = LinesCell(random.nextInt(n), random.nextInt(n))
-        var end: LinesCell
+    private fun tryGenerate(random: Random, n: Int): RootsPuzzle? {
+        val start = RootsCell(random.nextInt(n), random.nextInt(n))
+        var end: RootsCell
         var attempts = 0
         do {
-            end = LinesCell(random.nextInt(n), random.nextInt(n))
+            end = RootsCell(random.nextInt(n), random.nextInt(n))
             attempts++
             if (attempts > 50) return null
         } while (end == start || manhattan(start, end) < (n + 1) / 2)
@@ -56,22 +55,22 @@ object LinesPuzzleGenerator {
 
         if (!isUnique(n, start, end, rowClues, colClues)) return null
 
-        return LinesPuzzle(n, start, end, path, rowClues, colClues)
+        return RootsPuzzle(n, start, end, path, rowClues, colClues)
     }
 
-    private fun manhattan(a: LinesCell, b: LinesCell) =
+    private fun manhattan(a: RootsCell, b: RootsCell) =
         kotlin.math.abs(a.row - b.row) + kotlin.math.abs(a.col - b.col)
 
-    private fun randomPath(random: Random, n: Int, start: LinesCell, end: LinesCell): List<LinesCell>? {
+    private fun randomPath(random: Random, n: Int, start: RootsCell, end: RootsCell): List<RootsCell>? {
         val visited = Array(n) { BooleanArray(n) }
-        val path = mutableListOf<LinesCell>()
+        val path = mutableListOf<RootsCell>()
 
-        fun dfs(cell: LinesCell): Boolean {
+        fun dfs(cell: RootsCell): Boolean {
             visited[cell.row][cell.col] = true
             path.add(cell)
             if (cell == end) return true
             for (dir in DIRS.shuffled(random)) {
-                val next = LinesCell(cell.row + dir.row, cell.col + dir.col)
+                val next = RootsCell(cell.row + dir.row, cell.col + dir.col)
                 if (next.row !in 0 until n || next.col !in 0 until n) continue
                 if (visited[next.row][next.col]) continue
                 if (dfs(next)) return true
@@ -84,7 +83,7 @@ object LinesPuzzleGenerator {
         return if (dfs(start)) path.toList() else null
     }
 
-    private fun countTurns(path: List<LinesCell>): Int {
+    private fun countTurns(path: List<RootsCell>): Int {
         if (path.size < 3) return 0
         var turns = 0
         var prevDr = path[1].row - path[0].row
@@ -100,8 +99,8 @@ object LinesPuzzleGenerator {
 
     private fun isUnique(
         n: Int,
-        start: LinesCell,
-        end: LinesCell,
+        start: RootsCell,
+        end: RootsCell,
         rowClues: List<Int>,
         colClues: List<Int>,
     ): Boolean {
@@ -111,7 +110,7 @@ object LinesPuzzleGenerator {
         val visited = Array(n) { BooleanArray(n) }
         var nodes = 0
 
-        fun dfs(cell: LinesCell) {
+        fun dfs(cell: RootsCell) {
             if (count >= 2 || nodes > 100_000) return
             nodes++
             rowUsed[cell.row]++
@@ -123,7 +122,6 @@ object LinesPuzzleGenerator {
                     (0 until n).all { colUsed[it] == colClues[it] }
                 ) count++
             } else {
-                // Prune: check that remaining row/col budget is achievable
                 var feasible = true
                 for (r in 0 until n) {
                     val remaining = rowClues[r] - rowUsed[r]
@@ -146,7 +144,7 @@ object LinesPuzzleGenerator {
                 if (feasible) {
                     for (dir in DIRS) {
                         if (count >= 2) break
-                        val next = LinesCell(cell.row + dir.row, cell.col + dir.col)
+                        val next = RootsCell(cell.row + dir.row, cell.col + dir.col)
                         if (next.row !in 0 until n || next.col !in 0 until n) continue
                         if (visited[next.row][next.col]) continue
                         if (rowUsed[next.row] >= rowClues[next.row]) continue
@@ -165,26 +163,26 @@ object LinesPuzzleGenerator {
         return count == 1
     }
 
-    private fun generateFallback(n: Int): LinesPuzzle {
-        val path = mutableListOf<LinesCell>()
+    private fun generateFallback(n: Int): RootsPuzzle {
+        val path = mutableListOf<RootsCell>()
         for (row in 0 until n) {
             if (row % 2 == 0) {
-                for (col in 0 until n) path.add(LinesCell(row, col))
+                for (col in 0 until n) path.add(RootsCell(row, col))
             } else {
-                for (col in n - 1 downTo 0) path.add(LinesCell(row, col))
+                for (col in n - 1 downTo 0) path.add(RootsCell(row, col))
             }
         }
         val rowClues = List(n) { n }
         val colClues = List(n) { n }
-        return LinesPuzzle(n, path.first(), path.last(), path, rowClues, colClues)
+        return RootsPuzzle(n, path.first(), path.last(), path, rowClues, colClues)
     }
 
     fun checkSolved(
-        path: List<LinesCell>,
+        path: List<RootsCell>,
         rowClues: List<Int>,
         colClues: List<Int>,
-        startCell: LinesCell,
-        endCell: LinesCell,
+        startCell: RootsCell,
+        endCell: RootsCell,
     ): Boolean {
         if (path.isEmpty()) return false
         val first = path.first()

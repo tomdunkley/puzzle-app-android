@@ -1,4 +1,4 @@
-package com.tomdunkley.dailypuzzles.ui.screens.lines
+package com.tomdunkley.dailypuzzles.ui.screens.roots
 
 import android.content.Context
 import android.content.Intent
@@ -60,21 +60,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tomdunkley.dailypuzzles.data.lines.LinesCell
+import com.tomdunkley.dailypuzzles.data.roots.RootsCell
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
-import com.tomdunkley.dailypuzzles.ui.components.LinesAccentColor
-import com.tomdunkley.dailypuzzles.ui.components.LinesSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsAccentColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
 import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
 
 @Composable
-fun LinesScreen(
+fun RootsScreen(
     isSignedIn: Boolean,
     onBack: () -> Unit,
     onSignInClick: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
-    viewModel: LinesViewModel = viewModel(),
+    viewModel: RootsViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val newlyUnlockedTrophies by viewModel.newlyUnlockedTrophies.collectAsState()
@@ -90,14 +90,14 @@ fun LinesScreen(
 
     LaunchedEffect(Unit) { viewModel.loadTodayPuzzle() }
 
-    val showBottomBar = uiState is LinesUiState.Results
+    val showBottomBar = uiState is RootsUiState.Results
     LaunchedEffect(showBottomBar) { onShowBottomBarChange(showBottomBar) }
 
     Box(Modifier.fillMaxSize()) {
         when (val state = uiState) {
-            is LinesUiState.Loading -> LinesLoadingContent()
-            is LinesUiState.Error -> LinesErrorContent(state.message, onBack)
-            is LinesUiState.Playing -> PlayingContent(
+            is RootsUiState.Loading -> RootsLoadingContent()
+            is RootsUiState.Error -> RootsErrorContent(state.message, onBack)
+            is RootsUiState.Playing -> PlayingContent(
                 state = state,
                 onPause = { viewModel.persistProgress() },
                 onResume = { viewModel.resume() },
@@ -106,8 +106,8 @@ fun LinesScreen(
                 onCellDrag = { viewModel.onCellDrag(it) },
                 onTapCell = { viewModel.onTapCell(it) },
             )
-            is LinesUiState.Submitting -> LinesLoadingContent()
-            is LinesUiState.Results -> ResultsContent(
+            is RootsUiState.Submitting -> RootsLoadingContent()
+            is RootsUiState.Results -> ResultsContent(
                 state = state,
                 isSignedIn = isSignedIn,
                 onBack = onBack,
@@ -122,16 +122,16 @@ fun LinesScreen(
 }
 
 @Composable
-fun LinesLoadingContent() {
+fun RootsLoadingContent() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = LinesSolidColor)
+        CircularProgressIndicator(color = RootsSolidColor)
     }
 }
 
 @Composable
-fun LinesErrorContent(message: String, onBack: () -> Unit) {
+fun RootsErrorContent(message: String, onBack: () -> Unit) {
     Scaffold(
-        topBar = { SectionTopBar(title = "Lines", onBack = onBack, backgroundColor = LinesAccentColor) },
+        topBar = { SectionTopBar(title = "Roots", onBack = onBack, backgroundColor = RootsAccentColor) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -152,21 +152,21 @@ fun LinesErrorContent(message: String, onBack: () -> Unit) {
 
 @Composable
 private fun PlayingContent(
-    state: LinesUiState.Playing,
+    state: RootsUiState.Playing,
     onPause: () -> Unit,
     onResume: () -> Unit,
     onClearPath: () -> Unit,
-    onDragStart: (LinesCell) -> Unit,
-    onCellDrag: (LinesCell) -> Unit,
-    onTapCell: (LinesCell) -> Unit,
+    onDragStart: (RootsCell) -> Unit,
+    onCellDrag: (RootsCell) -> Unit,
+    onTapCell: (RootsCell) -> Unit,
 ) {
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Lines",
+                title = "Roots",
                 subtitle = formatTime(state.elapsedSeconds),
                 onBack = if (!state.isPaused) onPause else null,
-                backgroundColor = LinesAccentColor,
+                backgroundColor = RootsAccentColor,
                 actions = {
                     if (!state.isPaused) {
                         IconButton(onClick = onPause) {
@@ -184,7 +184,7 @@ private fun PlayingContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.weight(1f))
-                LinesGridCanvas(
+                RootsGridCanvas(
                     n = state.gridSize,
                     startCell = state.startCell,
                     endCell = state.endCell,
@@ -192,6 +192,7 @@ private fun PlayingContent(
                     colClues = state.colClues,
                     path = state.currentPath,
                     crossMarkers = state.crossMarkers,
+                    tickMarkers = state.tickMarkers,
                     interactive = !state.isPaused,
                     onDragStart = onDragStart,
                     onCellDrag = onCellDrag,
@@ -210,7 +211,7 @@ private fun PlayingContent(
             if (state.isPaused) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
@@ -226,7 +227,7 @@ private fun PlayingContent(
                             Button(
                                 onClick = onResume,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = LinesSolidColor,
+                                    containerColor = RootsSolidColor,
                                     contentColor = Color.White,
                                 ),
                             ) {
@@ -243,7 +244,7 @@ private fun PlayingContent(
 
 @Composable
 private fun ResultsContent(
-    state: LinesUiState.Results,
+    state: RootsUiState.Results,
     isSignedIn: Boolean,
     onBack: () -> Unit,
     onSignInClick: () -> Unit,
@@ -251,7 +252,7 @@ private fun ResultsContent(
     val context = LocalContext.current
     Scaffold(
         topBar = {
-            SectionTopBar(title = "Lines", onBack = onBack, backgroundColor = LinesAccentColor)
+            SectionTopBar(title = "Roots", onBack = onBack, backgroundColor = RootsAccentColor)
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
@@ -275,24 +276,17 @@ private fun ResultsContent(
                     if (state.currentStreak > 0) {
                         BestScorePill(
                             text = "${state.currentStreak} day streak",
-                            iconTint = LinesSolidColor,
+                            iconTint = RootsSolidColor,
                             icon = Icons.Filled.LocalFireDepartment,
                         )
                     }
-                    state.dailyBestDurationSeconds?.let { best ->
+                    state.personalBestSeconds?.let { best ->
                         BestScorePill(
-                            text = "Best today: ${formatTime(best)}",
-                            iconTint = LinesSolidColor,
+                            text = "Best: ${formatTime(best)}",
+                            iconTint = RootsSolidColor,
                             icon = Icons.Filled.EmojiEvents,
                         )
                     }
-                }
-                if (state.isNewDailyBest) {
-                    Text(
-                        "New personal best! 🎉",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = LinesSolidColor,
-                    )
                 }
             }
 
@@ -301,7 +295,7 @@ private fun ResultsContent(
                 style = MaterialTheme.typography.headlineMedium,
             )
 
-            LinesGridCanvas(
+            RootsGridCanvas(
                 n = state.gridSize,
                 startCell = state.startCell,
                 endCell = state.endCell,
@@ -309,6 +303,7 @@ private fun ResultsContent(
                 colClues = state.colClues,
                 path = state.solution,
                 crossMarkers = emptySet(),
+                tickMarkers = emptySet(),
                 interactive = false,
                 onDragStart = {},
                 onCellDrag = {},
@@ -325,7 +320,7 @@ private fun ResultsContent(
 
             Button(
                 onClick = {
-                    val text = buildLinesShareText(
+                    val text = buildRootsShareText(
                         date = state.date,
                         durationSeconds = state.durationSeconds,
                         rankToday = if (isSignedIn && state.rankToday > 0) state.rankToday else null,
@@ -335,7 +330,7 @@ private fun ResultsContent(
                     shareText(context, text)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LinesSolidColor,
+                    containerColor = RootsSolidColor,
                     contentColor = Color.White,
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -351,26 +346,27 @@ private fun ResultsContent(
 }
 
 @Composable
-fun LinesGridCanvas(
+fun RootsGridCanvas(
     n: Int,
-    startCell: LinesCell,
-    endCell: LinesCell,
+    startCell: RootsCell,
+    endCell: RootsCell,
     rowClues: List<Int>,
     colClues: List<Int>,
-    path: List<LinesCell>,
-    crossMarkers: Set<LinesCell>,
+    path: List<RootsCell>,
+    crossMarkers: Set<RootsCell>,
+    tickMarkers: Set<RootsCell>,
     interactive: Boolean,
-    onDragStart: (LinesCell) -> Unit,
-    onCellDrag: (LinesCell) -> Unit,
-    onTapCell: (LinesCell) -> Unit,
+    onDragStart: (RootsCell) -> Unit,
+    onCellDrag: (RootsCell) -> Unit,
+    onTapCell: (RootsCell) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
     val gridLineColor = MaterialTheme.colorScheme.outline
     val clueDefaultColor = MaterialTheme.colorScheme.onSurface
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val pathColor = LinesSolidColor
-    val pathBgColor = LinesAccentColor
+    val pathColor = RootsSolidColor
+    val pathBgColor = RootsAccentColor
     val textMeasurer = rememberTextMeasurer()
 
     BoxWithConstraints(modifier = modifier) {
@@ -382,24 +378,28 @@ fun LinesGridCanvas(
             Modifier.pointerInput(n) {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    val startDragCell = posToCell(down.position, cluePx, cellPx, n)
+                    val startCell2 = posToCell(down.position, cluePx, cellPx, n)
                         ?: return@awaitEachGesture
-                    onDragStart(startDragCell)
-                    var lastCell = startDragCell
+                    var lastCell = startCell2
                     var moved = false
+                    var dragStarted = false
                     while (true) {
                         val event = awaitPointerEvent()
                         if (event.changes.all { !it.pressed }) break
                         val pos = event.changes.first().position
                         val c = posToCell(pos, cluePx, cellPx, n)
                         if (c != null && c != lastCell) {
+                            if (!dragStarted) {
+                                onDragStart(startCell2)
+                                dragStarted = true
+                            }
                             onCellDrag(c)
                             lastCell = c
                             moved = true
                             event.changes.forEach { it.consume() }
                         }
                     }
-                    if (!moved) onTapCell(startDragCell)
+                    if (!moved) onTapCell(startCell2)
                 }
             }
         } else Modifier
@@ -414,17 +414,9 @@ fun LinesGridCanvas(
                 for (c in 0 until n) {
                     val x = cluePx + c * cellPx
                     val y = cluePx + r * cellPx
-                    drawRect(
-                        color = surfaceColor,
-                        topLeft = Offset(x, y),
-                        size = Size(cellPx, cellPx),
-                    )
-                    if (path.contains(LinesCell(r, c))) {
-                        drawRect(
-                            color = pathBgColor,
-                            topLeft = Offset(x, y),
-                            size = Size(cellPx, cellPx),
-                        )
+                    drawRect(color = surfaceColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
+                    if (path.contains(RootsCell(r, c))) {
+                        drawRect(color = pathBgColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
                     }
                 }
             }
@@ -466,7 +458,7 @@ fun LinesGridCanvas(
                 )
             }
 
-            // Path dots (small circles at intermediate path cells)
+            // Path dots at intermediate cells
             val dotRadius = cellPx * 0.12f
             for (cell in path) {
                 if (cell == startCell || cell == endCell) continue
@@ -475,7 +467,7 @@ fun LinesGridCanvas(
                 drawCircle(color = pathColor, radius = dotRadius, center = Offset(cx, cy))
             }
 
-            // Endpoint circles (larger, with white center dot)
+            // Endpoint circles
             val endRadius = cellPx * 0.28f
             for (ep in listOf(startCell, endCell)) {
                 val cx = cluePx + ep.col * cellPx + cellPx / 2
@@ -484,9 +476,9 @@ fun LinesGridCanvas(
                 drawCircle(color = Color.White, radius = endRadius * 0.45f, center = Offset(cx, cy))
             }
 
-            // Cross markers (X shape)
+            // Cross markers (X) — grey, "not here"
+            val markerStroke = 1.5.dp.toPx()
             val crossMargin = cellPx * 0.22f
-            val crossStroke = 1.5.dp.toPx()
             for (cell in crossMarkers) {
                 val x = cluePx + cell.col * cellPx
                 val y = cluePx + cell.row * cellPx
@@ -494,17 +486,38 @@ fun LinesGridCanvas(
                     color = gridLineColor.copy(alpha = 0.45f),
                     start = Offset(x + crossMargin, y + crossMargin),
                     end = Offset(x + cellPx - crossMargin, y + cellPx - crossMargin),
-                    strokeWidth = crossStroke,
+                    strokeWidth = markerStroke,
                 )
                 drawLine(
                     color = gridLineColor.copy(alpha = 0.45f),
                     start = Offset(x + cellPx - crossMargin, y + crossMargin),
                     end = Offset(x + crossMargin, y + cellPx - crossMargin),
-                    strokeWidth = crossStroke,
+                    strokeWidth = markerStroke,
                 )
             }
 
-            // Clue numbers using Compose text measurement
+            // Tick markers (checkmark) — green, "path goes here"
+            val tickStroke = 1.8.dp.toPx()
+            for (cell in tickMarkers) {
+                val x = cluePx + cell.col * cellPx
+                val y = cluePx + cell.row * cellPx
+                drawLine(
+                    color = pathColor.copy(alpha = 0.6f),
+                    start = Offset(x + cellPx * 0.18f, y + cellPx * 0.55f),
+                    end = Offset(x + cellPx * 0.40f, y + cellPx * 0.78f),
+                    strokeWidth = tickStroke,
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = pathColor.copy(alpha = 0.6f),
+                    start = Offset(x + cellPx * 0.40f, y + cellPx * 0.78f),
+                    end = Offset(x + cellPx * 0.80f, y + cellPx * 0.25f),
+                    strokeWidth = tickStroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+
+            // Clue numbers
             val baseStyle = TextStyle(fontWeight = FontWeight.Bold, fontSize = textSizeSp)
             for (col in 0 until n) {
                 val satisfied = path.count { it.col == col } == colClues[col]
@@ -538,11 +551,11 @@ fun LinesGridCanvas(
     }
 }
 
-fun posToCell(pos: Offset, cluePx: Float, cellPx: Float, n: Int): LinesCell? {
+fun posToCell(pos: Offset, cluePx: Float, cellPx: Float, n: Int): RootsCell? {
     val col = ((pos.x - cluePx) / cellPx).toInt()
     val row = ((pos.y - cluePx) / cellPx).toInt()
     if (row !in 0 until n || col !in 0 until n) return null
-    return LinesCell(row, col)
+    return RootsCell(row, col)
 }
 
 fun formatTime(seconds: Int): String {
@@ -551,23 +564,23 @@ fun formatTime(seconds: Int): String {
     return if (m > 0) "${m}m ${s}s" else "${s}s"
 }
 
-private fun buildLinesShareText(
+private fun buildRootsShareText(
     date: String,
     durationSeconds: Int,
     rankToday: Int?,
-    solution: List<LinesCell>,
+    solution: List<RootsCell>,
     gridSize: Int,
 ): String {
     val rankClause = if (rankToday != null) " — Global rank #$rankToday today" else ""
     val grid = buildString {
         for (r in 0 until gridSize) {
             for (c in 0 until gridSize) {
-                append(if (solution.contains(LinesCell(r, c))) "🟩" else "⬜")
+                append(if (solution.contains(RootsCell(r, c))) "🟩" else "⬜")
             }
             if (r < gridSize - 1) append("\n")
         }
     }
-    return "td Puzzles — Lines — $date\nSolved in ${formatTime(durationSeconds)}$rankClause\n\n$grid"
+    return "td Puzzles — Roots — $date\nSolved in ${formatTime(durationSeconds)}$rankClause\n\n$grid"
 }
 
 private fun shareText(context: Context, text: String) {

@@ -51,8 +51,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tomdunkley.dailypuzzles.ui.components.LinesAccentColor
-import com.tomdunkley.dailypuzzles.ui.components.LinesSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsAccentColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersAccentColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -86,12 +86,12 @@ val availablePuzzles = listOf(
         accentColor = NumbersAccentColor,
     ),
     Puzzle(
-        id = "lines",
-        title = "Lines",
-        description = "Draw a line between two points using the row and column number clues.",
+        id = "roots",
+        title = "Roots",
+        description = "Find the path between two points using the right number of cells in each row and column.",
         icon = Icons.Filled.Timeline,
-        solidColor = LinesSolidColor,
-        accentColor = LinesAccentColor,
+        solidColor = RootsSolidColor,
+        accentColor = RootsAccentColor,
     ),
 )
 

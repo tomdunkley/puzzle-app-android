@@ -40,8 +40,8 @@ import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.friends.FriendsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.home.HomeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.leaderboard.LeaderboardScreen
-import com.tomdunkley.dailypuzzles.ui.screens.lines.LinesScreen
-import com.tomdunkley.dailypuzzles.ui.screens.lines.LinesUnlimitedScreen
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsScreen
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.scoredetail.ScoreDetailScreen
@@ -75,8 +75,8 @@ fun DailyPuzzlesNavHost() {
     var boggleUnlimitedShowBottomBar by remember { mutableStateOf(false) }
     var numbersShowBottomBar by remember { mutableStateOf(false) }
     var numbersUnlimitedShowBottomBar by remember { mutableStateOf(false) }
-    var linesShowBottomBar by remember { mutableStateOf(false) }
-    var linesUnlimitedShowBottomBar by remember { mutableStateOf(false) }
+    var rootsShowBottomBar by remember { mutableStateOf(false) }
+    var rootsUnlimitedShowBottomBar by remember { mutableStateOf(false) }
 
     // Wherever the user is, an account that becomes unverified (right after registering,
     // or because a gameplay call just 403'd) gets routed to the verify-email screen.
@@ -99,8 +99,8 @@ fun DailyPuzzlesNavHost() {
         (currentRoute == Routes.BOGGLE_UNLIMITED && !boggleUnlimitedShowBottomBar) ||
         (currentRoute == Routes.NUMBERS && !numbersShowBottomBar) ||
         (currentRoute == Routes.NUMBERS_UNLIMITED && !numbersUnlimitedShowBottomBar) ||
-        (currentRoute == Routes.LINES && !linesShowBottomBar) ||
-        (currentRoute == Routes.LINES_UNLIMITED && !linesUnlimitedShowBottomBar)
+        (currentRoute == Routes.ROOTS && !rootsShowBottomBar) ||
+        (currentRoute == Routes.ROOTS_UNLIMITED && !rootsUnlimitedShowBottomBar)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -170,14 +170,14 @@ fun DailyPuzzlesNavHost() {
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE)
                             "numbers" -> navController.navigate(Routes.NUMBERS)
-                            "lines" -> navController.navigate(Routes.LINES)
+                            "roots" -> navController.navigate(Routes.ROOTS)
                         }
                     },
                     onUnlimitedPuzzleClick = { puzzleId ->
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE_UNLIMITED)
                             "numbers" -> navController.navigate(Routes.NUMBERS_UNLIMITED)
-                            "lines" -> navController.navigate(Routes.LINES_UNLIMITED)
+                            "roots" -> navController.navigate(Routes.ROOTS_UNLIMITED)
                         }
                     },
                     onSignInClick = {
@@ -229,8 +229,8 @@ fun DailyPuzzlesNavHost() {
                     onShowBottomBarChange = { numbersUnlimitedShowBottomBar = it },
                 )
             }
-            composable(Routes.LINES) {
-                LinesScreen(
+            composable(Routes.ROOTS) {
+                RootsScreen(
                     isSignedIn = authState is AuthState.SignedIn,
                     onBack = { navController.popBackStack() },
                     onSignInClick = {
@@ -239,13 +239,13 @@ fun DailyPuzzlesNavHost() {
                             launchSingleTop = true
                         }
                     },
-                    onShowBottomBarChange = { linesShowBottomBar = it },
+                    onShowBottomBarChange = { rootsShowBottomBar = it },
                 )
             }
-            composable(Routes.LINES_UNLIMITED) {
-                LinesUnlimitedScreen(
+            composable(Routes.ROOTS_UNLIMITED) {
+                RootsUnlimitedScreen(
                     onBack = { navController.popBackStack() },
-                    onShowBottomBarChange = { linesUnlimitedShowBottomBar = it },
+                    onShowBottomBarChange = { rootsUnlimitedShowBottomBar = it },
                 )
             }
             composable(Routes.FRIENDS) {
