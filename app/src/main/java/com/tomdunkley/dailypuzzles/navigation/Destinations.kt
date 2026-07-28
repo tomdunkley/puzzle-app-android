@@ -18,6 +18,8 @@ object Routes {
     const val BOGGLE_UNLIMITED = "boggle_unlimited"
     const val NUMBERS = "numbers"
     const val NUMBERS_UNLIMITED = "numbers_unlimited"
+    const val LINES = "lines"
+    const val LINES_UNLIMITED = "lines_unlimited"
     const val VERIFY_EMAIL = "verify_email"
     const val FORGOT_PASSWORD = "forgot_password"
     const val CHANGE_PASSWORD = "change_password"

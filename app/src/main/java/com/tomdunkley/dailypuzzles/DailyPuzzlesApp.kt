@@ -10,6 +10,7 @@ import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
+import com.tomdunkley.dailypuzzles.data.lines.LinesProgressStore
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 
@@ -23,6 +24,7 @@ class DailyPuzzlesApp : Application() {
         GuestSession.init(this)
         BoggleProgressStore.init(this)
         NumbersProgressStore.init(this)
+        LinesProgressStore.init(this)
         DeveloperStore.init(this)
         UnlimitedHighScoreStore.init(this)
         TrophySeenStore.init(this)

@@ -40,6 +40,8 @@ import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.friends.FriendsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.home.HomeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.leaderboard.LeaderboardScreen
+import com.tomdunkley.dailypuzzles.ui.screens.lines.LinesScreen
+import com.tomdunkley.dailypuzzles.ui.screens.lines.LinesUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.scoredetail.ScoreDetailScreen
@@ -73,6 +75,8 @@ fun DailyPuzzlesNavHost() {
     var boggleUnlimitedShowBottomBar by remember { mutableStateOf(false) }
     var numbersShowBottomBar by remember { mutableStateOf(false) }
     var numbersUnlimitedShowBottomBar by remember { mutableStateOf(false) }
+    var linesShowBottomBar by remember { mutableStateOf(false) }
+    var linesUnlimitedShowBottomBar by remember { mutableStateOf(false) }
 
     // Wherever the user is, an account that becomes unverified (right after registering,
     // or because a gameplay call just 403'd) gets routed to the verify-email screen.
@@ -94,7 +98,9 @@ fun DailyPuzzlesNavHost() {
         (currentRoute == Routes.BOGGLE && !boggleShowBottomBar) ||
         (currentRoute == Routes.BOGGLE_UNLIMITED && !boggleUnlimitedShowBottomBar) ||
         (currentRoute == Routes.NUMBERS && !numbersShowBottomBar) ||
-        (currentRoute == Routes.NUMBERS_UNLIMITED && !numbersUnlimitedShowBottomBar)
+        (currentRoute == Routes.NUMBERS_UNLIMITED && !numbersUnlimitedShowBottomBar) ||
+        (currentRoute == Routes.LINES && !linesShowBottomBar) ||
+        (currentRoute == Routes.LINES_UNLIMITED && !linesUnlimitedShowBottomBar)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -164,12 +170,14 @@ fun DailyPuzzlesNavHost() {
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE)
                             "numbers" -> navController.navigate(Routes.NUMBERS)
+                            "lines" -> navController.navigate(Routes.LINES)
                         }
                     },
                     onUnlimitedPuzzleClick = { puzzleId ->
                         when (puzzleId) {
                             "boggle" -> navController.navigate(Routes.BOGGLE_UNLIMITED)
                             "numbers" -> navController.navigate(Routes.NUMBERS_UNLIMITED)
+                            "lines" -> navController.navigate(Routes.LINES_UNLIMITED)
                         }
                     },
                     onSignInClick = {
@@ -219,6 +227,25 @@ fun DailyPuzzlesNavHost() {
                 NumbersUnlimitedScreen(
                     onBack = { navController.popBackStack() },
                     onShowBottomBarChange = { numbersUnlimitedShowBottomBar = it },
+                )
+            }
+            composable(Routes.LINES) {
+                LinesScreen(
+                    isSignedIn = authState is AuthState.SignedIn,
+                    onBack = { navController.popBackStack() },
+                    onSignInClick = {
+                        navController.navigate(Routes.SETTINGS) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    onShowBottomBarChange = { linesShowBottomBar = it },
+                )
+            }
+            composable(Routes.LINES_UNLIMITED) {
+                LinesUnlimitedScreen(
+                    onBack = { navController.popBackStack() },
+                    onShowBottomBarChange = { linesUnlimitedShowBottomBar = it },
                 )
             }
             composable(Routes.FRIENDS) {

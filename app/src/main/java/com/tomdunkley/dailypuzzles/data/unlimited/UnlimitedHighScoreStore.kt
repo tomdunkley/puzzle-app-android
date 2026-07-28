@@ -40,6 +40,19 @@ object UnlimitedHighScoreStore {
         }
     }
 
+    fun linesBestTimeSeconds(gridSize: Int): Int = prefs.getInt("lines_best_time_${gridSize}", -1)
+    fun linesBestSeed(gridSize: Int): String = prefs.getString("lines_best_seed_${gridSize}", "") ?: ""
+
+    fun updateLinesTime(gridSize: Int, timeSeconds: Int, seed: String) {
+        val current = linesBestTimeSeconds(gridSize)
+        if (current < 0 || timeSeconds < current) {
+            prefs.edit()
+                .putInt("lines_best_time_${gridSize}", timeSeconds)
+                .putString("lines_best_seed_${gridSize}", seed)
+                .apply()
+        }
+    }
+
     fun reset() {
         prefs.edit().clear().apply()
     }
