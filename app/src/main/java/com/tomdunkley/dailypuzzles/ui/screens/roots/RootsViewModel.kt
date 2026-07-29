@@ -55,6 +55,7 @@ sealed interface RootsUiState {
         val puzzleId: String,
         val date: String,
         val personalBestSeconds: Int?,
+        val isNewDailyBest: Boolean = false,
     ) : RootsUiState
 }
 
@@ -78,9 +79,10 @@ class RootsViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = RootsUiState.Loading
             runCatching {
-                AuthRepository.apiServiceForCurrentSession().getTodayPuzzle("routes")
+                val service = AuthRepository.apiServiceForCurrentSession()
+                service to service.getTodayPuzzle("routes")
             }
-                .onSuccess { dto ->
+                .onSuccess { (service, dto) ->
                     puzzleId = dto.puzzleId
                     puzzleDate = dto.date
                     val gridSize = gridSizeForDate(dto.date)
@@ -88,11 +90,20 @@ class RootsViewModel : ViewModel() {
 
                     if (dto.alreadyPlayed) {
                         val saved = RootsProgressStore.loadResult(dto.puzzleId)
+                        val durationSeconds = if (saved != null) {
+                            saved.durationSeconds
+                        } else {
+                            val userId = runCatching { service.getMyProfile().userId }.getOrNull()
+                            if (userId != null) {
+                                runCatching { service.getScoreDetail(dto.puzzleId, userId) }
+                                    .getOrNull()?.durationSeconds
+                            } else null
+                        } ?: 0
                         val result = RootsResult(
                             puzzleId = dto.puzzleId,
                             date = dto.date,
                             gridSize = gridSize,
-                            durationSeconds = saved?.durationSeconds ?: 0,
+                            durationSeconds = durationSeconds,
                             rankToday = saved?.rankToday ?: 0,
                             currentStreak = dto.streak?.current ?: 0,
                         )
@@ -360,7 +371,7 @@ class RootsViewModel : ViewModel() {
                     )
                     RootsProgressStore.saveResult(rootsResult)
                     val seed = seedFromPuzzleId(puzzleId)
-                    _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 })
+                    _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 }, result.isNewDailyBest)
                 }
                 .onFailure {
                     if (!handleIfVerificationRequired(it)) {
@@ -414,7 +425,7 @@ class RootsViewModel : ViewModel() {
     }
 }
 
-private fun RootsResult.toUiState(seed: Long, personalBestSeconds: Int?): RootsUiState.Results {
+private fun RootsResult.toUiState(seed: Long, personalBestSeconds: Int?, isNewDailyBest: Boolean = false): RootsUiState.Results {
     val puzzle = RootsPuzzleGenerator.generate(seed, gridSize)
     return RootsUiState.Results(
         gridSize = gridSize,
@@ -429,5 +440,6 @@ private fun RootsResult.toUiState(seed: Long, personalBestSeconds: Int?): RootsU
         puzzleId = puzzleId,
         date = date,
         personalBestSeconds = personalBestSeconds,
+        isNewDailyBest = isNewDailyBest,
     )
 }

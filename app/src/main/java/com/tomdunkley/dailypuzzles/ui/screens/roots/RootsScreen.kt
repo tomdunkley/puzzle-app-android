@@ -280,12 +280,20 @@ private fun ResultsContent(
                             icon = Icons.Filled.LocalFireDepartment,
                         )
                     }
-                    state.personalBestSeconds?.let { best ->
+                    if (state.isNewDailyBest) {
                         BestScorePill(
-                            text = "Best: ${formatTime(best)}",
+                            text = "New best!",
                             iconTint = RootsSolidColor,
                             icon = Icons.Filled.EmojiEvents,
                         )
+                    } else {
+                        state.personalBestSeconds?.let { best ->
+                            BestScorePill(
+                                text = "Best: ${formatTime(best)}",
+                                iconTint = RootsSolidColor,
+                                icon = Icons.Filled.EmojiEvents,
+                            )
+                        }
                     }
                 }
             }
