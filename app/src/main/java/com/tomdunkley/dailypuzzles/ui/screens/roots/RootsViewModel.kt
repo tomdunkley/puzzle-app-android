@@ -59,6 +59,12 @@ sealed interface RootsUiState {
     ) : RootsUiState
 }
 
+private data class HistoryEntry(
+    val path: List<RootsCell>,
+    val crossMarkers: Set<RootsCell>,
+    val tickMarkers: Set<RootsCell>,
+)
+
 class RootsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow<RootsUiState>(RootsUiState.Loading)
@@ -66,6 +72,34 @@ class RootsViewModel : ViewModel() {
 
     private val _newlyUnlockedTrophies = MutableStateFlow<List<String>>(emptyList())
     val newlyUnlockedTrophies: StateFlow<List<String>> = _newlyUnlockedTrophies.asStateFlow()
+
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
+
+    private val history = ArrayDeque<HistoryEntry>()
+
+    private fun pushHistory(state: RootsUiState.Playing) {
+        if (history.size >= 50) history.removeAt(0)
+        history.addLast(HistoryEntry(state.currentPath, state.crossMarkers, state.tickMarkers))
+        _canUndo.value = true
+    }
+
+    private fun clearHistory() {
+        history.clear()
+        _canUndo.value = false
+    }
+
+    fun undo() {
+        val state = _uiState.value as? RootsUiState.Playing ?: return
+        if (history.isEmpty()) return
+        val entry = history.removeAt(history.size - 1)
+        _uiState.value = state.copy(
+            currentPath = entry.path,
+            crossMarkers = entry.crossMarkers,
+            tickMarkers = entry.tickMarkers,
+        )
+        _canUndo.value = history.isNotEmpty()
+    }
 
     fun dismissTrophyNotification() {
         _newlyUnlockedTrophies.value = _newlyUnlockedTrophies.value.drop(1)
@@ -78,6 +112,7 @@ class RootsViewModel : ViewModel() {
     fun loadTodayPuzzle() {
         viewModelScope.launch {
             _uiState.value = RootsUiState.Loading
+            clearHistory()
             runCatching {
                 val service = AuthRepository.apiServiceForCurrentSession()
                 service to service.getTodayPuzzle("routes")
@@ -206,6 +241,7 @@ class RootsViewModel : ViewModel() {
 
     fun onDragStart(cell: RootsCell) {
         val state = _uiState.value as? RootsUiState.Playing ?: return
+        pushHistory(state)
         val path = state.currentPath
         val idx = path.indexOf(cell)
         if (idx >= 0) {
@@ -301,6 +337,7 @@ class RootsViewModel : ViewModel() {
 
     fun onTapCell(cell: RootsCell) {
         val state = _uiState.value as? RootsUiState.Playing ?: return
+        pushHistory(state)
         if (cell == state.startCell) {
             _uiState.value = state.copy(currentPath = listOf(cell))
             return
@@ -334,10 +371,12 @@ class RootsViewModel : ViewModel() {
 
     fun clearPath() {
         val state = _uiState.value as? RootsUiState.Playing ?: return
+        pushHistory(state)
         _uiState.value = state.copy(currentPath = emptyList(), crossMarkers = emptySet(), tickMarkers = emptySet())
     }
 
     private fun submit(state: RootsUiState.Playing) {
+        clearHistory()
         _uiState.value = RootsUiState.Submitting
         viewModelScope.launch {
             runCatching {

@@ -76,6 +76,7 @@ fun RootsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val newlyUnlockedTrophies by viewModel.newlyUnlockedTrophies.collectAsState()
+    val canUndo by viewModel.canUndo.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -97,8 +98,10 @@ fun RootsScreen(
             is RootsUiState.Error -> RootsErrorContent(state.message, onBack)
             is RootsUiState.Playing -> PlayingContent(
                 state = state,
+                canUndo = canUndo,
                 onPause = { viewModel.persistProgress() },
                 onResume = { viewModel.resume() },
+                onUndo = { viewModel.undo() },
                 onClearPath = { viewModel.clearPath() },
                 onDragStart = { viewModel.onDragStart(it) },
                 onCellDrag = { viewModel.onCellDrag(it) },
@@ -151,8 +154,10 @@ fun RootsErrorContent(message: String, onBack: () -> Unit) {
 @Composable
 private fun PlayingContent(
     state: RootsUiState.Playing,
+    canUndo: Boolean,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    onUndo: () -> Unit,
     onClearPath: () -> Unit,
     onDragStart: (RootsCell) -> Unit,
     onCellDrag: (RootsCell) -> Unit,
@@ -198,11 +203,22 @@ private fun PlayingContent(
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f),
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = onClearPath,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("CLEAR PATH") }
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onUndo,
+                        enabled = canUndo,
+                        border = BorderStroke(1.dp, if (canUndo) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f),
+                    ) { Text("UNDO") }
+                    OutlinedButton(
+                        onClick = onClearPath,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        modifier = Modifier.weight(1f),
+                    ) { Text("CLEAR") }
+                }
                 Spacer(Modifier.weight(1f))
             }
 
@@ -520,7 +536,7 @@ fun RootsGridCanvas(
             // Clue numbers
             val baseStyle = TextStyle(fontWeight = FontWeight.Bold, fontSize = textSizeSp)
             for (col in 0 until n) {
-                val satisfied = path.count { it.col == col } == colClues[col]
+                val satisfied = (path.count { it.col == col } + tickMarkers.count { it.col == col }) == colClues[col]
                 val measured = textMeasurer.measure(
                     text = colClues[col].toString(),
                     style = baseStyle.copy(color = if (satisfied) pathColor else clueDefaultColor),
@@ -534,7 +550,7 @@ fun RootsGridCanvas(
                 )
             }
             for (row in 0 until n) {
-                val satisfied = path.count { it.row == row } == rowClues[row]
+                val satisfied = (path.count { it.row == row } + tickMarkers.count { it.row == row }) == rowClues[row]
                 val measured = textMeasurer.measure(
                     text = rowClues[row].toString(),
                     style = baseStyle.copy(color = if (satisfied) pathColor else clueDefaultColor),
