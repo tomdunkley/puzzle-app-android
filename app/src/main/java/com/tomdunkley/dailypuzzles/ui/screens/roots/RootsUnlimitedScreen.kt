@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
@@ -64,6 +62,7 @@ fun RootsUnlimitedScreen(
     viewModel: RootsUnlimitedViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val canUndo by viewModel.canUndo.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -88,8 +87,10 @@ fun RootsUnlimitedScreen(
         )
         is RootsUnlimitedUiState.Playing -> UnlimitedPlayingContent(
             state = state,
+            canUndo = canUndo,
             onPause = { viewModel.persistProgress() },
             onResume = { viewModel.resume() },
+            onUndo = { viewModel.undo() },
             onClearPath = { viewModel.clearPath() },
             onDragStart = { viewModel.onDragStart(it) },
             onCellDrag = { viewModel.onCellDrag(it) },
@@ -204,9 +205,10 @@ private fun StartContent(
 @Composable
 private fun UnlimitedPlayingContent(
     state: RootsUnlimitedUiState.Playing,
-    seed: String = "",
+    canUndo: Boolean,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    onUndo: () -> Unit,
     onClearPath: () -> Unit,
     onDragStart: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
     onCellDrag: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
@@ -245,13 +247,24 @@ private fun UnlimitedPlayingContent(
                     onTapCell = onTapCell,
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f),
                 )
-                Spacer(Modifier.weight(1f))
-                OutlinedButton(
-                    onClick = onClearPath,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                Spacer(Modifier.height(12.dp))
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("CLEAR PATH") }
-                Spacer(Modifier.height(8.dp))
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onUndo,
+                        enabled = canUndo,
+                        border = BorderStroke(1.dp, if (canUndo) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f),
+                    ) { Text("UNDO") }
+                    OutlinedButton(
+                        onClick = onClearPath,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        modifier = Modifier.weight(1f),
+                    ) { Text("CLEAR") }
+                }
+                Spacer(Modifier.weight(1f))
             }
 
             if (state.isPaused) {
@@ -308,10 +321,9 @@ private fun UnlimitedResultsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         ) {
             Text(
                 "Solved in ${formatTime(state.durationSeconds)}!",
@@ -353,11 +365,6 @@ private fun UnlimitedResultsContent(
                 ),
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("NEW GAME") }
-            OutlinedButton(
-                onClick = onBack,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("DONE") }
         }
     }
 }

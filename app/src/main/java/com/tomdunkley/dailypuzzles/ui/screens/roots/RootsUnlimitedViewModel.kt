@@ -45,6 +45,12 @@ sealed interface RootsUnlimitedUiState {
     ) : RootsUnlimitedUiState
 }
 
+private data class UnlimitedHistoryEntry(
+    val path: List<RootsCell>,
+    val crossMarkers: Set<RootsCell>,
+    val tickMarkers: Set<RootsCell>,
+)
+
 class RootsUnlimitedViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow<RootsUnlimitedUiState>(buildStartState(""))
@@ -52,6 +58,34 @@ class RootsUnlimitedViewModel : ViewModel() {
 
     private val _seed = MutableStateFlow("")
     val seed: StateFlow<String> = _seed.asStateFlow()
+
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
+
+    private val history = ArrayDeque<UnlimitedHistoryEntry>()
+
+    private fun pushHistory(state: RootsUnlimitedUiState.Playing) {
+        if (history.size >= 50) history.removeAt(0)
+        history.addLast(UnlimitedHistoryEntry(state.currentPath, state.crossMarkers, state.tickMarkers))
+        _canUndo.value = true
+    }
+
+    private fun clearHistory() {
+        history.clear()
+        _canUndo.value = false
+    }
+
+    fun undo() {
+        val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
+        if (history.isEmpty()) return
+        val entry = history.removeAt(history.size - 1)
+        _uiState.value = state.copy(
+            currentPath = entry.path,
+            crossMarkers = entry.crossMarkers,
+            tickMarkers = entry.tickMarkers,
+        )
+        _canUndo.value = history.isNotEmpty()
+    }
 
     private var timerJob: Job? = null
 
@@ -76,6 +110,7 @@ class RootsUnlimitedViewModel : ViewModel() {
     fun startGame() {
         val code = _seed.value
         timerJob?.cancel()
+        clearHistory()
         val baseSeed = UnlimitedPuzzleGenerator.seedCodeToLong(code)
         val gridSize = (baseSeed % 3).toInt().let { rem ->
             when (if (rem < 0) rem + 3 else rem) {
@@ -139,6 +174,7 @@ class RootsUnlimitedViewModel : ViewModel() {
     fun onDragStart(cell: RootsCell) {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
+        pushHistory(state)
         val path = state.currentPath
         val idx = path.indexOf(cell)
         if (idx >= 0) {
@@ -236,6 +272,7 @@ class RootsUnlimitedViewModel : ViewModel() {
     fun onTapCell(cell: RootsCell) {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
         if (state.isPaused) return
+        pushHistory(state)
         if (cell == state.startCell) {
             _uiState.value = state.copy(currentPath = listOf(cell))
             return
@@ -269,10 +306,12 @@ class RootsUnlimitedViewModel : ViewModel() {
 
     fun clearPath() {
         val state = _uiState.value as? RootsUnlimitedUiState.Playing ?: return
-        _uiState.value = state.copy(currentPath = emptyList())
+        pushHistory(state)
+        _uiState.value = state.copy(currentPath = emptyList(), crossMarkers = emptySet(), tickMarkers = emptySet())
     }
 
     private fun submitResult(state: RootsUnlimitedUiState.Playing) {
+        clearHistory()
         val elapsed = state.elapsedSeconds
         val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds
         val isNew = prevBest < 0 || elapsed < prevBest
