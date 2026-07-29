@@ -15,6 +15,7 @@ import com.tomdunkley.dailypuzzles.util.formatDisplayDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 private const val MAX_DATE_OFFSET = 7
+private val SUPPORTED_GAMES = setOf("boggle", "numbers", "routes")
 
 enum class LeaderboardScope { FRIENDS, GLOBAL }
 
@@ -54,6 +55,7 @@ class LeaderboardViewModel : ViewModel() {
             runCatching {
                 if (games.isEmpty()) {
                     games = ApiClient.authenticatedService.getGames()
+                        .filter { it.game in SUPPORTED_GAMES }
                 }
                 val game = games.getOrNull(selectedGameIndex)?.game ?: "boggle"
                 val me = ApiClient.authenticatedService.getMyProfile()
