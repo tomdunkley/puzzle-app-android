@@ -533,10 +533,11 @@ fun RootsGridCanvas(
                 )
             }
 
-            // Clue numbers
+            // Clue numbers — start/end cells are always present on the board so always count
+            val allPathCells = path.toSet() + startCell + endCell
             val baseStyle = TextStyle(fontWeight = FontWeight.Bold, fontSize = textSizeSp)
             for (col in 0 until n) {
-                val satisfied = (path.count { it.col == col } + tickMarkers.count { it.col == col }) == colClues[col]
+                val satisfied = (allPathCells.count { it.col == col } + tickMarkers.count { it.col == col }) == colClues[col]
                 val measured = textMeasurer.measure(
                     text = colClues[col].toString(),
                     style = baseStyle.copy(color = if (satisfied) pathColor else clueDefaultColor),
@@ -550,7 +551,7 @@ fun RootsGridCanvas(
                 )
             }
             for (row in 0 until n) {
-                val satisfied = (path.count { it.row == row } + tickMarkers.count { it.row == row }) == rowClues[row]
+                val satisfied = (allPathCells.count { it.row == row } + tickMarkers.count { it.row == row }) == rowClues[row]
                 val measured = textMeasurer.measure(
                     text = rowClues[row].toString(),
                     style = baseStyle.copy(color = if (satisfied) pathColor else clueDefaultColor),
