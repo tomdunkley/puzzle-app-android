@@ -22,8 +22,9 @@ import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Mouse
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PestControlRodent
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Public
@@ -60,7 +61,7 @@ val ACHIEVEMENT_AVATAR_IDS = listOf(
     "fire", "bolt_icon", "star_icon", "shield", "coffee", "anchor",
     "heart", "music", "snowflake", "sun_icon", "lotus", "pizza",
     "cake", "egg", "raven",
-    "route", "map", "compass", "trail", "globe", "mountain", "wave", "mouse", "tree", "car",
+    "route", "map", "compass", "trail", "globe", "mountain", "wave", "mouse", "tree", "car", "train",
 )
 
 // Base colors (always available). Gold and black are unlocked via achievements.
@@ -101,9 +102,10 @@ fun iconFor(avatarId: String?): ImageVector = when (avatarId) {
     "globe" -> Icons.Filled.Public
     "mountain" -> Icons.Filled.Terrain
     "wave" -> Icons.Filled.Waves
-    "mouse" -> Icons.Filled.Mouse
+    "mouse" -> Icons.Filled.PestControlRodent
     "tree" -> Icons.Filled.Park
     "car" -> Icons.Filled.DirectionsCar
+    "train" -> Icons.Filled.Train
     else -> Icons.Filled.Person
 }
 
