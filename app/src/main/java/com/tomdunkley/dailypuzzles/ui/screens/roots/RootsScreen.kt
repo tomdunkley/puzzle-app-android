@@ -1,7 +1,5 @@
 package com.tomdunkley.dailypuzzles.ui.screens.roots
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -67,6 +65,8 @@ import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
 import com.tomdunkley.dailypuzzles.ui.components.TrophyUnlockedBanner
+import com.tomdunkley.dailypuzzles.ui.share.buildRootsShareText
+import com.tomdunkley.dailypuzzles.ui.share.shareText
 
 @Composable
 fun RootsScreen(
@@ -573,29 +573,3 @@ fun formatTime(seconds: Int): String {
     return if (m > 0) "${m}m ${s}s" else "${s}s"
 }
 
-private fun buildRootsShareText(
-    date: String,
-    durationSeconds: Int,
-    rankToday: Int?,
-    solution: List<RootsCell>,
-    gridSize: Int,
-): String {
-    val rankClause = if (rankToday != null) " — Global rank #$rankToday today" else ""
-    val grid = buildString {
-        for (r in 0 until gridSize) {
-            for (c in 0 until gridSize) {
-                append(if (solution.contains(RootsCell(r, c))) "🟩" else "⬜")
-            }
-            if (r < gridSize - 1) append("\n")
-        }
-    }
-    return "td Puzzles — Routes — $date\nSolved in ${formatTime(durationSeconds)}$rankClause\n\n$grid"
-}
-
-private fun shareText(context: Context, text: String) {
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    context.startActivity(Intent.createChooser(intent, null))
-}
