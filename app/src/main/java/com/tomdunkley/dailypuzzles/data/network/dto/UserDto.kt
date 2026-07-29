@@ -58,8 +58,10 @@ data class PublicUserProfileDto(
     @SerialName("friendship_status") val friendshipStatus: String,
     @SerialName("today_boggle") val todayBoggle: TodayGameScoreDto? = null,
     @SerialName("today_numbers") val todayNumbers: TodayGameScoreDto? = null,
+    @SerialName("today_routes") val todayRoutes: TodayGameScoreDto? = null,
     @SerialName("boggle_daily_best") val boggleDailyBest: DailyBestScoreDto? = null,
     @SerialName("numbers_daily_best") val numbersDailyBest: DailyBestScoreDto? = null,
+    @SerialName("routes_daily_best") val routesDailyBest: DailyBestScoreDto? = null,
     @SerialName("trophy_count") val trophyCount: Int = 0,
     @SerialName("total_trophies") val totalTrophies: Int = 0,
 )

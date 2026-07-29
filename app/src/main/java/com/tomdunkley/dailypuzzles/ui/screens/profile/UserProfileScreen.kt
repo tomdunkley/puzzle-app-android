@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,6 +47,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.PublicUserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TodayGameScoreDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 
@@ -193,6 +195,8 @@ private fun ProfileContent(
         TodayScoreRow("boggle", "Words", profile.todayBoggle, profile.boggleDailyBest, userId, onViewScore)
         Spacer(Modifier.height(4.dp))
         TodayScoreRow("numbers", "Numbers", profile.todayNumbers, profile.numbersDailyBest, userId, onViewScore)
+        Spacer(Modifier.height(4.dp))
+        TodayScoreRow("routes", "Routes", profile.todayRoutes, profile.routesDailyBest, userId, onViewScore)
     }
 }
 
@@ -205,8 +209,16 @@ private fun TodayScoreRow(
     userId: String,
     onViewScore: (puzzleId: String, userId: String) -> Unit,
 ) {
-    val solidColor = if (gameId == "boggle") WordsSolidColor else NumbersSolidColor
-    val gameIcon = if (gameId == "boggle") Icons.Filled.GridOn else Icons.Filled.Calculate
+    val solidColor = when (gameId) {
+        "boggle" -> WordsSolidColor
+        "numbers" -> NumbersSolidColor
+        else -> RootsSolidColor
+    }
+    val gameIcon = when (gameId) {
+        "boggle" -> Icons.Filled.GridOn
+        "numbers" -> Icons.Filled.Calculate
+        else -> Icons.Filled.Route
+    }
 
     Column(
         modifier = Modifier
@@ -240,30 +252,42 @@ private fun TodayScoreRow(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (gameId == "numbers") {
-                        val distance = today.distance ?: 0
-                        if (distance == 0) {
-                            Text("Got it", style = MaterialTheme.typography.titleMedium)
+                    when (gameId) {
+                        "numbers" -> {
+                            val distance = today.distance ?: 0
+                            if (distance == 0) {
+                                Text("Got it", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    " (${today.durationSeconds ?: 0}s)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            } else {
+                                Text("${today.resultValue ?: 0}", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    " ($distance away)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        "routes" -> {
+                            val secs = today.durationSeconds ?: 0
+                            val m = secs / 60
+                            val s = secs % 60
                             Text(
-                                " (${today.durationSeconds ?: 0}s)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                if (m > 0) "${m}m ${s}s" else "${s}s",
+                                style = MaterialTheme.typography.titleMedium,
                             )
-                        } else {
-                            Text("${today.resultValue ?: 0}", style = MaterialTheme.typography.titleMedium)
+                        }
+                        else -> {
+                            Text("${today.score ?: 0}", style = MaterialTheme.typography.titleMedium)
                             Text(
-                                " ($distance away)",
+                                " (words: ${today.wordCount ?: 0})",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                    } else {
-                        Text("${today.score ?: 0}", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            " (words: ${today.wordCount ?: 0})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
                     }
                 }
                 OutlinedButton(onClick = { onViewScore(today.puzzleId ?: return@OutlinedButton, userId) }) {
@@ -272,10 +296,15 @@ private fun TodayScoreRow(
             }
         }
         if (best != null) {
-            val bestText = if (gameId == "numbers") {
-                if ((best.distance ?: 1) == 0) "Best: Exact!" else "Best: ${best.resultValue} (${best.distance} away)"
-            } else {
-                "Best: ${best.score} pts (words: ${best.wordCount ?: 0})"
+            val bestText = when (gameId) {
+                "numbers" -> if ((best.distance ?: 1) == 0) "Best: Exact!" else "Best: ${best.resultValue} (${best.distance} away)"
+                "routes" -> {
+                    val secs = best.durationSeconds ?: 0
+                    val m = secs / 60
+                    val s = secs % 60
+                    "Best: ${if (m > 0) "${m}m ${s}s" else "${s}s"}"
+                }
+                else -> "Best: ${best.score} pts (words: ${best.wordCount ?: 0})"
             }
             Text(bestText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
