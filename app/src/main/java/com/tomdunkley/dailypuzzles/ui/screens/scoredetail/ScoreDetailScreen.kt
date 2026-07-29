@@ -51,6 +51,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
@@ -76,13 +77,18 @@ fun ScoreDetailScreen(
 
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
     val loadedDetail = (uiState as? ScoreDetailUiState.Loaded)?.detail
-    val gameLabel = when (loadedDetail?.game) { "numbers" -> "Numbers" else -> "Words" }
+    val gameLabel = when (loadedDetail?.game) {
+        "numbers" -> "Numbers"
+        "routes" -> "Routes"
+        else -> "Words"
+    }
     val dateOrSeed = loadedDetail?.puzzleId?.substringAfter("_")?.let { iso ->
         runCatching { formatDisplayDate(LocalDate.parse(iso)) }.getOrDefault(iso)
     } ?: ""
     val title = if (loadedDetail != null) "$gameLabel: $dateOrSeed" else ""
     val topBarColor = when (loadedDetail?.game) {
         "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)
+        "routes" -> RootsSolidColor.copy(alpha = 0.15f)
         else -> WordsSolidColor.copy(alpha = 0.15f)
     }
 
@@ -113,7 +119,8 @@ fun ScoreDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 val isNumbers = state.detail.game == "numbers"
-                if (isSignedIn && isNumbers) {
+                val isRoutes = state.detail.game == "routes"
+                if (isSignedIn && (isNumbers || isRoutes)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -138,23 +145,24 @@ fun ScoreDetailScreen(
                         }
                     }
                 }
+                val centeredLayout = isNumbers || isRoutes
                 Column(
-                    modifier = if (isNumbers) {
+                    modifier = if (centeredLayout) {
                         Modifier.weight(1f).padding(vertical = 12.dp)
                     } else {
                         Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 12.dp)
                     },
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = if (isNumbers) {
+                    verticalArrangement = if (centeredLayout) {
                         Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
                     } else {
                         Arrangement.spacedBy(12.dp)
                     },
                 ) {
-                    if (isNumbers) {
-                        NumbersDetailContent(state.detail)
-                    } else {
-                        BoggleDetailContent(
+                    when {
+                        isNumbers -> NumbersDetailContent(state.detail)
+                        isRoutes -> RoutesDetailContent(state.detail)
+                        else -> BoggleDetailContent(
                             state.detail,
                             isSignedIn,
                             onViewProfile = onViewProfile,
@@ -174,7 +182,7 @@ fun ScoreDetailScreen(
                         Text("VIEW ALL POSSIBLE WORDS")
                     }
                 }
-                if (state.isOwnScore) {
+                if (state.isOwnScore && !isRoutes) {
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
@@ -183,7 +191,7 @@ fun ScoreDetailScreen(
                         ),
                         onClick = {
                             val date = state.detail.puzzleId.substringAfter("_")
-                            val text = if (state.detail.game == "numbers") {
+                            val text = if (isNumbers) {
                                 buildNumbersShareText(
                                     date = date,
                                     target = state.detail.target ?: 0,
@@ -280,6 +288,23 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ColumnScope.RoutesDetailContent(detail: ScoreDetailDto) {
+    val secs = detail.durationSeconds ?: 0
+    val m = secs / 60
+    val s = secs % 60
+    val timeStr = if (m > 0) "${m}m ${s}s" else "${s}s"
+    Text(
+        text = "Solved in $timeStr!",
+        style = MaterialTheme.typography.headlineMedium,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (detail.locked) {
+        LockedNotice("Complete today's Routes puzzle to see the result.")
     }
 }
 
