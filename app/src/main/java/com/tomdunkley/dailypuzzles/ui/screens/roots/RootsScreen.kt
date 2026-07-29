@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -199,13 +197,13 @@ private fun PlayingContent(
                     onTapCell = onTapCell,
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f),
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = onClearPath,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text("CLEAR PATH") }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.weight(1f))
             }
 
             if (state.isPaused) {
@@ -260,10 +258,9 @@ private fun ResultsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         ) {
             if (isSignedIn) {
                 if (state.rankToday > 0) {
@@ -343,12 +340,6 @@ private fun ResultsContent(
                 ),
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("SHARE") }
-
-            OutlinedButton(
-                onClick = onBack,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("DONE") }
         }
     }
 }
@@ -424,7 +415,7 @@ fun RootsGridCanvas(
                     val y = cluePx + r * cellPx
                     drawRect(color = surfaceColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
                     val cell = RootsCell(r, c)
-                    if (path.contains(cell) && cell != startCell && cell != endCell) {
+                    if (path.contains(cell)) {
                         drawRect(color = pathBgColor, topLeft = Offset(x, y), size = Size(cellPx, cellPx))
                     }
                 }

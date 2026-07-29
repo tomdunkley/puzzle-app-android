@@ -334,7 +334,7 @@ class RootsViewModel : ViewModel() {
 
     fun clearPath() {
         val state = _uiState.value as? RootsUiState.Playing ?: return
-        _uiState.value = state.copy(currentPath = emptyList())
+        _uiState.value = state.copy(currentPath = emptyList(), crossMarkers = emptySet(), tickMarkers = emptySet())
     }
 
     private fun submit(state: RootsUiState.Playing) {
