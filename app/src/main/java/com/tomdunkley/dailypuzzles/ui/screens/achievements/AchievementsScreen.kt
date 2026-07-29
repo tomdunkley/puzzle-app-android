@@ -102,12 +102,14 @@ fun AchievementsScreen(
             is AchievementsUiState.Loaded -> LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
             ) {
-                // Sort: completed (newest first) → incomplete non-streak → words streak → numbers streak
+                // Sort: completed (newest first) → incomplete non-streak → words streak → numbers streak → routes streak
                 fun group(item: AchievementItemDto): Int = when {
                     item.unlocked -> 0
                     !item.id.contains("streak") -> 1
                     item.id.startsWith("words_streak") -> 2
-                    else -> 3 // numbers_streak
+                    item.id.startsWith("numbers_streak") -> 3
+                    item.id.startsWith("routes_streak") -> 4
+                    else -> 5
                 }
                 val sorted = state.achievements.sortedWith { a, b ->
                     val ga = group(a)

@@ -12,18 +12,28 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalPizza
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Mouse
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +60,7 @@ val ACHIEVEMENT_AVATAR_IDS = listOf(
     "fire", "bolt_icon", "star_icon", "shield", "coffee", "anchor",
     "heart", "music", "snowflake", "sun_icon", "lotus", "pizza",
     "cake", "egg", "raven",
+    "route", "map", "compass", "trail", "globe", "mountain", "wave", "mouse", "tree", "car",
 )
 
 // Base colors (always available). Gold and black are unlocked via achievements.
@@ -82,6 +93,17 @@ fun iconFor(avatarId: String?): ImageVector = when (avatarId) {
     "lotus" -> Icons.Filled.Spa
     "pizza" -> Icons.Filled.LocalPizza
     "cake" -> Icons.Filled.Cake
+    // Routes icons
+    "route" -> Icons.Filled.Route
+    "map" -> Icons.Filled.Map
+    "compass" -> Icons.Filled.Explore
+    "trail" -> Icons.Filled.Hiking
+    "globe" -> Icons.Filled.Public
+    "mountain" -> Icons.Filled.Terrain
+    "wave" -> Icons.Filled.Waves
+    "mouse" -> Icons.Filled.Mouse
+    "tree" -> Icons.Filled.Park
+    "car" -> Icons.Filled.DirectionsCar
     else -> Icons.Filled.Person
 }
 
