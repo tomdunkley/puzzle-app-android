@@ -175,7 +175,7 @@ fun AvatarPickerScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewMo
                         (if (unlockedColors.contains(GOLD_COLOR_ID)) listOf(GOLD_COLOR_ID) else emptyList()) +
                         (if (unlockedColors.contains(BLACK_COLOR_ID)) listOf(BLACK_COLOR_ID) else emptyList()) +
                         (if (unlockedColors.contains("silver")) listOf("silver") else emptyList()) +
-                        listOf("purple", "teal", "pink", "lime", "yellow", "sky", "indigo").filter { unlockedColors.contains(it) }
+                        listOf("purple", "teal", "pink", "lime", "sky", "brown", "indigo").filter { unlockedColors.contains(it) }
                     val cols = 4
                     val cellSize = (maxWidth - 36.dp) / cols
                     val colorRows = (availableColors.size + cols - 1) / cols

@@ -121,8 +121,8 @@ fun colorFor(avatarColorId: String?): Color? = when (avatarColorId) {
     "teal" -> Color(0xFF00695C)
     "pink" -> Color(0xFFE91E63)
     "lime" -> Color(0xFF558B2F)
-    "yellow" -> Color(0xFFF57F17)
     "sky" -> Color(0xFF0288D1)
+    "brown" -> Color(0xFF5D4037)
     "indigo" -> Color(0xFF283593)
     else -> null
 }
