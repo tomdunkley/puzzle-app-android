@@ -76,7 +76,7 @@ object RootsPuzzleGenerator {
                 if (dfs(next)) return true
             }
             visited[cell.row][cell.col] = false
-            path.removeLast()
+            path.removeAt(path.size - 1)
             return false
         }
 
