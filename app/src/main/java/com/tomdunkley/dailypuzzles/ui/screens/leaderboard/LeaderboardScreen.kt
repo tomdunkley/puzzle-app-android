@@ -46,18 +46,22 @@ import com.tomdunkley.dailypuzzles.ui.components.NumbersIconColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
+import com.tomdunkley.dailypuzzles.ui.components.RootsIconColor
+import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.WordsIconColor
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 
 private fun gameSolidColor(gameId: String): Color = when (gameId) {
     "boggle" -> WordsSolidColor
     "numbers" -> NumbersSolidColor
+    "routes" -> RootsSolidColor
     else -> WordsSolidColor
 }
 
 private fun gameIconColor(gameId: String): Color = when (gameId) {
     "boggle" -> WordsIconColor
     "numbers" -> NumbersIconColor
+    "routes" -> RootsIconColor
     else -> WordsIconColor
 }
 
@@ -218,6 +222,12 @@ private fun ResultSummary(entry: LeaderboardEntryDto) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    } else if (entry.game == "routes") {
+        val secs = entry.durationSeconds ?: 0
+        val m = secs / 60
+        val s = secs % 60
+        val timeStr = if (m > 0) "${m}m ${s.toString().padStart(2, '0')}s" else "${s}s"
+        Text(timeStr, style = MaterialTheme.typography.titleMedium)
     } else {
         Text((entry.score ?: 0).toString(), style = MaterialTheme.typography.titleMedium)
         Text(
