@@ -671,10 +671,9 @@ private fun UnlimitedResultsContent(
     ) {
         if (bestDistance >= 0) {
             val bestText = when {
-                isNewBest && bestDistance == 0 -> "New best: exact in ${bestTimeSeconds}s"
-                isNewBest -> "New best: $bestDistance away"
-                bestDistance == 0 -> "Best: exact in ${bestTimeSeconds}s"
-                else -> "Best: $bestDistance away"
+                isNewBest -> "New best!"
+                bestDistance == 0 -> "Exact (${bestTimeSeconds}s)"
+                else -> "$bestDistance away"
             }
             BestScorePill(text = bestText, iconTint = NumbersSolidColor)
         }

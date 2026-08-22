@@ -749,7 +749,7 @@ private fun UnlimitedResultsContent(
     ) {
         if (highScore >= 0) {
             BestScorePill(
-                text = if (isNewBest) "New best: $highScore pts" else "Best: $highScore pts",
+                text = if (isNewBest) "New best!" else "$highScore pts",
                 iconTint = WordsSolidColor,
             )
         }

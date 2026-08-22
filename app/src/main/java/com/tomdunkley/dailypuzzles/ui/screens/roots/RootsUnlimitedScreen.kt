@@ -327,7 +327,7 @@ private fun UnlimitedResultsContent(
         ) {
             if (state.bestTimeSeconds >= 0) {
                 BestScorePill(
-                    text = if (state.isNewBest) "New best!" else "Best: ${formatTime(state.bestTimeSeconds)}",
+                    text = if (state.isNewBest) "New best!" else formatTime(state.bestTimeSeconds),
                     iconTint = RootsSolidColor,
                     icon = Icons.Filled.EmojiEvents,
                 )
