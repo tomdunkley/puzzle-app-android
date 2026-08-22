@@ -20,6 +20,7 @@ data class BoggleResult(
     val score: Int,
     val validWords: List<String>,
     val rankToday: Int,
+    val rankTodayIsTied: Boolean = false,
     val currentStreak: Int,
     val dailyBestScore: Int? = null,
     val dailyBestWordCount: Int? = null,

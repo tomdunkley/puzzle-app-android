@@ -137,7 +137,7 @@ fun ScoreDetailScreen(
                             Text(state.detail.displayName, style = MaterialTheme.typography.titleLarge)
                             if (state.detail.rankToday > 0) {
                                 Text(
-                                    "Global rank #${state.detail.rankToday} today",
+                                    "Global rank ${if (state.detail.rankTodayIsTied) "=" else "#"}${state.detail.rankToday} today",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -331,7 +331,7 @@ private fun ColumnScope.BoggleDetailContent(
                     Text(detail.displayName, style = MaterialTheme.typography.titleLarge)
                     if (detail.rankToday > 0) {
                         Text(
-                            "Global rank #${detail.rankToday} today",
+                            "Global rank ${if (detail.rankTodayIsTied) "=" else "#"}${detail.rankToday} today",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

@@ -281,7 +281,7 @@ private fun ResultsContent(
             if (isSignedIn) {
                 if (state.rankToday > 0) {
                     Text(
-                        "🌍 Global rank today: #${state.rankToday}",
+                        "🌍 Global rank today: ${if (state.rankTodayIsTied) "=" else "#"}${state.rankToday}",
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }

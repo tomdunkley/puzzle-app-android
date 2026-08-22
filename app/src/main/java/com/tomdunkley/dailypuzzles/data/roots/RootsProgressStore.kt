@@ -31,6 +31,7 @@ data class RootsResult(
     val gridSize: Int,
     val durationSeconds: Int,
     val rankToday: Int,
+    val rankTodayIsTied: Boolean = false,
     val currentStreak: Int,
 )
 

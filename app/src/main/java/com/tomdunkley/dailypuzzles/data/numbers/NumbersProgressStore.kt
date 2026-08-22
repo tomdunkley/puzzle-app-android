@@ -36,6 +36,7 @@ data class NumbersResult(
     val distance: Int,
     val durationSeconds: Int,
     val rankToday: Int,
+    val rankTodayIsTied: Boolean = false,
     val currentStreak: Int,
     val solution: List<NumbersStepDto> = emptyList(),
     val dailyBestDistance: Int? = null,

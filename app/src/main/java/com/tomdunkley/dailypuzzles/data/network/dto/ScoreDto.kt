@@ -28,6 +28,7 @@ data class ScoreSubmissionDto(
 data class ScoreSubmissionResultDto(
     @SerialName("score_id") val scoreId: String,
     @SerialName("rank_today") val rankToday: Int,
+    @SerialName("rank_today_is_tied") val rankTodayIsTied: Boolean = false,
     @SerialName("current_streak") val currentStreak: Int,
     val score: Int? = null,
     @SerialName("valid_words") val validWords: List<String>? = null,
@@ -46,6 +47,7 @@ data class ScoreSubmissionResultDto(
 @Serializable
 data class LeaderboardEntryDto(
     val rank: Int,
+    @SerialName("is_tied") val isTied: Boolean = false,
     @SerialName("user_id") val userId: String,
     @SerialName("display_name") val displayName: String,
     @SerialName("avatar_id") val avatarId: String? = null,
@@ -75,6 +77,7 @@ data class ScoreDetailDto(
     @SerialName("avatar_icon_color") val avatarIconColor: String? = null,
     val game: String = "boggle",
     @SerialName("rank_today") val rankToday: Int,
+    @SerialName("rank_today_is_tied") val rankTodayIsTied: Boolean = false,
     // True if the requester hasn't completed this puzzle themselves yet -- board,
     // numbers, target, valid_words, and steps below will be null to avoid spoiling it.
     val locked: Boolean = false,

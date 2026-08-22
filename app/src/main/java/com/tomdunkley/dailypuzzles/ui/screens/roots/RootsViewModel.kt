@@ -51,6 +51,7 @@ sealed interface RootsUiState {
         val colClues: List<Int>,
         val durationSeconds: Int,
         val rankToday: Int,
+        val rankTodayIsTied: Boolean = false,
         val currentStreak: Int,
         val puzzleId: String,
         val date: String,
@@ -140,6 +141,7 @@ class RootsViewModel : ViewModel() {
                             gridSize = gridSize,
                             durationSeconds = durationSeconds,
                             rankToday = saved?.rankToday ?: 0,
+                            rankTodayIsTied = saved?.rankTodayIsTied ?: false,
                             currentStreak = dto.streak?.current ?: 0,
                         )
                         RootsProgressStore.saveResult(result)
@@ -406,6 +408,7 @@ class RootsViewModel : ViewModel() {
                         gridSize = state.gridSize,
                         durationSeconds = state.elapsedSeconds,
                         rankToday = result.rankToday,
+                        rankTodayIsTied = result.rankTodayIsTied,
                         currentStreak = result.currentStreak,
                     )
                     RootsProgressStore.saveResult(rootsResult)
@@ -475,6 +478,7 @@ private fun RootsResult.toUiState(seed: Long, personalBestSeconds: Int?, isNewDa
         colClues = puzzle.colClues,
         durationSeconds = durationSeconds,
         rankToday = rankToday,
+        rankTodayIsTied = rankTodayIsTied,
         currentStreak = currentStreak,
         puzzleId = puzzleId,
         date = date,

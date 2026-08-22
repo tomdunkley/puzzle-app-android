@@ -491,7 +491,7 @@ private fun ResultsContent(
     ) {
         if (isSignedIn) {
             if (state.rankToday > 0) {
-                Text("🌍 Global rank today: #${state.rankToday}", style = MaterialTheme.typography.titleMedium)
+                Text("🌍 Global rank today: ${if (state.rankTodayIsTied) "=" else "#"}${state.rankToday}", style = MaterialTheme.typography.titleMedium)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BestScorePill(

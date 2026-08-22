@@ -184,7 +184,7 @@ private fun LeaderboardRow(entry: LeaderboardEntryDto, isSelf: Boolean, solidCol
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-                Text("#${entry.rank}", style = MaterialTheme.typography.titleMedium)
+                Text("${if (entry.isTied) "=" else "#"}${entry.rank}", style = MaterialTheme.typography.titleMedium)
             }
             AvatarIcon(entry.avatarId, entry.avatarColorId, avatarIconColor = entry.avatarIconColor, size = 32.dp, modifier = Modifier.padding(start = 8.dp))
             Text(
