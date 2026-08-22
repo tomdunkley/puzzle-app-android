@@ -39,6 +39,7 @@ val TROPHY_TITLES: Map<String, String> = mapOf(
     "maze_for_mice" to "Maze for Mice",
     "walk_in_the_park" to "Walk in the Park",
     "roadtrip" to "Roadtrip",
+    "three_figures" to "Three Figures",
     "goose_egg" to "Goose Egg",
     "early_bird" to "Early Bird",
     "night_owl" to "Night Owl",

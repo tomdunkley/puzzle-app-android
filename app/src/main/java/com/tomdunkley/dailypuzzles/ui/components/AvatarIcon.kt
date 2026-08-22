@@ -60,7 +60,7 @@ val ACHIEVEMENT_AVATAR_IDS = listOf(
     "sunglasses", "bullseye",
     "fire", "bolt_icon", "star_icon", "shield", "coffee", "anchor",
     "heart", "music", "snowflake", "sun_icon", "lotus", "pizza",
-    "cake", "egg", "raven",
+    "cake", "egg", "raven", "skull",
     "route", "map", "compass", "trail", "globe", "mountain", "wave", "mouse", "tree", "car", "train",
 )
 
@@ -204,6 +204,7 @@ fun AvatarIcon(
         "bullseye" -> painterResource(R.drawable.ic_bullseye)
         "egg" -> painterResource(R.drawable.ic_egg)
         "raven" -> painterResource(R.drawable.ic_raven)
+        "skull" -> painterResource(R.drawable.ic_skull)
         else -> rememberVectorPainter(iconFor(avatarId))
     }
 

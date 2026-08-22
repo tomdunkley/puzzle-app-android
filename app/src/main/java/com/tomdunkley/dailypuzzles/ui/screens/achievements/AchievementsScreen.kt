@@ -228,6 +228,7 @@ private fun AchievementBadge(achievement: AchievementItemDto) {
                     "bullseye" -> painterResource(R.drawable.ic_bullseye)
                     "egg" -> painterResource(R.drawable.ic_egg)
                     "raven" -> painterResource(R.drawable.ic_raven)
+                    "skull" -> painterResource(R.drawable.ic_skull)
                     else -> rememberVectorPainter(iconFor(achievement.unlocksAvatarId))
                 }
                 Icon(
