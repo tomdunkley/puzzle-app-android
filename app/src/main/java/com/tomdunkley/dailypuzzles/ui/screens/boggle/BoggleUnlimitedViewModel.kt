@@ -210,6 +210,7 @@ class BoggleUnlimitedViewModel : ViewModel() {
     }
 
     val practiceHighScore: Int get() = UnlimitedHighScoreStore.boggleHighScore
+    val practiceHighScoreWordCount: Int get() = UnlimitedHighScoreStore.boggleHighScoreWords.size
     val practiceHighScoreSeed: String get() = UnlimitedHighScoreStore.boggleHighScoreSeed
 
     fun highScoreBoard(): List<String> {

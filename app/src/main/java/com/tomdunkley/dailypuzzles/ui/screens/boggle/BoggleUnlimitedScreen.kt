@@ -176,6 +176,7 @@ fun BoggleUnlimitedScreen(
                     is BoggleUiState.Results -> UnlimitedResultsContent(
                         state = state,
                         highScore = viewModel.practiceHighScore,
+                        highScoreWordCount = viewModel.practiceHighScoreWordCount,
                         isNewBest = isNewBestScore,
                         onNewGame = { viewModel.newGame() },
                         onViewBoard = { showBoardFullScreen = true },
@@ -738,6 +739,7 @@ private fun UnlimitedBoggleTile(letter: String, selected: Boolean, modifier: Mod
 private fun UnlimitedResultsContent(
     state: BoggleUiState.Results,
     highScore: Int,
+    highScoreWordCount: Int,
     isNewBest: Boolean,
     onNewGame: () -> Unit,
     onViewBoard: () -> Unit,
@@ -749,7 +751,7 @@ private fun UnlimitedResultsContent(
     ) {
         if (highScore >= 0) {
             BestScorePill(
-                text = if (isNewBest) "New best!" else "$highScore pts",
+                text = if (isNewBest) "New best!" else "$highScore pts (words: $highScoreWordCount)",
                 iconTint = WordsSolidColor,
             )
         }
