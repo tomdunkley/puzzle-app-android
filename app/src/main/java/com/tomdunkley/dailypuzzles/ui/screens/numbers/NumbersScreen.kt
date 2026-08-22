@@ -488,7 +488,7 @@ private fun ResultsContent(
                     val bestText = if (state.dailyBestDistance == 0) {
                         "Exact (${state.dailyBestDurationSeconds ?: 0}s)"
                     } else {
-                        "${state.dailyBestResultValue} (${state.dailyBestDistance} away)"
+                        "${state.dailyBestDistance} away"
                     }
                     BestScorePill(text = bestText, iconTint = NumbersSolidColor)
                 }
