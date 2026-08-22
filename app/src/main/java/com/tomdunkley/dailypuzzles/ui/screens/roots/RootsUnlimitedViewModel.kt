@@ -42,6 +42,7 @@ sealed interface RootsUnlimitedUiState {
         val durationSeconds: Int,
         val seed: String,
         val isNewBest: Boolean,
+        val bestTimeSeconds: Int,
     ) : RootsUnlimitedUiState
 }
 
@@ -326,6 +327,7 @@ class RootsUnlimitedViewModel : ViewModel() {
             durationSeconds = elapsed,
             seed = _seed.value,
             isNewBest = isNew,
+            bestTimeSeconds = UnlimitedHighScoreStore.rootsBestTimeSeconds,
         )
     }
 
