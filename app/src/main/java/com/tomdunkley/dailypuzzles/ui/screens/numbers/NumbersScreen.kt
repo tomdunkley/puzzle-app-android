@@ -204,7 +204,7 @@ private fun PlayingContent(state: NumbersUiState.Playing, viewModel: NumbersView
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
@@ -468,7 +468,7 @@ private fun ResultsContent(
     var showSolution by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {

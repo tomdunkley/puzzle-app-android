@@ -68,17 +68,19 @@ fun UserProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
+                .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when (val state = uiState) {
-                is UserProfileUiState.Loading -> CircularProgressIndicator()
+                is UserProfileUiState.Loading -> CircularProgressIndicator(
+                    modifier = Modifier.padding(24.dp),
+                )
                 is UserProfileUiState.Error -> Text(
                     state.message,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(24.dp),
                 )
                 is UserProfileUiState.Loaded -> ProfileContent(
                     profile = state.profile,
@@ -120,7 +122,7 @@ private fun ProfileContent(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(

@@ -452,14 +452,15 @@ private fun UnlimitedPlayingContent(state: BoggleUiState.Playing, viewModel: Bog
         return
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        val reserved = HEADER_HEIGHT + CURRENT_WORD_HEIGHT + MIN_WORDS_ROW_HEIGHT + PILL_SLOT_HEIGHT + PLAYING_GAPS
-        val boardSize = minOf(maxWidth, maxHeight - reserved).coerceAtLeast(160.dp)
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val reserved = HEADER_HEIGHT + CURRENT_WORD_HEIGHT + MIN_WORDS_ROW_HEIGHT + PILL_SLOT_HEIGHT + PLAYING_GAPS + 32.dp
+        val boardSize = minOf(maxWidth - 32.dp, maxHeight - reserved).coerceAtLeast(160.dp)
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -533,6 +534,7 @@ private fun UnlimitedPlayingContent(state: BoggleUiState.Playing, viewModel: Bog
             ) {
                 FeedbackPill(message = displayedPillMessage)
             }
+            Spacer(Modifier.height(4.dp))
         }
     }
 }
@@ -741,7 +743,7 @@ private fun UnlimitedResultsContent(
     onViewBoard: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
