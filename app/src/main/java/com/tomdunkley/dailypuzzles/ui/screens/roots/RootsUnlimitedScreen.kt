@@ -325,10 +325,6 @@ private fun UnlimitedResultsContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         ) {
-            Text(
-                "Solved in ${formatTime(state.durationSeconds)}!",
-                style = MaterialTheme.typography.headlineMedium,
-            )
             if (state.isNewBest) {
                 BestScorePill(
                     text = "New best!",
@@ -336,6 +332,10 @@ private fun UnlimitedResultsContent(
                     icon = Icons.Filled.EmojiEvents,
                 )
             }
+            Text(
+                "Solved in ${formatTime(state.durationSeconds)}!",
+                style = MaterialTheme.typography.headlineMedium,
+            )
             Text(
                 "Puzzle: ${state.seed}",
                 style = MaterialTheme.typography.bodyMedium,

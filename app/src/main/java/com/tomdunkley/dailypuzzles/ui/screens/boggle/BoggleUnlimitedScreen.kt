@@ -747,13 +747,13 @@ private fun UnlimitedResultsContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
-        Text("Score: ${state.score}", style = MaterialTheme.typography.headlineMedium)
         if (highScore >= 0) {
             BestScorePill(
                 text = if (isNewBest) "New best: $highScore pts" else "Best: $highScore pts",
                 iconTint = WordsSolidColor,
             )
         }
+        Text("Score: ${state.score}", style = MaterialTheme.typography.headlineMedium)
         if (state.validWords.isNotEmpty()) {
             Text(
                 "${state.validWords.size} words found",

@@ -669,12 +669,15 @@ private fun UnlimitedResultsContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
-        Text("Target: ${state.target}", style = MaterialTheme.typography.titleLarge)
-        Text(
-            state.numbers.joinToString(", "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (bestDistance >= 0) {
+            val bestText = when {
+                isNewBest && bestDistance == 0 -> "New best: exact in ${bestTimeSeconds}s"
+                isNewBest -> "New best: $bestDistance away"
+                bestDistance == 0 -> "Best: exact in ${bestTimeSeconds}s"
+                else -> "Best: $bestDistance away"
+            }
+            BestScorePill(text = bestText, iconTint = NumbersSolidColor)
+        }
         if (state.distance == 0) {
             Text(
                 "You got it in ${state.durationSeconds}s!",
@@ -690,15 +693,12 @@ private fun UnlimitedResultsContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        if (bestDistance >= 0) {
-            val bestText = when {
-                isNewBest && bestDistance == 0 -> "New best: exact in ${bestTimeSeconds}s"
-                isNewBest -> "New best: $bestDistance away"
-                bestDistance == 0 -> "Best: exact in ${bestTimeSeconds}s"
-                else -> "Best: $bestDistance away"
-            }
-            BestScorePill(text = bestText, iconTint = NumbersSolidColor)
-        }
+        Text("Target: ${state.target}", style = MaterialTheme.typography.titleLarge)
+        Text(
+            state.numbers.joinToString(", "),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (state.steps.isNotEmpty()) {
             Text(
                 "How you got there:",
