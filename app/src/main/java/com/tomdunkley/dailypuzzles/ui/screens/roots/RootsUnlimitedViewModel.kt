@@ -3,6 +3,9 @@ package com.tomdunkley.dailypuzzles.ui.screens.roots
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
+import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayResultDto
 import com.tomdunkley.dailypuzzles.data.roots.RootsCell
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedPuzzleGenerator
@@ -63,6 +66,12 @@ class RootsUnlimitedViewModel : ViewModel() {
     private val _canUndo = MutableStateFlow(false)
     val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
 
+    private val _challengePlayResult = MutableStateFlow<ChallengePlayResultDto?>(null)
+    val challengePlayResult: StateFlow<ChallengePlayResultDto?> = _challengePlayResult.asStateFlow()
+
+    private var challengeId: String? = null
+    private var challengeGridSize: Int? = null
+
     private val history = ArrayDeque<UnlimitedHistoryEntry>()
 
     private fun pushHistory(state: RootsUnlimitedUiState.Playing) {
@@ -90,8 +99,15 @@ class RootsUnlimitedViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
+    fun setupChallengeMode(id: String, seed: String, gridSize: Int) {
+        challengeId = id
+        challengeGridSize = gridSize
+        _seed.value = seed
+        // Skip Start state; startGame() is called by the challenge screen immediately
+    }
+
     fun loadPuzzle() {
-        if (_seed.value.isNotEmpty()) return
+        if (_seed.value.isNotEmpty() || challengeId != null) return
         newGame()
     }
 
@@ -113,7 +129,7 @@ class RootsUnlimitedViewModel : ViewModel() {
         timerJob?.cancel()
         clearHistory()
         val baseSeed = UnlimitedPuzzleGenerator.seedCodeToLong(code)
-        val gridSize = (baseSeed % 3).toInt().let { rem ->
+        val gridSize = challengeGridSize ?: (baseSeed % 3).toInt().let { rem ->
             when (if (rem < 0) rem + 3 else rem) {
                 0 -> 4; 1 -> 5; else -> 6
             }
@@ -314,21 +330,47 @@ class RootsUnlimitedViewModel : ViewModel() {
     private fun submitResult(state: RootsUnlimitedUiState.Playing) {
         clearHistory()
         val elapsed = state.elapsedSeconds
-        val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds
-        val isNew = prevBest < 0 || elapsed < prevBest
-        UnlimitedHighScoreStore.updateRootsTime(elapsed, _seed.value)
-        _uiState.value = RootsUnlimitedUiState.Results(
-            gridSize = state.gridSize,
-            startCell = state.startCell,
-            endCell = state.endCell,
-            solution = state.solution,
-            rowClues = state.rowClues,
-            colClues = state.colClues,
-            durationSeconds = elapsed,
-            seed = _seed.value,
-            isNewBest = isNew,
-            bestTimeSeconds = UnlimitedHighScoreStore.rootsBestTimeSeconds,
-        )
+        val cid = challengeId
+        if (cid != null) {
+            _uiState.value = RootsUnlimitedUiState.Results(
+                gridSize = state.gridSize,
+                startCell = state.startCell,
+                endCell = state.endCell,
+                solution = state.solution,
+                rowClues = state.rowClues,
+                colClues = state.colClues,
+                durationSeconds = elapsed,
+                seed = _seed.value,
+                isNewBest = false,
+                bestTimeSeconds = -1,
+            )
+            viewModelScope.launch {
+                runCatching {
+                    AuthRepository.apiServiceForCurrentSession().submitChallengePlay(
+                        cid,
+                        ChallengePlayRequestDto(durationSeconds = elapsed),
+                    )
+                }.onSuccess { result ->
+                    _challengePlayResult.value = result
+                }
+            }
+        } else {
+            val prevBest = UnlimitedHighScoreStore.rootsBestTimeSeconds
+            val isNew = prevBest < 0 || elapsed < prevBest
+            UnlimitedHighScoreStore.updateRootsTime(elapsed, _seed.value)
+            _uiState.value = RootsUnlimitedUiState.Results(
+                gridSize = state.gridSize,
+                startCell = state.startCell,
+                endCell = state.endCell,
+                solution = state.solution,
+                rowClues = state.rowClues,
+                colClues = state.colClues,
+                durationSeconds = elapsed,
+                seed = _seed.value,
+                isNewBest = isNew,
+                bestTimeSeconds = UnlimitedHighScoreStore.rootsBestTimeSeconds,
+            )
+        }
     }
 
     override fun onCleared() {

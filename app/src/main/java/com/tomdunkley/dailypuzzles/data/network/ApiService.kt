@@ -27,6 +27,13 @@ import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementRequest
 import com.tomdunkley.dailypuzzles.data.network.dto.ClaimAchievementResponse
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordsResponseDto
 import com.tomdunkley.dailypuzzles.data.network.dto.VerifyEmailRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeCreateResponseDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayResultDto
+import com.tomdunkley.dailypuzzles.data.network.dto.CreateChallengeRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.DevLoginRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.FriendChallengeSummaryResponseDto
+import com.tomdunkley.dailypuzzles.data.network.dto.PendingChallengesResponseDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -44,6 +51,9 @@ interface ApiService {
 
     @POST("v1/auth/login")
     suspend fun login(@Body body: LoginRequestDto): TokenPairDto
+
+    @POST("v1/auth/dev-login")
+    suspend fun devLogin(@Body body: DevLoginRequestDto): TokenPairDto
 
     @POST("v1/auth/guest")
     suspend fun guestSignIn(): TokenPairDto
@@ -137,6 +147,27 @@ interface ApiService {
 
     @POST("v1/users/me/achievements/claim")
     suspend fun claimAchievement(@Body body: ClaimAchievementRequest): ClaimAchievementResponse
+
+    @POST("v1/challenges")
+    suspend fun createChallenge(@Body body: CreateChallengeRequestDto): ChallengeCreateResponseDto
+
+    @GET("v1/challenges/pending")
+    suspend fun getPendingChallenges(): PendingChallengesResponseDto
+
+    @GET("v1/challenges/friends/{friendId}")
+    suspend fun getFriendChallengeSummary(@Path("friendId") friendId: String): FriendChallengeSummaryResponseDto
+
+    @POST("v1/challenges/{challengeId}/play")
+    suspend fun submitChallengePlay(
+        @Path("challengeId") challengeId: String,
+        @Body body: ChallengePlayRequestDto,
+    ): ChallengePlayResultDto
+
+    @GET("v1/challenges/{challengeId}/result/{targetUserId}")
+    suspend fun getChallengeResult(
+        @Path("challengeId") challengeId: String,
+        @Path("targetUserId") targetUserId: String,
+    ): ScoreDetailDto
 
     @POST("v1/dev/reset-progress")
     suspend fun resetDevProgress()

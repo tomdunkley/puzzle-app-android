@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -56,6 +57,7 @@ import com.tomdunkley.dailypuzzles.BuildConfig
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.auth.GoogleSignInHelper
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.toUserMessage
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -213,6 +215,34 @@ private fun SignInContent(onForgotPasswordClick: () -> Unit) {
         ) {
             Text("SIGN IN WITH GOOGLE")
         }
+
+        if (BuildConfig.DEBUG) {
+            var devName by remember { mutableStateOf("") }
+            HorizontalDivider()
+            OutlinedTextField(
+                value = devName,
+                onValueChange = { devName = it },
+                label = { Text("Dev login (display name)") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                enabled = devName.isNotBlank() && !isSubmitting,
+                onClick = {
+                    isSubmitting = true
+                    errorMessage = null
+                    coroutineScope.launch {
+                        AuthRepository.devLogin(devName.trim())
+                            .onFailure { errorMessage = it.toUserMessage("Dev login failed") }
+                        isSubmitting = false
+                    }
+                },
+            ) {
+                Text("DEV SIGN IN")
+            }
+        }
     }
 }
 
@@ -226,6 +256,7 @@ private fun SignedInSettings(
     hasPendingFriendRequests: Boolean,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val pendingChallengeCount by PendingChallengesStore.pendingCount.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -269,13 +300,14 @@ private fun SignedInSettings(
                     Text("VIEW PROFILE")
                 }
 
-                OutlinedButton(
+                BadgedBox(
+                    badge = { if (hasPendingFriendRequests || pendingChallengeCount > 0) Badge(modifier = Modifier.size(10.dp)) },
                     modifier = Modifier.fillMaxWidth(),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                    onClick = onFriendsClick,
                 ) {
-                    BadgedBox(
-                        badge = { if (hasPendingFriendRequests) Badge() },
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        onClick = onFriendsClick,
                     ) {
                         Text("FRIENDS")
                     }

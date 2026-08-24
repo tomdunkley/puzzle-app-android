@@ -26,9 +26,22 @@ object Routes {
     const val AVATAR_PICKER = "avatar_picker"
     const val SCORE_DETAIL = "score_detail/{puzzleId}/{userId}"
     const val USER_PROFILE = "user_profile/{userId}"
+    const val CHALLENGE = "challenge/{friendId}"
+    const val BOGGLE_CHALLENGE = "boggle_challenge/{challengeId}"
+    const val NUMBERS_CHALLENGE = "numbers_challenge/{challengeId}"
+    const val ROUTES_CHALLENGE = "routes_challenge/{challengeId}"
+    const val CHALLENGE_WAITING = "challenge_waiting/{challengeId}/{opponentName}/{bothPlayed}/{myUserId}"
+    const val CHALLENGE_START = "challenge_start/{game}"
 
     fun scoreDetail(puzzleId: String, userId: String) = "score_detail/$puzzleId/$userId"
     fun userProfile(userId: String) = "user_profile/$userId"
+    fun challenge(friendId: String) = "challenge/$friendId"
+    fun challengeStart(game: String) = "challenge_start/$game"
+    fun boggleChallenge(challengeId: String) = "boggle_challenge/$challengeId"
+    fun numbersChallenge(challengeId: String) = "numbers_challenge/$challengeId"
+    fun routesChallenge(challengeId: String) = "routes_challenge/$challengeId"
+    fun challengeWaiting(challengeId: String, opponentName: String, bothPlayed: Boolean, myUserId: String) =
+        "challenge_waiting/$challengeId/${opponentName.replace("/", "_")}/$bothPlayed/$myUserId"
 }
 
 data class BottomNavItem(

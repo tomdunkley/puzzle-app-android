@@ -42,6 +42,8 @@ data class ScoreSubmissionResultDto(
     @SerialName("daily_best_result_value") val dailyBestResultValue: Int? = null,
     @SerialName("daily_best_duration_seconds") val dailyBestDurationSeconds: Int? = null,
     @SerialName("is_new_daily_best") val isNewDailyBest: Boolean = false,
+    @SerialName("streak_freeze_applied") val streakFreezeApplied: Boolean = false,
+    @SerialName("streak_freeze_available") val streakFreezeAvailable: Boolean = false,
 )
 
 @Serializable
@@ -92,4 +94,10 @@ data class ScoreDetailDto(
     val distance: Int? = null,
     @SerialName("duration_seconds") val durationSeconds: Int? = null,
     val steps: List<NumbersStepDto>? = null,
+    // challenge results only
+    val seed: String? = null,
+    @SerialName("opponent_name") val opponentName: String? = null,
+    @SerialName("opponent_avatar_id") val opponentAvatarId: String? = null,
+    @SerialName("opponent_avatar_color_id") val opponentAvatarColorId: String? = null,
+    @SerialName("opponent_avatar_icon_color") val opponentAvatarIconColor: String? = null,
 )

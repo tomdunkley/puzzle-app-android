@@ -57,6 +57,8 @@ sealed interface RootsUiState {
         val date: String,
         val personalBestSeconds: Int?,
         val isNewDailyBest: Boolean = false,
+        val streakFreezeApplied: Boolean = false,
+        val streakFreezeAvailable: Boolean = false,
     ) : RootsUiState
 }
 
@@ -413,7 +415,10 @@ class RootsViewModel : ViewModel() {
                     )
                     RootsProgressStore.saveResult(rootsResult)
                     val seed = seedFromPuzzleId(puzzleId)
-                    _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 }, result.isNewDailyBest)
+                    _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 }, result.isNewDailyBest).copy(
+                        streakFreezeApplied = result.streakFreezeApplied,
+                        streakFreezeAvailable = result.streakFreezeAvailable,
+                    )
                 }
                 .onFailure {
                     if (!handleIfVerificationRequired(it)) {

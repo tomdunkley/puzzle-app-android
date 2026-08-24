@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
@@ -83,6 +84,11 @@ fun BoggleUnlimitedScreen(
     onBack: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
     viewModel: BoggleUnlimitedViewModel = viewModel(),
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val seed by viewModel.seed.collectAsState()
@@ -112,6 +118,7 @@ fun BoggleUnlimitedScreen(
     }
 
     val subtitle = when {
+        challengeOpponentName != null -> "${challengeSeed ?: ""}  ·  vs $challengeOpponentName"
         showHighScoreDetail -> viewModel.practiceHighScoreSeed.takeIf { it.isNotEmpty() }
         !showIntro && (uiState is BoggleUiState.Playing || uiState is BoggleUiState.Results || showBoardFullScreen) && seed.isNotEmpty() -> seed
         else -> null
@@ -120,7 +127,7 @@ fun BoggleUnlimitedScreen(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Words: Unlimited",
+                title = if (challengeOpponentName != null) "Words" else "Words: Unlimited",
                 subtitle = subtitle,
                 navigationIcon = {
                     IconButton(onClick = {
@@ -134,6 +141,16 @@ fun BoggleUnlimitedScreen(
                     }
                 },
                 backgroundColor = WordsSolidColor.copy(alpha = 0.15f),
+                actions = {
+                    if (challengeOpponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = challengeOpponentAvatarId,
+                            avatarColorId = challengeOpponentAvatarColorId,
+                            avatarIconColor = challengeOpponentAvatarIconColor,
+                            size = 32.dp,
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

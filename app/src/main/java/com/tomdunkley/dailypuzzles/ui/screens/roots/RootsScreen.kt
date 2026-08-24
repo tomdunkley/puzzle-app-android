@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -99,6 +100,7 @@ fun RootsScreen(
             is RootsUiState.Playing -> PlayingContent(
                 state = state,
                 canUndo = canUndo,
+                onBack = onBack,
                 onPause = { viewModel.persistProgress() },
                 onResume = { viewModel.resume() },
                 onUndo = { viewModel.undo() },
@@ -155,6 +157,7 @@ fun RootsErrorContent(message: String, onBack: () -> Unit) {
 private fun PlayingContent(
     state: RootsUiState.Playing,
     canUndo: Boolean,
+    onBack: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
     onUndo: () -> Unit,
@@ -168,7 +171,7 @@ private fun PlayingContent(
             SectionTopBar(
                 title = "Routes",
                 subtitle = formatTime(state.elapsedSeconds),
-                onBack = if (!state.isPaused) onPause else null,
+                onBack = if (!state.isPaused) onPause else onBack,
                 backgroundColor = RootsAccentColor,
                 actions = {
                     if (!state.isPaused) {
@@ -308,6 +311,18 @@ private fun ResultsContent(
                             )
                         }
                     }
+                }
+                val freezePillText = when {
+                    state.streakFreezeApplied -> "streak freeze applied"
+                    state.streakFreezeAvailable -> "streak freeze unlocked"
+                    state.currentStreak > 0 -> {
+                        val daysUntil = if (state.currentStreak % 10 == 0) 10 else 10 - state.currentStreak % 10
+                        "$daysUntil day${if (daysUntil == 1) "" else "s"} until freeze"
+                    }
+                    else -> null
+                }
+                if (freezePillText != null) {
+                    BestScorePill(text = freezePillText, iconTint = RootsSolidColor, icon = Icons.Filled.AcUnit)
                 }
             }
 

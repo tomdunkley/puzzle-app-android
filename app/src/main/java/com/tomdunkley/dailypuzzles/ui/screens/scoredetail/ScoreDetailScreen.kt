@@ -82,10 +82,25 @@ fun ScoreDetailScreen(
         "routes" -> "Routes"
         else -> "Words"
     }
-    val dateOrSeed = loadedDetail?.puzzleId?.substringAfter("_")?.let { iso ->
-        runCatching { formatDisplayDate(LocalDate.parse(iso)) }.getOrDefault(iso)
+    val dateOrSeed = loadedDetail?.let { detail ->
+        if (detail.opponentName != null) {
+            // Challenge result: only show seed if it's the proper 5-char format
+            detail.seed?.takeIf { it.matches(Regex("[A-Z0-9]{5}")) }
+        } else {
+            detail.seed ?: detail.puzzleId.substringAfter("_").let { iso ->
+                runCatching { formatDisplayDate(LocalDate.parse(iso)) }.getOrDefault(iso)
+            }
+        }
     } ?: ""
-    val title = if (loadedDetail != null) "$gameLabel: $dateOrSeed" else ""
+    val topBarTitle = when {
+        loadedDetail?.opponentName != null -> gameLabel
+        loadedDetail != null -> "$gameLabel: $dateOrSeed"
+        else -> ""
+    }
+    val topBarSubtitle = if (loadedDetail?.opponentName != null) {
+        val seedPart = if (dateOrSeed.isNotEmpty()) "$dateOrSeed  ·  " else ""
+        "${seedPart}vs ${loadedDetail.opponentName}"
+    } else null
     val topBarColor = when (loadedDetail?.game) {
         "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)
         "routes" -> RootsSolidColor.copy(alpha = 0.15f)
@@ -95,11 +110,23 @@ fun ScoreDetailScreen(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = title,
+                title = topBarTitle,
+                subtitle = topBarSubtitle,
                 backgroundColor = topBarColor,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    val detail = loadedDetail
+                    if (detail?.opponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = detail.opponentAvatarId,
+                            avatarColorId = detail.opponentAvatarColorId,
+                            avatarIconColor = detail.opponentAvatarIconColor,
+                            size = 32.dp,
+                        )
                     }
                 },
             )

@@ -3,6 +3,9 @@ package com.tomdunkley.dailypuzzles.ui.screens.numbers
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
+import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
@@ -47,6 +50,12 @@ class NumbersUnlimitedViewModel : ViewModel() {
     private val _isNewBestScore = MutableStateFlow(false)
     val isNewBestScore: StateFlow<Boolean> = _isNewBestScore.asStateFlow()
 
+    private val _challengePlayResult = MutableStateFlow<ChallengePlayResultDto?>(null)
+    val challengePlayResult: StateFlow<ChallengePlayResultDto?> = _challengePlayResult.asStateFlow()
+
+    private var challengeId: String? = null
+    private var isChallengeModeSetUp = false
+
     private var timerJob: Job? = null
     private var errorMessageJob: Job? = null
     private var nextTileId = 0
@@ -54,8 +63,18 @@ class NumbersUnlimitedViewModel : ViewModel() {
     private var pendingTarget = 0
     private var pendingSolution: List<NumbersStepDto> = emptyList()
 
+    fun setupChallengeMode(id: String, numbers: List<Int>, target: Int) {
+        isChallengeModeSetUp = true
+        challengeId = id
+        pendingTarget = target
+        originalNumbers = numbers
+        pendingSolution = emptyList()
+        _showIntro.value = false
+        _uiState.value = NumbersUiState.Loading
+    }
+
     fun loadPuzzle() {
-        if (_seed.value.isNotEmpty()) return
+        if (_seed.value.isNotEmpty() || isChallengeModeSetUp) return
         prepareNewGame()
     }
 
@@ -298,24 +317,59 @@ class NumbersUnlimitedViewModel : ViewModel() {
     private fun submitResult() {
         val state = _uiState.value as? NumbersUiState.Playing ?: return
         val elapsed = UNLIMITED_DURATION_SECONDS - state.secondsRemaining
-        val prevDist = UnlimitedHighScoreStore.numbersBestDistance
-        val prevTime = UnlimitedHighScoreStore.numbersBestTimeSeconds
-        UnlimitedHighScoreStore.updateNumbersDistance(state.bestDistance, elapsed, _seed.value, state.bestValue, state.bestSteps)
-        _isNewBestScore.value = prevDist == -1 || state.bestDistance < prevDist ||
-            (state.bestDistance == prevDist && elapsed < prevTime)
-        _uiState.value = NumbersUiState.Results(
-            target = state.target,
-            numbers = originalNumbers,
-            resultValue = state.bestValue,
-            steps = state.bestSteps,
-            solution = pendingSolution,
-            distance = state.bestDistance,
-            durationSeconds = elapsed,
-            rankToday = 0,
-            currentStreak = 0,
-            puzzleId = "numbers_practice_${_seed.value}",
-            date = "",
-        )
+        val cid = challengeId
+        if (cid != null) {
+            _uiState.value = NumbersUiState.Results(
+                target = state.target,
+                numbers = originalNumbers,
+                resultValue = state.bestValue,
+                steps = state.bestSteps,
+                solution = pendingSolution,
+                distance = state.bestDistance,
+                durationSeconds = elapsed,
+                rankToday = 0,
+                currentStreak = 0,
+                puzzleId = cid,
+                date = "",
+            )
+            viewModelScope.launch {
+                runCatching {
+                    AuthRepository.apiServiceForCurrentSession().submitChallengePlay(
+                        cid,
+                        ChallengePlayRequestDto(
+                            durationSeconds = elapsed,
+                            resultValue = state.bestValue,
+                            steps = state.bestSteps.map { s ->
+                                com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto(
+                                    a = s.a, op = s.op, b = s.b, result = s.result,
+                                )
+                            },
+                        ),
+                    )
+                }.onSuccess { result ->
+                    _challengePlayResult.value = result
+                }
+            }
+        } else {
+            val prevDist = UnlimitedHighScoreStore.numbersBestDistance
+            val prevTime = UnlimitedHighScoreStore.numbersBestTimeSeconds
+            UnlimitedHighScoreStore.updateNumbersDistance(state.bestDistance, elapsed, _seed.value, state.bestValue, state.bestSteps)
+            _isNewBestScore.value = prevDist == -1 || state.bestDistance < prevDist ||
+                (state.bestDistance == prevDist && elapsed < prevTime)
+            _uiState.value = NumbersUiState.Results(
+                target = state.target,
+                numbers = originalNumbers,
+                resultValue = state.bestValue,
+                steps = state.bestSteps,
+                solution = pendingSolution,
+                distance = state.bestDistance,
+                durationSeconds = elapsed,
+                rankToday = 0,
+                currentStreak = 0,
+                puzzleId = "numbers_practice_${_seed.value}",
+                date = "",
+            )
+        }
     }
 
     val practiceBestDistance: Int get() = UnlimitedHighScoreStore.numbersBestDistance

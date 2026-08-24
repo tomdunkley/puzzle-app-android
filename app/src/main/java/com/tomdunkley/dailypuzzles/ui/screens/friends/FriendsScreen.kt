@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.FriendRequestSummaryDto
 import com.tomdunkley.dailypuzzles.data.network.dto.FriendSummaryDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserSearchResultDto
@@ -74,6 +77,7 @@ private fun SignedInContent(
     onMutation: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val pendingChallengesByFriend by PendingChallengesStore.byFriend.collectAsState()
     var pendingUnfriend by remember { mutableStateOf<FriendSummaryDto?>(null) }
 
     LaunchedEffect(Unit) {
@@ -168,6 +172,7 @@ private fun SignedInContent(
                 items(loaded.friends, key = { "f:${it.userId}" }) { friend ->
                     FriendRow(
                         friend,
+                        hasPendingChallenge = (pendingChallengesByFriend[friend.userId] ?: 0) > 0,
                         onRemove = { pendingUnfriend = friend },
                         onViewProfile = { onViewProfile(friend.userId) },
                     )
@@ -257,6 +262,7 @@ private fun IncomingRequestRow(
 @Composable
 private fun FriendRow(
     friend: FriendSummaryDto,
+    hasPendingChallenge: Boolean = false,
     onRemove: () -> Unit,
     onViewProfile: () -> Unit,
 ) {
@@ -270,7 +276,14 @@ private fun FriendRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AvatarIcon(friend.avatarId, friend.avatarColorId, avatarIconColor = friend.avatarIconColor, size = 32.dp)
-            Text(friend.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+            Text(
+                friend.displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(start = 12.dp),
+            )
+            if (hasPendingChallenge) {
+                Badge(modifier = Modifier.padding(start = 6.dp).size(10.dp))
+            }
         }
         IconButton(onClick = onRemove) {
             Icon(Icons.Filled.Close, contentDescription = "Remove ${friend.displayName}")

@@ -38,7 +38,11 @@ class ScoreDetailViewModel : ViewModel() {
             runCatching {
                 val service = AuthRepository.apiServiceForCurrentSession()
                 val me = service.getMyProfile()
-                val detail = service.getScoreDetail(puzzleId, userId)
+                val detail = if (puzzleId.startsWith("ch_")) {
+                    service.getChallengeResult(puzzleId, userId)
+                } else {
+                    service.getScoreDetail(puzzleId, userId)
+                }
                 detail to (me.userId == userId)
             }.onSuccess { (detail, isOwnScore) ->
                 _uiState.value = ScoreDetailUiState.Loaded(detail, isOwnScore)

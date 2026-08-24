@@ -61,6 +61,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
@@ -492,6 +493,18 @@ private fun ResultsContent(
                     }
                     BestScorePill(text = bestText, iconTint = NumbersSolidColor)
                 }
+            }
+            val freezePillText = when {
+                state.streakFreezeApplied -> "streak freeze applied"
+                state.streakFreezeAvailable -> "streak freeze unlocked"
+                state.currentStreak > 0 -> {
+                    val daysUntil = if (state.currentStreak % 10 == 0) 10 else 10 - state.currentStreak % 10
+                    "$daysUntil day${if (daysUntil == 1) "" else "s"} until freeze"
+                }
+                else -> null
+            }
+            if (freezePillText != null) {
+                BestScorePill(text = freezePillText, iconTint = NumbersSolidColor, icon = Icons.Filled.AcUnit)
             }
         }
         if (state.distance == 0) {

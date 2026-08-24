@@ -2,6 +2,7 @@ package com.tomdunkley.dailypuzzles.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,11 @@ class AppViewModel : ViewModel() {
             runCatching { ApiClient.authenticatedService.getIncomingRequests() }
                 .onSuccess { _hasPendingFriendRequests.value = it.isNotEmpty() }
                 .onFailure { _hasPendingFriendRequests.value = false }
+        }
+        viewModelScope.launch {
+            runCatching { ApiClient.authenticatedService.getPendingChallenges() }
+                .onSuccess { PendingChallengesStore.update(it.count, it.byFriend) }
+                .onFailure { }
         }
     }
 }

@@ -3,8 +3,11 @@ package com.tomdunkley.dailypuzzles.ui.screens.boggle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.audio.SoundFeedback
+import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleDictionary
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleSolver
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePlayResultDto
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedPuzzleGenerator
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +39,12 @@ class BoggleUnlimitedViewModel : ViewModel() {
     private val _boardForResults = MutableStateFlow<List<String>>(emptyList())
     val boardForResults: StateFlow<List<String>> = _boardForResults.asStateFlow()
 
+    private val _challengePlayResult = MutableStateFlow<ChallengePlayResultDto?>(null)
+    val challengePlayResult: StateFlow<ChallengePlayResultDto?> = _challengePlayResult.asStateFlow()
+
+    private var challengeId: String? = null
+    private var isChallengeModeSetUp = false
+
     sealed interface AllWordsState {
         data object Idle : AllWordsState
         data object Computing : AllWordsState
@@ -58,8 +67,16 @@ class BoggleUnlimitedViewModel : ViewModel() {
     private var currentBoard = emptyList<String>()
     private var timerJob: Job? = null
 
+    fun setupChallengeMode(id: String, board: List<String>) {
+        isChallengeModeSetUp = true
+        challengeId = id
+        currentBoard = board
+        _showIntro.value = false
+        _uiState.value = BoggleUiState.Loading
+    }
+
     fun loadPuzzle() {
-        if (_seed.value.isNotEmpty()) return
+        if (_seed.value.isNotEmpty() || isChallengeModeSetUp) return
         prepareNewGame()
     }
 
@@ -196,17 +213,43 @@ class BoggleUnlimitedViewModel : ViewModel() {
         val state = _uiState.value as? BoggleUiState.Playing ?: return
         _boardForResults.value = currentBoard
         val score = estimatedScoreForWords(state.foundWords)
-        val prevHighScore = UnlimitedHighScoreStore.boggleHighScore
-        UnlimitedHighScoreStore.updateBoggleScore(score, _seed.value, state.foundWords)
-        _isNewBestScore.value = prevHighScore == -1 || score > prevHighScore
-        _uiState.value = BoggleUiState.Results(
-            score = score,
-            validWords = state.foundWords,
-            rankToday = 0,
-            currentStreak = 0,
-            puzzleId = "boggle_practice_${_seed.value}",
-            date = "",
-        )
+        val elapsed = UNLIMITED_DURATION_SECONDS - state.secondsRemaining
+        val cid = challengeId
+        if (cid != null) {
+            _uiState.value = BoggleUiState.Results(
+                score = score,
+                validWords = state.foundWords,
+                rankToday = 0,
+                currentStreak = 0,
+                puzzleId = cid,
+                date = "",
+            )
+            viewModelScope.launch {
+                runCatching {
+                    AuthRepository.apiServiceForCurrentSession().submitChallengePlay(
+                        cid,
+                        ChallengePlayRequestDto(
+                            durationSeconds = elapsed,
+                            words = state.foundWords.toList(),
+                        ),
+                    )
+                }.onSuccess { result ->
+                    _challengePlayResult.value = result
+                }
+            }
+        } else {
+            val prevHighScore = UnlimitedHighScoreStore.boggleHighScore
+            UnlimitedHighScoreStore.updateBoggleScore(score, _seed.value, state.foundWords)
+            _isNewBestScore.value = prevHighScore == -1 || score > prevHighScore
+            _uiState.value = BoggleUiState.Results(
+                score = score,
+                validWords = state.foundWords,
+                rankToday = 0,
+                currentStreak = 0,
+                puzzleId = "boggle_practice_${_seed.value}",
+                date = "",
+            )
+        }
     }
 
     val practiceHighScore: Int get() = UnlimitedHighScoreStore.boggleHighScore

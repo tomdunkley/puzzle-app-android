@@ -65,6 +65,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersTile
+import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.FeedbackPill
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
@@ -78,6 +79,11 @@ fun NumbersUnlimitedScreen(
     onBack: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
     viewModel: NumbersUnlimitedViewModel = viewModel(),
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val seed by viewModel.seed.collectAsState()
@@ -101,6 +107,7 @@ fun NumbersUnlimitedScreen(
     }
 
     val subtitle = when {
+        challengeOpponentName != null -> "${challengeSeed ?: ""}  ·  vs $challengeOpponentName"
         showHighScoreDetail -> viewModel.practiceBestSeed.takeIf { it.isNotEmpty() }
         !showIntro && (uiState is NumbersUiState.Playing || uiState is NumbersUiState.Results) && seed.isNotEmpty() -> seed
         else -> null
@@ -109,7 +116,7 @@ fun NumbersUnlimitedScreen(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Numbers: Unlimited",
+                title = if (challengeOpponentName != null) "Numbers" else "Numbers: Unlimited",
                 subtitle = subtitle,
                 navigationIcon = {
                     IconButton(onClick = {
@@ -122,6 +129,16 @@ fun NumbersUnlimitedScreen(
                     }
                 },
                 backgroundColor = NumbersSolidColor.copy(alpha = 0.15f),
+                actions = {
+                    if (challengeOpponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = challengeOpponentAvatarId,
+                            avatarColorId = challengeOpponentAvatarColorId,
+                            avatarIconColor = challengeOpponentAvatarIconColor,
+                            size = 32.dp,
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

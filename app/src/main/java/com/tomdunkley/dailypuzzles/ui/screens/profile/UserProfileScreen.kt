@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.DailyBestScoreDto
 import com.tomdunkley.dailypuzzles.data.network.dto.PublicUserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TodayGameScoreDto
@@ -56,10 +59,13 @@ fun UserProfileScreen(
     userId: String,
     onBack: () -> Unit,
     onViewScore: (puzzleId: String, userId: String) -> Unit = { _, _ -> },
+    onChallenge: ((userId: String) -> Unit)? = null,
     viewModel: UserProfileViewModel = viewModel(),
 ) {
     LaunchedEffect(userId) { viewModel.load(userId) }
     val uiState by viewModel.uiState.collectAsState()
+    val pendingChallengesByFriend by PendingChallengesStore.byFriend.collectAsState()
+    val hasPendingChallenge = (pendingChallengesByFriend[userId] ?: 0) > 0
 
     Scaffold(
         topBar = { SectionTopBar(title = "Profile", onBack = onBack) },
@@ -85,9 +91,11 @@ fun UserProfileScreen(
                 is UserProfileUiState.Loaded -> ProfileContent(
                     profile = state.profile,
                     userId = userId,
+                    hasPendingChallenge = hasPendingChallenge,
                     onAddFriend = viewModel::addFriend,
                     onRemoveFriend = viewModel::removeFriend,
                     onViewScore = onViewScore,
+                    onChallenge = onChallenge?.let { { it(userId) } },
                 )
             }
         }
@@ -98,9 +106,11 @@ fun UserProfileScreen(
 private fun ProfileContent(
     profile: PublicUserProfileDto,
     userId: String,
+    hasPendingChallenge: Boolean = false,
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
     onViewScore: (puzzleId: String, userId: String) -> Unit,
+    onChallenge: (() -> Unit)? = null,
 ) {
     var showUnfriendDialog by remember { mutableStateOf(false) }
 
@@ -140,14 +150,7 @@ private fun ProfileContent(
         }
 
         when (profile.friendshipStatus) {
-            "self" -> Unit
-            "friends" -> OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                onClick = { showUnfriendDialog = true },
-            ) {
-                Text("REMOVE FRIEND")
-            }
+            "self", "friends" -> Unit
             "request_sent" -> OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
@@ -199,6 +202,34 @@ private fun ProfileContent(
         TodayScoreRow("numbers", "Numbers", profile.todayNumbers, profile.numbersDailyBest, userId, onViewScore)
         Spacer(Modifier.height(4.dp))
         TodayScoreRow("routes", "Routes", profile.todayRoutes, profile.routesDailyBest, userId, onViewScore)
+
+        if (profile.friendshipStatus == "friends") {
+            HorizontalDivider()
+            if (onChallenge != null) {
+                BadgedBox(
+                    badge = { if (hasPendingChallenge) Badge(modifier = Modifier.size(10.dp)) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface,
+                        ),
+                        onClick = onChallenge,
+                    ) {
+                        Text("CHALLENGES")
+                    }
+                }
+            }
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                onClick = { showUnfriendDialog = true },
+            ) {
+                Text("REMOVE FRIEND")
+            }
+        }
     }
 }
 

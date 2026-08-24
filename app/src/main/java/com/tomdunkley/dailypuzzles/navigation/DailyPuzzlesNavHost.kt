@@ -35,15 +35,23 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
+import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
+import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleChallengeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleScreen
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleUnlimitedScreen
+import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeScreen
+import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeStartScreen
+import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeWaitingScreen
 import com.tomdunkley.dailypuzzles.ui.screens.friends.FriendsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.home.HomeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.leaderboard.LeaderboardScreen
-import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsScreen
-import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsUnlimitedScreen
+import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersChallengeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersUnlimitedScreen
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RoutesChallengeScreen
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsScreen
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsUnlimitedScreen
 import com.tomdunkley.dailypuzzles.ui.screens.scoredetail.ScoreDetailScreen
 import com.tomdunkley.dailypuzzles.ui.screens.achievements.AchievementsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.profile.UserProfileScreen
@@ -62,6 +70,7 @@ fun DailyPuzzlesNavHost() {
     val appViewModel: AppViewModel = viewModel()
     val hasPendingFriendRequests by appViewModel.hasPendingFriendRequests.collectAsState()
     val newTrophyCount by appViewModel.newTrophyCount.collectAsState()
+    val pendingChallengeCount by PendingChallengesStore.pendingCount.collectAsState()
 
     LaunchedEffect(authState) {
         if (authState is AuthState.SignedIn) appViewModel.refreshFriendRequestBadge()
@@ -77,6 +86,9 @@ fun DailyPuzzlesNavHost() {
     var numbersUnlimitedShowBottomBar by remember { mutableStateOf(false) }
     var rootsShowBottomBar by remember { mutableStateOf(false) }
     var rootsUnlimitedShowBottomBar by remember { mutableStateOf(false) }
+    var boggleChallengeShowBottomBar by remember { mutableStateOf(false) }
+    var numbersChallengeShowBottomBar by remember { mutableStateOf(false) }
+    var routesChallengeShowBottomBar by remember { mutableStateOf(false) }
 
     // Wherever the user is, an account that becomes unverified (right after registering,
     // or because a gameplay call just 403'd) gets routed to the verify-email screen.
@@ -100,7 +112,10 @@ fun DailyPuzzlesNavHost() {
         (currentRoute == Routes.NUMBERS && !numbersShowBottomBar) ||
         (currentRoute == Routes.NUMBERS_UNLIMITED && !numbersUnlimitedShowBottomBar) ||
         (currentRoute == Routes.ROOTS && !rootsShowBottomBar) ||
-        (currentRoute == Routes.ROOTS_UNLIMITED && !rootsUnlimitedShowBottomBar)
+        (currentRoute == Routes.ROOTS_UNLIMITED && !rootsUnlimitedShowBottomBar) ||
+        (currentRoute?.startsWith("boggle_challenge") == true && !boggleChallengeShowBottomBar) ||
+        (currentRoute?.startsWith("numbers_challenge") == true && !numbersChallengeShowBottomBar) ||
+        (currentRoute?.startsWith("routes_challenge") == true && !routesChallengeShowBottomBar)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -137,7 +152,7 @@ fun DailyPuzzlesNavHost() {
                                     }
                                 },
                                 icon = {
-                                    val showBadge = (item.route == Routes.SETTINGS && hasPendingFriendRequests) ||
+                                    val showBadge = (item.route == Routes.SETTINGS && (hasPendingFriendRequests || pendingChallengeCount > 0)) ||
                                         (item.route == Routes.ACHIEVEMENTS && newTrophyCount > 0)
                                     BadgedBox(badge = { if (showBadge) Badge(modifier = Modifier.size(10.dp)) }) {
                                         Icon(item.icon, contentDescription = item.label)
@@ -347,6 +362,114 @@ fun DailyPuzzlesNavHost() {
                     onBack = { navController.popBackStack() },
                     onViewScore = { puzzleId, userId ->
                         navController.navigate(Routes.scoreDetail(puzzleId, userId))
+                    },
+                    onChallenge = { userId -> navController.navigate(Routes.challenge(userId)) },
+                )
+            }
+            composable(
+                Routes.CHALLENGE,
+                arguments = listOf(navArgument("friendId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                ChallengeScreen(
+                    friendId = backStackEntry.arguments?.getString("friendId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onStartGame = { game, _ ->
+                        navController.navigate(Routes.challengeStart(game))
+                    },
+                    onViewResult = { challengeId, userId ->
+                        navController.navigate(Routes.scoreDetail(challengeId, userId))
+                    },
+                )
+            }
+            composable(
+                Routes.CHALLENGE_START,
+                arguments = listOf(navArgument("game") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val game = backStackEntry.arguments?.getString("game").orEmpty()
+                val challengeId = ChallengeGameStore.pendingChallengeId.orEmpty()
+                ChallengeStartScreen(
+                    game = game,
+                    onBack = { navController.popBackStack() },
+                    onStart = {
+                        when (game) {
+                            "boggle" -> navController.navigate(Routes.boggleChallenge(challengeId))
+                            "numbers" -> navController.navigate(Routes.numbersChallenge(challengeId))
+                            else -> navController.navigate(Routes.routesChallenge(challengeId))
+                        }
+                    },
+                )
+            }
+            composable(
+                Routes.BOGGLE_CHALLENGE,
+                arguments = listOf(navArgument("challengeId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val challengeId = backStackEntry.arguments?.getString("challengeId").orEmpty()
+                BoggleChallengeScreen(
+                    challengeId = challengeId,
+                    onBack = { navController.popBackStack() },
+                    onShowBottomBarChange = { boggleChallengeShowBottomBar = it },
+                    onChallengeComplete = { id, bothPlayed ->
+                        val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
+                        val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                        }
+                    },
+                )
+            }
+            composable(
+                Routes.NUMBERS_CHALLENGE,
+                arguments = listOf(navArgument("challengeId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val challengeId = backStackEntry.arguments?.getString("challengeId").orEmpty()
+                NumbersChallengeScreen(
+                    challengeId = challengeId,
+                    onBack = { navController.popBackStack() },
+                    onShowBottomBarChange = { numbersChallengeShowBottomBar = it },
+                    onChallengeComplete = { id, bothPlayed ->
+                        val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
+                        val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                        }
+                    },
+                )
+            }
+            composable(
+                Routes.ROUTES_CHALLENGE,
+                arguments = listOf(navArgument("challengeId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val challengeId = backStackEntry.arguments?.getString("challengeId").orEmpty()
+                RoutesChallengeScreen(
+                    challengeId = challengeId,
+                    onBack = { navController.popBackStack() },
+                    onShowBottomBarChange = { routesChallengeShowBottomBar = it },
+                    onChallengeComplete = { id, bothPlayed ->
+                        val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
+                        val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                        }
+                    },
+                )
+            }
+            composable(
+                Routes.CHALLENGE_WAITING,
+                arguments = listOf(
+                    navArgument("challengeId") { type = NavType.StringType },
+                    navArgument("opponentName") { type = NavType.StringType },
+                    navArgument("bothPlayed") { type = NavType.BoolType },
+                    navArgument("myUserId") { type = NavType.StringType },
+                ),
+            ) { backStackEntry ->
+                ChallengeWaitingScreen(
+                    challengeId = backStackEntry.arguments?.getString("challengeId").orEmpty(),
+                    opponentName = backStackEntry.arguments?.getString("opponentName").orEmpty(),
+                    bothPlayed = backStackEntry.arguments?.getBoolean("bothPlayed") ?: false,
+                    myUserId = backStackEntry.arguments?.getString("myUserId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onViewMyResult = { challengeId, userId ->
+                        navController.navigate(Routes.scoreDetail(challengeId, userId))
                     },
                 )
             }

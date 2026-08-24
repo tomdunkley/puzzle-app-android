@@ -62,6 +62,8 @@ sealed interface NumbersUiState {
         val dailyBestResultValue: Int? = null,
         val dailyBestDurationSeconds: Int? = null,
         val isNewDailyBest: Boolean = false,
+        val streakFreezeApplied: Boolean = false,
+        val streakFreezeAvailable: Boolean = false,
     ) : NumbersUiState
 }
 
@@ -429,7 +431,10 @@ class NumbersViewModel : ViewModel() {
                         isNewDailyBest = result.isNewDailyBest,
                     )
                     NumbersProgressStore.saveResult(completed)
-                    _uiState.value = completed.toUiState()
+                    _uiState.value = completed.toUiState().copy(
+                        streakFreezeApplied = result.streakFreezeApplied,
+                        streakFreezeAvailable = result.streakFreezeAvailable,
+                    )
                 }
                 .onFailure {
                     if (!handleIfVerificationRequired(it)) {

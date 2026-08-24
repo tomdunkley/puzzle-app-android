@@ -50,6 +50,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BestScorePill
 import com.tomdunkley.dailypuzzles.ui.components.RootsAccentColor
 import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
@@ -60,6 +61,11 @@ fun RootsUnlimitedScreen(
     onBack: () -> Unit,
     onShowBottomBarChange: (Boolean) -> Unit,
     viewModel: RootsUnlimitedViewModel = viewModel(),
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val canUndo by viewModel.canUndo.collectAsState()
@@ -84,6 +90,11 @@ fun RootsUnlimitedScreen(
             onSeedChange = { viewModel.setSeed(it) },
             onStart = { viewModel.startGame() },
             onBack = onBack,
+            challengeSeed = challengeSeed,
+            challengeOpponentName = challengeOpponentName,
+            challengeOpponentAvatarId = challengeOpponentAvatarId,
+            challengeOpponentAvatarColorId = challengeOpponentAvatarColorId,
+            challengeOpponentAvatarIconColor = challengeOpponentAvatarIconColor,
         )
         is RootsUnlimitedUiState.Playing -> UnlimitedPlayingContent(
             state = state,
@@ -96,11 +107,21 @@ fun RootsUnlimitedScreen(
             onCellDrag = { viewModel.onCellDrag(it) },
             onTapCell = { viewModel.onTapCell(it) },
             onBack = onBack,
+            challengeSeed = challengeSeed,
+            challengeOpponentName = challengeOpponentName,
+            challengeOpponentAvatarId = challengeOpponentAvatarId,
+            challengeOpponentAvatarColorId = challengeOpponentAvatarColorId,
+            challengeOpponentAvatarIconColor = challengeOpponentAvatarIconColor,
         )
         is RootsUnlimitedUiState.Results -> UnlimitedResultsContent(
             state = state,
             onNewGame = { viewModel.newGame() },
             onBack = onBack,
+            challengeSeed = challengeSeed,
+            challengeOpponentName = challengeOpponentName,
+            challengeOpponentAvatarId = challengeOpponentAvatarId,
+            challengeOpponentAvatarColorId = challengeOpponentAvatarColorId,
+            challengeOpponentAvatarIconColor = challengeOpponentAvatarIconColor,
         )
     }
 }
@@ -111,6 +132,11 @@ private fun StartContent(
     onSeedChange: (String) -> Unit,
     onStart: () -> Unit,
     onBack: () -> Unit,
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var editValue by remember(state.seed) { mutableStateOf(state.seed) }
@@ -119,9 +145,20 @@ private fun StartContent(
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Routes: Unlimited",
+                title = if (challengeOpponentName != null) "Routes" else "Routes: Unlimited",
+                subtitle = if (challengeOpponentName != null) "${challengeSeed ?: ""}  ·  vs $challengeOpponentName" else null,
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
+                actions = {
+                    if (challengeOpponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = challengeOpponentAvatarId,
+                            avatarColorId = challengeOpponentAvatarColorId,
+                            avatarIconColor = challengeOpponentAvatarIconColor,
+                            size = 32.dp,
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -214,14 +251,29 @@ private fun UnlimitedPlayingContent(
     onCellDrag: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
     onTapCell: (com.tomdunkley.dailypuzzles.data.roots.RootsCell) -> Unit,
     onBack: () -> Unit,
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Routes: Unlimited",
-                subtitle = formatTime(state.elapsedSeconds),
+                title = if (challengeOpponentName != null) "Routes" else "Routes: Unlimited",
+                subtitle = if (challengeOpponentName != null) "${challengeSeed ?: ""}  ·  vs $challengeOpponentName" else formatTime(state.elapsedSeconds),
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
+                actions = {
+                    if (challengeOpponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = challengeOpponentAvatarId,
+                            avatarColorId = challengeOpponentAvatarColorId,
+                            avatarIconColor = challengeOpponentAvatarIconColor,
+                            size = 32.dp,
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -306,13 +358,29 @@ private fun UnlimitedResultsContent(
     state: RootsUnlimitedUiState.Results,
     onNewGame: () -> Unit,
     onBack: () -> Unit,
+    challengeSeed: String? = null,
+    challengeOpponentName: String? = null,
+    challengeOpponentAvatarId: String? = null,
+    challengeOpponentAvatarColorId: String? = null,
+    challengeOpponentAvatarIconColor: String? = null,
 ) {
     Scaffold(
         topBar = {
             SectionTopBar(
-                title = "Routes: Unlimited",
+                title = if (challengeOpponentName != null) "Routes" else "Routes: Unlimited",
+                subtitle = if (challengeOpponentName != null) "${challengeSeed ?: ""}  ·  vs $challengeOpponentName" else null,
                 onBack = onBack,
                 backgroundColor = RootsAccentColor,
+                actions = {
+                    if (challengeOpponentAvatarId != null) {
+                        AvatarIcon(
+                            avatarId = challengeOpponentAvatarId,
+                            avatarColorId = challengeOpponentAvatarColorId,
+                            avatarIconColor = challengeOpponentAvatarIconColor,
+                            size = 32.dp,
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

@@ -7,6 +7,7 @@ import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.network.ApiService
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChangePasswordRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.DevLoginRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ForgotPasswordRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.GoogleSignInRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.LoginRequestDto
@@ -63,6 +64,12 @@ object AuthRepository {
 
     suspend fun login(email: String, password: String): Result<Unit> = runCatching {
         val tokens = ApiClient.plainService.login(LoginRequestDto(email, password, GuestSession.accessToken))
+        onSignedIn(tokens)
+        GuestSession.clear()
+    }
+
+    suspend fun devLogin(displayName: String): Result<Unit> = runCatching {
+        val tokens = ApiClient.plainService.devLogin(DevLoginRequestDto(displayName))
         onSignedIn(tokens)
         GuestSession.clear()
     }

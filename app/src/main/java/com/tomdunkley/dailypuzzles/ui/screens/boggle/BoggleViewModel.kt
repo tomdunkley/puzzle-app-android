@@ -56,6 +56,8 @@ sealed interface BoggleUiState {
         val dailyBestScore: Int? = null,
         val dailyBestWordCount: Int? = null,
         val isNewDailyBest: Boolean = false,
+        val streakFreezeApplied: Boolean = false,
+        val streakFreezeAvailable: Boolean = false,
     ) : BoggleUiState
 }
 
@@ -347,7 +349,10 @@ class BoggleViewModel : ViewModel() {
                         isNewDailyBest = result.isNewDailyBest,
                     )
                     BoggleProgressStore.saveResult(completed)
-                    _uiState.value = completed.toUiState()
+                    _uiState.value = completed.toUiState().copy(
+                        streakFreezeApplied = result.streakFreezeApplied,
+                        streakFreezeAvailable = result.streakFreezeAvailable,
+                    )
                 }
                 .onFailure {
                     if (!handleIfVerificationRequired(it)) {
