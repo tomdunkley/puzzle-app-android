@@ -8,6 +8,8 @@ data class StreakInfoDto(
     val current: Int,
     val longest: Int,
     @SerialName("last_played_date") val lastPlayedDate: String? = null,
+    @SerialName("freeze_available") val freezeAvailable: Boolean = false,
+    @SerialName("next_freeze_at") val nextFreezeAt: Int? = null,
 )
 
 @Serializable

@@ -44,6 +44,7 @@ data class ScoreSubmissionResultDto(
     @SerialName("is_new_daily_best") val isNewDailyBest: Boolean = false,
     @SerialName("streak_freeze_applied") val streakFreezeApplied: Boolean = false,
     @SerialName("streak_freeze_available") val streakFreezeAvailable: Boolean = false,
+    @SerialName("plays_until_freeze") val playsUntilFreeze: Int? = null,
 )
 
 @Serializable

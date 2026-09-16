@@ -24,13 +24,13 @@ private const val SOLUTION_CAP = 200
 private fun unlimitedLegalResult(a: Int, op: String, b: Int): Int? = when (op) {
     "+" -> a + b
     "*" -> a * b
-    "-" -> if (a > b) a - b else null
+    "-" -> if (a >= b) a - b else null
     "/" -> if (b != 0 && a % b == 0) a / b else null
     else -> null
 }
 
 private fun unlimitedIllegalCombineMessage(a: Int, op: String, b: Int): String = when (op) {
-    "-" -> "$a needs to be bigger than $b"
+    "-" -> "$a can't be less than $b"
     "/" -> "$b doesn't go into $a"
     else -> "That doesn't work"
 }

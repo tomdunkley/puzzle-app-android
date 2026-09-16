@@ -58,6 +58,7 @@ sealed interface BoggleUiState {
         val isNewDailyBest: Boolean = false,
         val streakFreezeApplied: Boolean = false,
         val streakFreezeAvailable: Boolean = false,
+        val playsUntilFreeze: Int? = null,
     ) : BoggleUiState
 }
 
@@ -128,7 +129,13 @@ class BoggleViewModel : ViewModel() {
                             isNewDailyBest = saved?.isNewDailyBest ?: false,
                         )
                         BoggleProgressStore.saveResult(result)
-                        _uiState.value = result.toUiState()
+                        _uiState.value = result.toUiState().copy(
+                            streakFreezeAvailable = dto.streak?.freezeAvailable ?: false,
+                            playsUntilFreeze = dto.streak?.let { s ->
+                                if (s.freezeAvailable) null
+                                else s.nextFreezeAt?.let { (it - s.current).coerceAtLeast(0) }
+                            },
+                        )
                     } else {
                         val saved = BoggleProgressStore.load(dto.puzzleId)
                         _uiState.value = BoggleUiState.Playing(
@@ -352,6 +359,7 @@ class BoggleViewModel : ViewModel() {
                     _uiState.value = completed.toUiState().copy(
                         streakFreezeApplied = result.streakFreezeApplied,
                         streakFreezeAvailable = result.streakFreezeAvailable,
+                        playsUntilFreeze = result.playsUntilFreeze,
                     )
                 }
                 .onFailure {

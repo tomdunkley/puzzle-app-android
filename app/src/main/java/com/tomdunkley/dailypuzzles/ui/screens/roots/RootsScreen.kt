@@ -315,8 +315,8 @@ private fun ResultsContent(
                 val freezePillText = when {
                     state.streakFreezeApplied -> "streak freeze applied"
                     state.streakFreezeAvailable -> "streak freeze unlocked"
-                    state.currentStreak > 0 -> {
-                        val daysUntil = if (state.currentStreak % 10 == 0) 10 else 10 - state.currentStreak % 10
+                    state.playsUntilFreeze != null -> {
+                        val daysUntil = state.playsUntilFreeze
                         "$daysUntil day${if (daysUntil == 1) "" else "s"} until freeze"
                     }
                     else -> null

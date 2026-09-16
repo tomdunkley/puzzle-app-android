@@ -64,24 +64,25 @@ sealed interface NumbersUiState {
         val isNewDailyBest: Boolean = false,
         val streakFreezeApplied: Boolean = false,
         val streakFreezeAvailable: Boolean = false,
+        val playsUntilFreeze: Int? = null,
     ) : NumbersUiState
 }
 
 /** Computes a + op + b under the same legality rules the server re-validates at
- * submission time -- null means blocked (decimal division, or a non-positive
+ * submission time -- null means blocked (decimal division, or a negative
  * subtraction), matching webapp/app/services/numbers_game.py's `_apply`.
  */
 private fun legalResult(a: Int, op: String, b: Int): Int? = when (op) {
     "+" -> a + b
     "*" -> a * b
-    "-" -> if (a > b) a - b else null
+    "-" -> if (a >= b) a - b else null
     "/" -> if (b != 0 && a % b == 0) a / b else null
     else -> null
 }
 
 /** Human-readable reason a combine was rejected, shown in a feedback pill. */
 private fun illegalCombineMessage(a: Int, op: String, b: Int): String = when (op) {
-    "-" -> "$a needs to be bigger than $b"
+    "-" -> "$a can't be less than $b"
     "/" -> "$b doesn't go into $a"
     else -> "That doesn't work"
 }
@@ -147,7 +148,13 @@ class NumbersViewModel : ViewModel() {
                             isNewDailyBest = saved?.isNewDailyBest ?: false,
                         )
                         NumbersProgressStore.saveResult(result)
-                        _uiState.value = result.toUiState()
+                        _uiState.value = result.toUiState().copy(
+                            streakFreezeAvailable = dto.streak?.freezeAvailable ?: false,
+                            playsUntilFreeze = dto.streak?.let { s ->
+                                if (s.freezeAvailable) null
+                                else s.nextFreezeAt?.let { (it - s.current).coerceAtLeast(0) }
+                            },
+                        )
                     } else {
                         val target = dto.target ?: 0
                         val solution = dto.solution ?: emptyList()
@@ -434,6 +441,7 @@ class NumbersViewModel : ViewModel() {
                     _uiState.value = completed.toUiState().copy(
                         streakFreezeApplied = result.streakFreezeApplied,
                         streakFreezeAvailable = result.streakFreezeAvailable,
+                        playsUntilFreeze = result.playsUntilFreeze,
                     )
                 }
                 .onFailure {

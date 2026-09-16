@@ -59,6 +59,7 @@ sealed interface RootsUiState {
         val isNewDailyBest: Boolean = false,
         val streakFreezeApplied: Boolean = false,
         val streakFreezeAvailable: Boolean = false,
+        val playsUntilFreeze: Int? = null,
     ) : RootsUiState
 }
 
@@ -148,7 +149,13 @@ class RootsViewModel : ViewModel() {
                         )
                         RootsProgressStore.saveResult(result)
                         val personalBest = RootsProgressStore.personalBestSeconds()
-                        _uiState.value = result.toUiState(seed, personalBest.takeIf { it >= 0 })
+                        _uiState.value = result.toUiState(seed, personalBest.takeIf { it >= 0 }).copy(
+                            streakFreezeAvailable = dto.streak?.freezeAvailable ?: false,
+                            playsUntilFreeze = dto.streak?.let { s ->
+                                if (s.freezeAvailable) null
+                                else s.nextFreezeAt?.let { (it - s.current).coerceAtLeast(0) }
+                            },
+                        )
                     } else {
                         val puzzle = RootsPuzzleGenerator.generate(seed, gridSize)
                         val saved = RootsProgressStore.load(dto.puzzleId)
@@ -322,6 +329,8 @@ class RootsViewModel : ViewModel() {
                     _uiState.value = state.copy(currentPath = path.subList(0, existingIdx + 1))
                     return
                 }
+                // Don't extend past a terminal — start/end only valid at the ends of the path
+                if ((pathHead == state.startCell || pathHead == state.endCell) && path.size > 1) return
                 if (!isAdjacent(cell, pathHead)) return
                 val newPath = path + cell
                 val updatedState = state.copy(
@@ -418,6 +427,7 @@ class RootsViewModel : ViewModel() {
                     _uiState.value = rootsResult.toUiState(seed, personalBest.takeIf { it >= 0 }, result.isNewDailyBest).copy(
                         streakFreezeApplied = result.streakFreezeApplied,
                         streakFreezeAvailable = result.streakFreezeAvailable,
+                        playsUntilFreeze = result.playsUntilFreeze,
                     )
                 }
                 .onFailure {
