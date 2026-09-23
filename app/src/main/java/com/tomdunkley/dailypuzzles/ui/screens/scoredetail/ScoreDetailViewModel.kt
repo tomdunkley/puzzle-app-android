@@ -3,9 +3,12 @@ package com.tomdunkley.dailypuzzles.ui.screens.scoredetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
+import com.tomdunkley.dailypuzzles.data.boggle.BoggleSolver
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.data.network.toUserMessage
+import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,6 +57,17 @@ class ScoreDetailViewModel : ViewModel() {
 
     fun loadAllWords(puzzleId: String) {
         if (_allWordsState.value is AllWordsState.Loaded) return
+        if (puzzleId.startsWith("ch_")) {
+            val board = (_uiState.value as? ScoreDetailUiState.Loaded)?.detail?.board
+            if (board != null) {
+                viewModelScope.launch(Dispatchers.Default) {
+                    _allWordsState.value = AllWordsState.Loading
+                    val words = BoggleSolver.findAllWords(board).map { AllWordDto(word = it, score = scoreForWord(it)) }
+                    _allWordsState.value = AllWordsState.Loaded(words)
+                }
+                return
+            }
+        }
         viewModelScope.launch {
             _allWordsState.value = AllWordsState.Loading
             runCatching {
