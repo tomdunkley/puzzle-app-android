@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import com.tomdunkley.dailypuzzles.util.formatDisplayDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-private const val MAX_DATE_OFFSET = 7
+internal const val MAX_DATE_OFFSET = 365
 private val SUPPORTED_GAMES = setOf("boggle", "numbers", "routes")
 
 enum class LeaderboardScope { FRIENDS, GLOBAL }
@@ -32,6 +32,7 @@ sealed interface LeaderboardUiState {
         val hasFriends: Boolean,
         val dateLabel: String,
         val dateOffset: Int,
+        val todayDate: LocalDate,
     ) : LeaderboardUiState
 }
 
@@ -89,6 +90,7 @@ class LeaderboardViewModel : ViewModel() {
                     hasFriends = hasFriends,
                     dateLabel = dateLabel(dateOffset, todayDate),
                     dateOffset = dateOffset,
+                    todayDate = todayDate,
                 )
             }.onFailure {
                 if (!handleIfVerificationRequired(it)) {
@@ -96,6 +98,12 @@ class LeaderboardViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun selectGame(index: Int) {
+        if (index == selectedGameIndex) return
+        selectedGameIndex = index.coerceIn(0, games.lastIndex)
+        load()
     }
 
     fun selectPreviousGame() {
@@ -125,6 +133,15 @@ class LeaderboardViewModel : ViewModel() {
     fun selectNewerDate() {
         if (dateOffset <= 0) return
         dateOffset--
+        load()
+    }
+
+    fun selectDate(date: LocalDate) {
+        val today = serverTodayDate ?: return
+        val offset = java.time.temporal.ChronoUnit.DAYS.between(date, today).toInt()
+        val clamped = offset.coerceIn(0, MAX_DATE_OFFSET)
+        if (clamped == dateOffset) return
+        dateOffset = clamped
         load()
     }
 }

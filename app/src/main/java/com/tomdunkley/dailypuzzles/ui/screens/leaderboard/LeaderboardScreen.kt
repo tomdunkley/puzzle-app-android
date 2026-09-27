@@ -1,55 +1,78 @@
 package com.tomdunkley.dailypuzzles.ui.screens.leaderboard
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.graphics.Color
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.network.dto.LeaderboardEntryDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.NumbersIconColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
-import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
-import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
 import com.tomdunkley.dailypuzzles.ui.components.RootsIconColor
 import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
+import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
+import com.tomdunkley.dailypuzzles.ui.components.SignInPrompt
 import com.tomdunkley.dailypuzzles.ui.components.WordsIconColor
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 private fun gameSolidColor(gameId: String): Color = when (gameId) {
     "boggle" -> WordsSolidColor
@@ -58,11 +81,17 @@ private fun gameSolidColor(gameId: String): Color = when (gameId) {
     else -> WordsSolidColor
 }
 
-private fun gameIconColor(gameId: String): Color = when (gameId) {
+private fun gameCircleColor(gameId: String): Color = when (gameId) {
     "boggle" -> WordsIconColor
     "numbers" -> NumbersIconColor
     "routes" -> RootsIconColor
     else -> WordsIconColor
+}
+
+private fun gameIcon(gameId: String): ImageVector = when (gameId) {
+    "boggle" -> Icons.Filled.GridOn
+    "numbers" -> Icons.Filled.Calculate
+    else -> Icons.Filled.Route
 }
 
 @Composable
@@ -106,22 +135,22 @@ private fun SignedInLeaderboard(
         is LeaderboardUiState.Loaded -> {
             val selectedGame = state.games.getOrNull(state.selectedGameIndex)
             val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
-            val iconColor = gameIconColor(selectedGame?.game ?: "boggle")
+            val iconColor = gameCircleColor(selectedGame?.game ?: "boggle")
             Column(modifier = Modifier.fillMaxSize()) {
+                GameCarousel(
+                    games = state.games.map { it.game },
+                    selectedGameIndex = state.selectedGameIndex,
+                    onSelectGame = viewModel::selectGame,
+                )
                 DateSwitcher(
                     dateLabel = state.dateLabel,
-                    canGoPrevious = state.dateOffset < 7,
+                    canGoPrevious = state.dateOffset < MAX_DATE_OFFSET,
                     canGoNext = state.dateOffset > 0,
                     onPrevious = viewModel::selectOlderDate,
                     onNext = viewModel::selectNewerDate,
-                )
-                GameSwitcher(
-                    gameTitle = selectedGame?.title ?: "Words",
-                    solidColor = solidColor,
-                    canGoPrevious = state.selectedGameIndex > 0,
-                    canGoNext = state.selectedGameIndex < state.games.lastIndex,
-                    onPrevious = viewModel::selectPreviousGame,
-                    onNext = viewModel::selectNextGame,
+                    onPickDate = viewModel::selectDate,
+                    todayDate = state.todayDate,
+                    currentDateOffset = state.dateOffset,
                 )
                 ScopeSwitcher(scope = state.scope, onScopeChange = viewModel::selectScope)
                 if (state.scope == LeaderboardScope.FRIENDS && !state.hasFriends) {
@@ -172,6 +201,155 @@ private fun SignedInLeaderboard(
 }
 
 @Composable
+private fun GameCarousel(
+    games: List<String>,
+    selectedGameIndex: Int,
+    onSelectGame: (Int) -> Unit,
+) {
+    if (games.isEmpty()) return
+
+    val pagerState = rememberPagerState(
+        initialPage = selectedGameIndex,
+        pageCount = { games.size },
+    )
+
+    // Sync external selection changes into the pager (e.g., initial load)
+    LaunchedEffect(selectedGameIndex) {
+        if (pagerState.currentPage != selectedGameIndex) {
+            pagerState.animateScrollToPage(selectedGameIndex)
+        }
+    }
+
+    // Trigger a data reload when the pager settles on a new page
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { page ->
+            onSelectGame(page)
+        }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        contentPadding = PaddingValues(horizontal = 120.dp),
+        pageSpacing = 20.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+    ) { page ->
+        val gameId = games[page]
+        val isSelected = page == pagerState.currentPage
+        val scale by animateFloatAsState(
+            targetValue = if (isSelected) 1f else 0.72f,
+            animationSpec = tween(200),
+            label = "gameScale",
+        )
+        val alpha by animateFloatAsState(
+            targetValue = if (isSelected) 1f else 0.45f,
+            animationSpec = tween(200),
+            label = "gameAlpha",
+        )
+
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
+                .background(gameCircleColor(gameId), shape = CircleShape)
+                .border(
+                    width = if (isSelected) 2.5.dp else 1.5.dp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    shape = CircleShape,
+                )
+                .clickable { onSelectGame(page) },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = gameIcon(gameId),
+                contentDescription = gameId,
+                tint = gameSolidColor(gameId),
+                modifier = Modifier.size(34.dp),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateSwitcher(
+    dateLabel: String,
+    canGoPrevious: Boolean,
+    canGoNext: Boolean,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onPickDate: (LocalDate) -> Unit,
+    todayDate: LocalDate,
+    currentDateOffset: Int,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+
+    val currentDate = todayDate.minusDays(currentDateOffset.toLong())
+    val currentEpochMillis = currentDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+    val minEpochMillis = todayDate.minusDays(MAX_DATE_OFFSET.toLong()).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+    val maxEpochMillis = todayDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onPrevious, enabled = canGoPrevious) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = "Older day",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoPrevious) 1f else 0.3f),
+            )
+        }
+        Text(
+            dateLabel,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.clickable { showPicker = true },
+        )
+        IconButton(onClick = onNext, enabled = canGoNext) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Newer day",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoNext) 1f else 0.3f),
+            )
+        }
+    }
+
+    if (showPicker) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = currentEpochMillis,
+            selectableDates = object : androidx.compose.material3.SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long) =
+                    utcTimeMillis in minEpochMillis..maxEpochMillis
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPicker = false
+                    val millis = pickerState.selectedDateMillis
+                    if (millis != null) {
+                        val picked = LocalDate.ofEpochDay(millis / 86_400_000)
+                        onPickDate(picked)
+                    }
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPicker = false }) { Text("Cancel") }
+            },
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
+@Composable
 private fun LeaderboardRow(entry: LeaderboardEntryDto, isSelf: Boolean, solidColor: Color, iconColor: Color, onClick: () -> Unit) {
     Row(
         modifier = Modifier
@@ -199,10 +377,6 @@ private fun LeaderboardRow(entry: LeaderboardEntryDto, isSelf: Boolean, solidCol
     }
 }
 
-/** "320" + small grey "(5 away)", or "Got it" + small grey "(15s)" -- the headline number
- * always in the normal size, with the qualifying detail demoted to a smaller grey
- * parenthetical rather than competing with it for attention.
- */
 @Composable
 private fun ResultSummary(entry: LeaderboardEntryDto) {
     if (entry.game == "numbers") {
@@ -235,79 +409,6 @@ private fun ResultSummary(entry: LeaderboardEntryDto) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-@Composable
-private fun DateSwitcher(
-    dateLabel: String,
-    canGoPrevious: Boolean,
-    canGoNext: Boolean,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onPrevious, enabled = canGoPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Older day",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoPrevious) 1f else 0.3f),
-            )
-        }
-        Text(
-            dateLabel,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        IconButton(onClick = onNext, enabled = canGoNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Newer day",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoNext) 1f else 0.3f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun GameSwitcher(
-    gameTitle: String,
-    solidColor: Color,
-    canGoPrevious: Boolean,
-    canGoNext: Boolean,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onPrevious, enabled = canGoPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Previous game",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoPrevious) 1f else 0.3f),
-            )
-        }
-        Text(gameTitle, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-        IconButton(onClick = onNext, enabled = canGoNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next game",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canGoNext) 1f else 0.3f),
-            )
-        }
     }
 }
 
