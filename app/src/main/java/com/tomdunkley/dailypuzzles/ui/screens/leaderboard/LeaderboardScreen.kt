@@ -157,11 +157,6 @@ private fun SignedInLeaderboard(
     val iconColor = gameCircleColor(selectedGame?.game ?: "boggle")
 
     Column(modifier = Modifier.fillMaxSize()) {
-        GameCarousel(
-            games = ctrl.games.map { it.game },
-            selectedGameIndex = ctrl.selectedGameIndex,
-            onSelectGame = viewModel::selectGame,
-        )
         DateSwitcher(
             dateLabel = ctrl.dateLabel,
             canGoPrevious = ctrl.dateOffset < MAX_DATE_OFFSET,
@@ -171,6 +166,11 @@ private fun SignedInLeaderboard(
             onPickDate = viewModel::selectDate,
             todayDate = ctrl.todayDate,
             currentDateOffset = ctrl.dateOffset,
+        )
+        GameCarousel(
+            games = ctrl.games.map { it.game },
+            selectedGameIndex = ctrl.selectedGameIndex,
+            onSelectGame = viewModel::selectGame,
         )
         ScopeSwitcher(scope = ctrl.scope, onScopeChange = viewModel::selectScope)
         when (uiState) {
@@ -202,7 +202,7 @@ private fun SignedInLeaderboard(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(24.dp),
+                        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         items(state.entries, key = { it.userId }) { entry ->
@@ -235,7 +235,7 @@ private fun GameCarousel(
     val outlineColor = Color(0xFF9E9E9E) // grey 500
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 0.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.Top,
     ) {
@@ -481,7 +481,7 @@ private fun ResultSummary(entry: LeaderboardEntryDto) {
 @Composable
 private fun ScopeSwitcher(scope: LeaderboardScope, onScopeChange: (LeaderboardScope) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         ScopeOption("FRIENDS", selected = scope == LeaderboardScope.FRIENDS) {
