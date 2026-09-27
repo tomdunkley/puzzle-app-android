@@ -7,6 +7,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.GameSummaryDto
 import com.tomdunkley.dailypuzzles.data.network.dto.LeaderboardEntryDto
 import com.tomdunkley.dailypuzzles.data.network.handleIfVerificationRequired
 import com.tomdunkley.dailypuzzles.data.network.toUserMessage
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,6 +61,7 @@ class LeaderboardViewModel : ViewModel() {
     private var dateOffset: Int = 0
     private var serverTodayDate: LocalDate? = null
     private var cachedHasFriends: Boolean = false
+    private var loadJob: Job? = null
 
     private fun updateControls() {
         val today = serverTodayDate ?: return
@@ -76,7 +78,8 @@ class LeaderboardViewModel : ViewModel() {
     }
 
     fun load() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.value = LeaderboardUiState.Loading
             runCatching {
                 if (games.isEmpty()) {
