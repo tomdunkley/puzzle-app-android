@@ -216,35 +216,39 @@ private fun GameCarousel(
 ) {
     if (games.isEmpty()) return
 
-    val circleSize = 48.dp
-    val iconSize = 24.dp
+    val circleSize = 60.dp
+    val iconSize = 30.dp
     val outlineColor = Color(0xFF9E9E9E) // grey 500
 
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 0.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.Top,
     ) {
         if (games.size <= 5) {
             // Static centred row — no carousel needed
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                games.forEachIndexed { index, gameId ->
-                    val isSelected = index == selectedGameIndex
-                    val scale by animateFloatAsState(
-                        targetValue = if (isSelected) 1f else 0.82f,
-                        animationSpec = tween(200),
-                        label = "gameScale$index",
-                    )
+            games.forEachIndexed { index, gameId ->
+                val isSelected = index == selectedGameIndex
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1f else 0.82f,
+                    animationSpec = tween(200),
+                    label = "gameScale$index",
+                )
+                val alpha by animateFloatAsState(
+                    targetValue = if (isSelected) 1f else 0.5f,
+                    animationSpec = tween(200),
+                    label = "gameAlpha$index",
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onSelectGame(index) },
+                ) {
                     Box(
                         modifier = Modifier
                             .size(circleSize)
-                            .graphicsLayer { scaleX = scale; scaleY = scale }
+                            .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
                             .background(gameCircleColor(gameId), shape = CircleShape)
-                            .border(1.dp, outlineColor, shape = CircleShape)
-                            .clickable { onSelectGame(index) },
+                            .border(1.dp, outlineColor, shape = CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -254,6 +258,12 @@ private fun GameCarousel(
                             modifier = Modifier.size(iconSize),
                         )
                     }
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text = if (isSelected) gameTitle(gameId) else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
             }
         } else {
@@ -308,12 +318,6 @@ private fun GameCarousel(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = gameTitle(games.getOrNull(selectedGameIndex) ?: "boggle"),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
     }
 }
 
@@ -340,7 +344,7 @@ private fun DateSwitcher(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            .padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
