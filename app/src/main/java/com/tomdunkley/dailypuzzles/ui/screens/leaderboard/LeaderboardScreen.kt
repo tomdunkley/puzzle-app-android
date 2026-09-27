@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -253,13 +255,14 @@ private fun GameCarousel(
                 )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { onSelectGame(index) },
                 ) {
                     Box(
                         modifier = Modifier
                             .size(circleSize)
                             .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
-                            .background(gameCircleColor(gameId), shape = CircleShape)
+                            .clip(CircleShape)
+                            .clickable { onSelectGame(index) }
+                            .background(gameCircleColor(gameId))
                             .border(1.dp, outlineColor, shape = CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
