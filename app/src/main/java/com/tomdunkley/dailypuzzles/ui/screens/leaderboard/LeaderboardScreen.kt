@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -51,7 +53,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -92,6 +93,13 @@ private fun gameIcon(gameId: String): ImageVector = when (gameId) {
     "boggle" -> Icons.Filled.GridOn
     "numbers" -> Icons.Filled.Calculate
     else -> Icons.Filled.Route
+}
+
+private fun gameTitle(gameId: String): String = when (gameId) {
+    "boggle" -> "Words"
+    "numbers" -> "Numbers"
+    "routes" -> "Routes"
+    else -> gameId
 }
 
 @Composable
@@ -213,61 +221,67 @@ private fun GameCarousel(
         pageCount = { games.size },
     )
 
-    // Sync external selection changes into the pager (e.g., initial load)
+    // Animate pager to match external selection, but pager scroll alone does NOT select
     LaunchedEffect(selectedGameIndex) {
         if (pagerState.currentPage != selectedGameIndex) {
             pagerState.animateScrollToPage(selectedGameIndex)
         }
     }
 
-    // Trigger a data reload when the pager settles on a new page
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }.collect { page ->
-            onSelectGame(page)
-        }
-    }
+    val circleSize = 48.dp
+    val iconSize = 24.dp
 
-    HorizontalPager(
-        state = pagerState,
-        contentPadding = PaddingValues(horizontal = 120.dp),
-        pageSpacing = 20.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-    ) { page ->
-        val gameId = games[page]
-        val isSelected = page == pagerState.currentPage
-        val scale by animateFloatAsState(
-            targetValue = if (isSelected) 1f else 0.72f,
-            animationSpec = tween(200),
-            label = "gameScale",
-        )
-        val alpha by animateFloatAsState(
-            targetValue = if (isSelected) 1f else 0.45f,
-            animationSpec = tween(200),
-            label = "gameAlpha",
-        )
-
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
-                .background(gameCircleColor(gameId), shape = CircleShape)
-                .border(
-                    width = if (isSelected) 2.5.dp else 1.5.dp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    shape = CircleShape,
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            // Compute side padding so the current page is always exactly centred
+            val sidePadding = (maxWidth - circleSize) / 2
+            HorizontalPager(
+                state = pagerState,
+                contentPadding = PaddingValues(horizontal = sidePadding),
+                pageSpacing = 8.dp,
+                pageSize = PageSize.Fixed(circleSize),
+                modifier = Modifier.fillMaxWidth(),
+            ) { page ->
+                val gameId = games[page]
+                val isSelected = page == selectedGameIndex
+                val isCentered = page == pagerState.currentPage
+                val alpha by animateFloatAsState(
+                    targetValue = if (isCentered) 1f else 0.35f,
+                    animationSpec = tween(200),
+                    label = "gameAlpha",
                 )
-                .clickable { onSelectGame(page) },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = gameIcon(gameId),
-                contentDescription = gameId,
-                tint = gameSolidColor(gameId),
-                modifier = Modifier.size(34.dp),
-            )
+
+                Box(
+                    modifier = Modifier
+                        .size(circleSize)
+                        .graphicsLayer { this.alpha = alpha }
+                        .background(gameCircleColor(gameId), shape = CircleShape)
+                        .border(
+                            width = if (isSelected) 1.5.dp else 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            shape = CircleShape,
+                        )
+                        .clickable { onSelectGame(page) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = gameIcon(gameId),
+                        contentDescription = gameId,
+                        tint = gameSolidColor(gameId),
+                        modifier = Modifier.size(iconSize),
+                    )
+                }
+            }
         }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = gameTitle(games.getOrNull(selectedGameIndex) ?: "boggle"),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 
