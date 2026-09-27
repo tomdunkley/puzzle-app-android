@@ -135,17 +135,12 @@ private fun SignedInLeaderboard(
     onViewScore: (puzzleId: String, userId: String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    // Retain the last loaded state so controls stay visible while reloading
-    var lastLoaded by remember { mutableStateOf<LeaderboardUiState.Loaded?>(null) }
-    (uiState as? LeaderboardUiState.Loaded)?.let { lastLoaded = it }
+    val controls by viewModel.controlsState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.load() }
 
-    val display = lastLoaded
-
-    if (display == null) {
-        // First load — nothing to show yet
+    if (controls == null) {
+        // First load — controls not yet available
         when (uiState) {
             is LeaderboardUiState.Loading -> CenteredContent { CircularProgressIndicator() }
             is LeaderboardUiState.Error -> CenteredMessage((uiState as LeaderboardUiState.Error).message)
@@ -154,27 +149,28 @@ private fun SignedInLeaderboard(
         return
     }
 
-    val selectedGame = display.games.getOrNull(display.selectedGameIndex)
+    val ctrl = controls!!
+    val selectedGame = ctrl.games.getOrNull(ctrl.selectedGameIndex)
     val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
     val iconColor = gameCircleColor(selectedGame?.game ?: "boggle")
 
     Column(modifier = Modifier.fillMaxSize()) {
         GameCarousel(
-            games = display.games.map { it.game },
-            selectedGameIndex = display.selectedGameIndex,
+            games = ctrl.games.map { it.game },
+            selectedGameIndex = ctrl.selectedGameIndex,
             onSelectGame = viewModel::selectGame,
         )
         DateSwitcher(
-            dateLabel = display.dateLabel,
-            canGoPrevious = display.dateOffset < MAX_DATE_OFFSET,
-            canGoNext = display.dateOffset > 0,
+            dateLabel = ctrl.dateLabel,
+            canGoPrevious = ctrl.dateOffset < MAX_DATE_OFFSET,
+            canGoNext = ctrl.dateOffset > 0,
             onPrevious = viewModel::selectOlderDate,
             onNext = viewModel::selectNewerDate,
             onPickDate = viewModel::selectDate,
-            todayDate = display.todayDate,
-            currentDateOffset = display.dateOffset,
+            todayDate = ctrl.todayDate,
+            currentDateOffset = ctrl.dateOffset,
         )
-        ScopeSwitcher(scope = display.scope, onScopeChange = viewModel::selectScope)
+        ScopeSwitcher(scope = ctrl.scope, onScopeChange = viewModel::selectScope)
         when (uiState) {
             is LeaderboardUiState.Loading -> CenteredContent { CircularProgressIndicator() }
             is LeaderboardUiState.Error -> CenteredMessage((uiState as LeaderboardUiState.Error).message)
