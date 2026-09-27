@@ -217,7 +217,7 @@ private fun GameCarousel(
     if (games.isEmpty()) return
 
     val circleSize = 60.dp
-    val iconSize = 30.dp
+    val iconSize = 36.dp
     val outlineColor = Color(0xFF9E9E9E) // grey 500
 
     Row(
@@ -261,7 +261,7 @@ private fun GameCarousel(
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = if (isSelected) gameTitle(gameId) else "",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
