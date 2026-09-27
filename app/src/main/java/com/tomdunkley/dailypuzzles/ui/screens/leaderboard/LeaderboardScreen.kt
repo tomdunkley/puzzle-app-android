@@ -216,63 +216,95 @@ private fun GameCarousel(
 ) {
     if (games.isEmpty()) return
 
-    val pagerState = rememberPagerState(
-        initialPage = selectedGameIndex,
-        pageCount = { games.size },
-    )
-
-    // Animate pager to match external selection, but pager scroll alone does NOT select
-    LaunchedEffect(selectedGameIndex) {
-        if (pagerState.currentPage != selectedGameIndex) {
-            pagerState.animateScrollToPage(selectedGameIndex)
-        }
-    }
-
     val circleSize = 48.dp
     val iconSize = 24.dp
+    val outlineColor = Color(0xFF9E9E9E) // grey 500
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            // Compute side padding so the current page is always exactly centred
-            val sidePadding = (maxWidth - circleSize) / 2
-            HorizontalPager(
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = sidePadding),
-                pageSpacing = 8.dp,
-                pageSize = PageSize.Fixed(circleSize),
+        if (games.size <= 5) {
+            // Static centred row — no carousel needed
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
-            ) { page ->
-                val gameId = games[page]
-                val isSelected = page == selectedGameIndex
-                val isCentered = page == pagerState.currentPage
-                val alpha by animateFloatAsState(
-                    targetValue = if (isCentered) 1f else 0.35f,
-                    animationSpec = tween(200),
-                    label = "gameAlpha",
-                )
-
-                Box(
-                    modifier = Modifier
-                        .size(circleSize)
-                        .graphicsLayer { this.alpha = alpha }
-                        .background(gameCircleColor(gameId), shape = CircleShape)
-                        .border(
-                            width = if (isSelected) 1.5.dp else 1.dp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            shape = CircleShape,
-                        )
-                        .clickable { onSelectGame(page) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = gameIcon(gameId),
-                        contentDescription = gameId,
-                        tint = gameSolidColor(gameId),
-                        modifier = Modifier.size(iconSize),
+            ) {
+                games.forEachIndexed { index, gameId ->
+                    val isSelected = index == selectedGameIndex
+                    val scale by animateFloatAsState(
+                        targetValue = if (isSelected) 1f else 0.82f,
+                        animationSpec = tween(200),
+                        label = "gameScale$index",
                     )
+                    Box(
+                        modifier = Modifier
+                            .size(circleSize)
+                            .graphicsLayer { scaleX = scale; scaleY = scale }
+                            .background(gameCircleColor(gameId), shape = CircleShape)
+                            .border(1.dp, outlineColor, shape = CircleShape)
+                            .clickable { onSelectGame(index) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = gameIcon(gameId),
+                            contentDescription = gameId,
+                            tint = gameSolidColor(gameId),
+                            modifier = Modifier.size(iconSize),
+                        )
+                    }
+                }
+            }
+        } else {
+            // Pager carousel for large game lists
+            val pagerState = rememberPagerState(
+                initialPage = selectedGameIndex,
+                pageCount = { games.size },
+            )
+            LaunchedEffect(selectedGameIndex) {
+                if (pagerState.currentPage != selectedGameIndex) {
+                    pagerState.animateScrollToPage(selectedGameIndex)
+                }
+            }
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val sidePadding = (maxWidth - circleSize) / 2
+                HorizontalPager(
+                    state = pagerState,
+                    contentPadding = PaddingValues(horizontal = sidePadding),
+                    pageSpacing = 8.dp,
+                    pageSize = PageSize.Fixed(circleSize),
+                    modifier = Modifier.fillMaxWidth(),
+                ) { page ->
+                    val gameId = games[page]
+                    val isSelected = page == selectedGameIndex
+                    val isCentered = page == pagerState.currentPage
+                    val scale by animateFloatAsState(
+                        targetValue = if (isSelected) 1f else 0.82f,
+                        animationSpec = tween(200),
+                        label = "gameScale$page",
+                    )
+                    val alpha by animateFloatAsState(
+                        targetValue = if (isCentered) 1f else 0.35f,
+                        animationSpec = tween(200),
+                        label = "gameAlpha$page",
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(circleSize)
+                            .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
+                            .background(gameCircleColor(gameId), shape = CircleShape)
+                            .border(1.dp, outlineColor, shape = CircleShape)
+                            .clickable { onSelectGame(page) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = gameIcon(gameId),
+                            contentDescription = gameId,
+                            tint = gameSolidColor(gameId),
+                            modifier = Modifier.size(iconSize),
+                        )
+                    }
                 }
             }
         }
