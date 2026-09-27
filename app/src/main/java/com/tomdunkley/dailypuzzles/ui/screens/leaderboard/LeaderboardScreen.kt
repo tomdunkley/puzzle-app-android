@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
@@ -135,32 +136,50 @@ private fun SignedInLeaderboard(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Retain the last loaded state so controls stay visible while reloading
+    var lastLoaded by remember { mutableStateOf<LeaderboardUiState.Loaded?>(null) }
+    (uiState as? LeaderboardUiState.Loaded)?.let { lastLoaded = it }
+
     LaunchedEffect(Unit) { viewModel.load() }
 
-    when (val state = uiState) {
-        is LeaderboardUiState.Loading -> CenteredContent { CircularProgressIndicator() }
-        is LeaderboardUiState.Error -> CenteredMessage(state.message)
-        is LeaderboardUiState.Loaded -> {
-            val selectedGame = state.games.getOrNull(state.selectedGameIndex)
-            val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
-            val iconColor = gameCircleColor(selectedGame?.game ?: "boggle")
-            Column(modifier = Modifier.fillMaxSize()) {
-                GameCarousel(
-                    games = state.games.map { it.game },
-                    selectedGameIndex = state.selectedGameIndex,
-                    onSelectGame = viewModel::selectGame,
-                )
-                DateSwitcher(
-                    dateLabel = state.dateLabel,
-                    canGoPrevious = state.dateOffset < MAX_DATE_OFFSET,
-                    canGoNext = state.dateOffset > 0,
-                    onPrevious = viewModel::selectOlderDate,
-                    onNext = viewModel::selectNewerDate,
-                    onPickDate = viewModel::selectDate,
-                    todayDate = state.todayDate,
-                    currentDateOffset = state.dateOffset,
-                )
-                ScopeSwitcher(scope = state.scope, onScopeChange = viewModel::selectScope)
+    val display = lastLoaded
+
+    if (display == null) {
+        // First load — nothing to show yet
+        when (uiState) {
+            is LeaderboardUiState.Loading -> CenteredContent { CircularProgressIndicator() }
+            is LeaderboardUiState.Error -> CenteredMessage((uiState as LeaderboardUiState.Error).message)
+            else -> {}
+        }
+        return
+    }
+
+    val selectedGame = display.games.getOrNull(display.selectedGameIndex)
+    val solidColor = gameSolidColor(selectedGame?.game ?: "boggle")
+    val iconColor = gameCircleColor(selectedGame?.game ?: "boggle")
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        GameCarousel(
+            games = display.games.map { it.game },
+            selectedGameIndex = display.selectedGameIndex,
+            onSelectGame = viewModel::selectGame,
+        )
+        DateSwitcher(
+            dateLabel = display.dateLabel,
+            canGoPrevious = display.dateOffset < MAX_DATE_OFFSET,
+            canGoNext = display.dateOffset > 0,
+            onPrevious = viewModel::selectOlderDate,
+            onNext = viewModel::selectNewerDate,
+            onPickDate = viewModel::selectDate,
+            todayDate = display.todayDate,
+            currentDateOffset = display.dateOffset,
+        )
+        ScopeSwitcher(scope = display.scope, onScopeChange = viewModel::selectScope)
+        when (uiState) {
+            is LeaderboardUiState.Loading -> CenteredContent { CircularProgressIndicator() }
+            is LeaderboardUiState.Error -> CenteredMessage((uiState as LeaderboardUiState.Error).message)
+            is LeaderboardUiState.Loaded -> {
+                val state = uiState as LeaderboardUiState.Loaded
                 if (state.scope == LeaderboardScope.FRIENDS && !state.hasFriends) {
                     CenteredContent {
                         Text(
@@ -180,10 +199,7 @@ private fun SignedInLeaderboard(
                     }
                 } else if (state.entries.isEmpty()) {
                     CenteredContent {
-                        Text(
-                            text = "No scores yet today.",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        Text("No scores yet today.", style = MaterialTheme.typography.titleMedium)
                     }
                 } else {
                     LazyColumn(
@@ -216,8 +232,8 @@ private fun GameCarousel(
 ) {
     if (games.isEmpty()) return
 
-    val circleSize = 72.dp
-    val iconSize = 40.dp
+    val circleSize = 60.dp
+    val iconSize = 36.dp
     val outlineColor = Color(0xFF9E9E9E) // grey 500
 
     Row(
@@ -262,6 +278,7 @@ private fun GameCarousel(
                     Text(
                         text = if (isSelected) gameTitle(gameId) else "",
                         style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
