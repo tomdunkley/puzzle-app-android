@@ -149,7 +149,7 @@ fun ScoreDetailScreen(
             ) {
                 val isNumbers = state.detail.game == "numbers"
                 val isRoutes = state.detail.game == "routes"
-                if (isSignedIn && (isNumbers || isRoutes)) {
+                if (isSignedIn && (isNumbers || isRoutes || state.detail.locked)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -367,6 +367,17 @@ private fun ColumnScope.BoggleDetailContent(
     isSignedIn: Boolean,
     onViewProfile: ((String) -> Unit)? = null,
 ) {
+    if (detail.locked) {
+        Text(
+            text = "Score: ${detail.score ?: 0}",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        LockedNotice("Complete today's Words puzzle to see the board and word list.")
+        return
+    }
+
     if (isSignedIn) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -393,31 +404,22 @@ private fun ColumnScope.BoggleDetailContent(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
-                if (!detail.locked) {
-                    val wordCount = detail.validWords?.size ?: 0
-                    Text(
-                        "$wordCount word${if (wordCount == 1) "" else "s"}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                val wordCount = detail.validWords?.size ?: 0
+                Text(
+                    "$wordCount word${if (wordCount == 1) "" else "s"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     } else {
         Text("Score: ${detail.score ?: 0}", style = MaterialTheme.typography.titleLarge)
-        if (!detail.locked) {
-            val wordCount = detail.validWords?.size ?: 0
-            Text(
-                "$wordCount word${if (wordCount == 1) "" else "s"}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-
-    if (detail.locked) {
-        LockedNotice("Complete today's Words puzzle to see the board and word list.")
-        return
+        val wordCount = detail.validWords?.size ?: 0
+        Text(
+            "$wordCount word${if (wordCount == 1) "" else "s"}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 
     BoggleBoardView(board = detail.board ?: emptyList())
