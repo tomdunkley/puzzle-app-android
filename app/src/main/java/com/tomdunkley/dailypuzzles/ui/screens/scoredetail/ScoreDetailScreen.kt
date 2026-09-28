@@ -53,6 +53,7 @@ import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsPuzzle
 import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsGridCanvas
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
@@ -190,7 +191,7 @@ fun ScoreDetailScreen(
                 ) {
                     when {
                         isNumbers -> NumbersDetailContent(state.detail)
-                        isRoutes -> RoutesDetailContent(state.detail)
+                        isRoutes -> RoutesDetailContent(state.detail, state.routesPuzzle)
                         else -> BoggleDetailContent(
                             state.detail,
                             isSignedIn,
@@ -321,7 +322,7 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
 }
 
 @Composable
-private fun ColumnScope.RoutesDetailContent(detail: ScoreDetailDto) {
+private fun ColumnScope.RoutesDetailContent(detail: ScoreDetailDto, routesPuzzle: RootsPuzzle?) {
     val secs = detail.durationSeconds ?: 0
     val m = secs / 60
     val s = secs % 60
@@ -336,20 +337,14 @@ private fun ColumnScope.RoutesDetailContent(detail: ScoreDetailDto) {
         LockedNotice("Complete today's Routes puzzle to see the board.")
         return
     }
-    val n = detail.gridSize
-    val startCell = detail.startCell
-    val endCell = detail.endCell
-    val rowClues = detail.rowClues
-    val colClues = detail.colClues
-    val solution = detail.solution
-    if (n != null && startCell != null && endCell != null && rowClues != null && colClues != null && solution != null) {
+    if (routesPuzzle != null) {
         RootsGridCanvas(
-            n = n,
-            startCell = startCell,
-            endCell = endCell,
-            rowClues = rowClues,
-            colClues = colClues,
-            path = solution,
+            n = routesPuzzle.gridSize,
+            startCell = routesPuzzle.startCell,
+            endCell = routesPuzzle.endCell,
+            rowClues = routesPuzzle.rowClues,
+            colClues = routesPuzzle.colClues,
+            path = routesPuzzle.solution,
             crossMarkers = emptySet(),
             tickMarkers = emptySet(),
             interactive = false,

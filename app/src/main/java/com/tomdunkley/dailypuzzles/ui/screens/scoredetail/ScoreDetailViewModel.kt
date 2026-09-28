@@ -8,16 +8,24 @@ import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.data.network.toUserMessage
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsPuzzle
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsPuzzleGenerator
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed interface ScoreDetailUiState {
     data object Loading : ScoreDetailUiState
     data class Error(val message: String) : ScoreDetailUiState
-    data class Loaded(val detail: ScoreDetailDto, val isOwnScore: Boolean) : ScoreDetailUiState
+    data class Loaded(
+        val detail: ScoreDetailDto,
+        val isOwnScore: Boolean,
+        val routesPuzzle: RootsPuzzle? = null,
+    ) : ScoreDetailUiState
 }
 
 sealed interface AllWordsState {
@@ -48,7 +56,13 @@ class ScoreDetailViewModel : ViewModel() {
                 }
                 detail to (me.userId == userId)
             }.onSuccess { (detail, isOwnScore) ->
-                _uiState.value = ScoreDetailUiState.Loaded(detail, isOwnScore)
+                val routesPuzzle = if (detail.game == "routes" && !detail.locked && !puzzleId.startsWith("ch_")) {
+                    val dateStr = puzzleId.substringAfter("_")
+                    val gridSize = RootsViewModel.gridSizeForDate(dateStr)
+                    val seed = RootsViewModel.seedFromPuzzleId(puzzleId)
+                    withContext(Dispatchers.Default) { RootsPuzzleGenerator.generate(seed, gridSize) }
+                } else null
+                _uiState.value = ScoreDetailUiState.Loaded(detail, isOwnScore, routesPuzzle)
             }.onFailure {
                 _uiState.value = ScoreDetailUiState.Error(it.toUserMessage("Couldn't load that score"))
             }
