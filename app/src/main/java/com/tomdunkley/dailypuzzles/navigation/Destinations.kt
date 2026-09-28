@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 object Routes {
     const val HOME = "home"
+    const val CHALLENGES = "challenges"
     const val FRIENDS = "friends"
     const val LEADERBOARD = "leaderboard"
     const val SETTINGS = "settings"

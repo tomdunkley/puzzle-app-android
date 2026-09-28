@@ -19,10 +19,14 @@ import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.res.painterResource
+import com.tomdunkley.dailypuzzles.R
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Route
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -51,6 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.ui.components.RootsAccentColor
 import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.NumbersAccentColor
@@ -104,6 +110,7 @@ fun HomeScreen(
     onPuzzleClick: (String) -> Unit,
     onUnlimitedPuzzleClick: (String) -> Unit,
     onSignInClick: () -> Unit,
+    onChallengesClick: (() -> Unit)? = null,
     viewModel: HomeViewModel = viewModel(),
 ) {
     var showSignInPrompt by remember {
@@ -118,11 +125,29 @@ fun HomeScreen(
     val numbersPracticeBestDistance by viewModel.numbersPracticeBestDistance.collectAsState()
     val numbersPracticeBestTimeSeconds by viewModel.numbersPracticeBestTimeSeconds.collectAsState()
     val routesPracticeBestTimeSeconds by viewModel.routesPracticeBestTimeSeconds.collectAsState()
+    val pendingChallengeCount by PendingChallengesStore.pendingCount.collectAsState()
+    val unseenCompletedCount by CompletedChallengesStore.unseenCount.collectAsState()
+    val showChallengeBadge = pendingChallengeCount > 0 || unseenCompletedCount > 0
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Scaffold(
-        topBar = { SectionTopBar(title = "Puzzles") },
+        topBar = {
+            SectionTopBar(
+                title = "Puzzles",
+                actions = {
+                    if (isSignedIn && onChallengesClick != null) {
+                        BadgedBox(badge = {
+                            if (showChallengeBadge) Badge(modifier = Modifier.size(10.dp))
+                        }) {
+                            IconButton(onClick = onChallengesClick) {
+                                Icon(painterResource(R.drawable.ic_swords), contentDescription = "Challenges")
+                            }
+                        }
+                    }
+                },
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         PullToRefreshBox(

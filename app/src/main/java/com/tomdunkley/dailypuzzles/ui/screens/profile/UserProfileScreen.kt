@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.DailyBestScoreDto
 import com.tomdunkley.dailypuzzles.data.network.dto.PublicUserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TodayGameScoreDto
@@ -64,9 +61,6 @@ fun UserProfileScreen(
 ) {
     LaunchedEffect(userId) { viewModel.load(userId) }
     val uiState by viewModel.uiState.collectAsState()
-    val pendingChallengesByFriend by PendingChallengesStore.byFriend.collectAsState()
-    val hasPendingChallenge = (pendingChallengesByFriend[userId] ?: 0) > 0
-
     Scaffold(
         topBar = { SectionTopBar(title = "Profile", onBack = onBack) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -91,7 +85,6 @@ fun UserProfileScreen(
                 is UserProfileUiState.Loaded -> ProfileContent(
                     profile = state.profile,
                     userId = userId,
-                    hasPendingChallenge = hasPendingChallenge,
                     onAddFriend = viewModel::addFriend,
                     onRemoveFriend = viewModel::removeFriend,
                     onViewScore = onViewScore,
@@ -106,7 +99,6 @@ fun UserProfileScreen(
 private fun ProfileContent(
     profile: PublicUserProfileDto,
     userId: String,
-    hasPendingChallenge: Boolean = false,
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
     onViewScore: (puzzleId: String, userId: String) -> Unit,
@@ -206,20 +198,15 @@ private fun ProfileContent(
         if (profile.friendshipStatus == "friends") {
             HorizontalDivider()
             if (onChallenge != null) {
-                BadgedBox(
-                    badge = { if (hasPendingChallenge) Badge(modifier = Modifier.size(10.dp)) },
+                Button(
                     modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface,
+                    ),
+                    onClick = onChallenge,
                 ) {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface,
-                        ),
-                        onClick = onChallenge,
-                    ) {
-                        Text("CHALLENGES")
-                    }
+                    Text("CHALLENGES")
                 }
             }
             OutlinedButton(

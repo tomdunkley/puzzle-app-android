@@ -18,8 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Route
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
@@ -58,7 +55,6 @@ fun ChallengeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val navEvent by viewModel.navEvent.collectAsState()
     val isCreating by viewModel.isCreatingChallenge.collectAsState()
-    val pendingByFriend by PendingChallengesStore.byFriend.collectAsState()
 
     LaunchedEffect(friendId) { viewModel.load(friendId) }
 
@@ -109,8 +105,6 @@ fun ChallengeScreen(
                     )
                 }
 
-                val pendingCount = pendingByFriend[friendId] ?: 0
-
                 state.games.forEachIndexed { index, game ->
                     if (index > 0) Spacer(Modifier.height(12.dp))
                     GameChallengeSection(
@@ -118,7 +112,6 @@ fun ChallengeScreen(
                         friendId = friendId,
                         friendName = state.friendProfile.displayName,
                         isCreating = isCreating,
-                        hasPendingChallenge = pendingCount > 0 && game.status == "open",
                         onChallenge = { viewModel.createChallenge(friendId, game.game) },
                         onPlay = {
                             val pd = game.puzzleData ?: return@GameChallengeSection
@@ -128,6 +121,7 @@ fun ChallengeScreen(
                         onViewTheirResult = { id -> onViewResult(id, friendId) },
                     )
                 }
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
@@ -139,7 +133,6 @@ private fun GameChallengeSection(
     friendId: String,
     friendName: String,
     isCreating: Boolean,
-    hasPendingChallenge: Boolean,
     onChallenge: () -> Unit,
     onPlay: () -> Unit,
     onViewMyResult: (challengeId: String) -> Unit,
@@ -192,7 +185,7 @@ private fun GameChallengeSection(
         // Challenged / waiting state text
         when (game.status) {
             "open" -> Text(
-                text = "$friendName has challenged you",
+                text = if (game.puzzleData != null) "$friendName has challenged you" else "There is an open challenge",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
@@ -237,20 +230,15 @@ private fun GameChallengeSection(
                     contentColor = MaterialTheme.colorScheme.surface,
                 ),
             ) { Text("NEW CHALLENGE") }
-            "open" -> BadgedBox(
-                badge = { if (hasPendingChallenge) Badge(modifier = Modifier.size(10.dp)) },
+            "open" -> Button(
+                onClick = onPlay,
+                enabled = !isCreating,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Button(
-                    onClick = onPlay,
-                    enabled = !isCreating,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface,
-                        contentColor = MaterialTheme.colorScheme.surface,
-                    ),
-                ) { Text("RESPOND TO CHALLENGE") }
-            }
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
+                ),
+            ) { Text(if (game.puzzleData != null) "RESPOND TO CHALLENGE" else "PLAY") }
             "waiting" -> Button(
                 onClick = { onViewMyResult(game.challengeId!!) },
                 modifier = Modifier.fillMaxWidth(),

@@ -12,6 +12,7 @@ import com.tomdunkley.dailypuzzles.data.unlimited.UnlimitedHighScoreStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.roots.RootsProgressStore
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
+import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
 
 class DailyPuzzlesApp : Application() {
@@ -28,6 +29,7 @@ class DailyPuzzlesApp : Application() {
         DeveloperStore.init(this)
         UnlimitedHighScoreStore.init(this)
         TrophySeenStore.init(this)
+        CompletedChallengesStore.init(this)
         BoggleDictionary.init(this)
         SoundFeedback.init()
     }

@@ -57,7 +57,6 @@ import com.tomdunkley.dailypuzzles.BuildConfig
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.auth.GoogleSignInHelper
-import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.toUserMessage
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
@@ -256,8 +255,6 @@ private fun SignedInSettings(
     hasPendingFriendRequests: Boolean,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val pendingChallengeCount by PendingChallengesStore.pendingCount.collectAsState()
-
     LaunchedEffect(Unit) { viewModel.load() }
 
     when (val state = uiState) {
@@ -301,7 +298,7 @@ private fun SignedInSettings(
                 }
 
                 BadgedBox(
-                    badge = { if (hasPendingFriendRequests || pendingChallengeCount > 0) Badge(modifier = Modifier.size(10.dp)) },
+                    badge = { if (hasPendingFriendRequests) Badge(modifier = Modifier.size(10.dp)) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     OutlinedButton(

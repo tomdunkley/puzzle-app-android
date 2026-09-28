@@ -36,7 +36,7 @@ import androidx.navigation.navArgument
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
-import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
+
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleChallengeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleScreen
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.BoggleUnlimitedScreen
@@ -44,6 +44,7 @@ import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeStartScreen
 import com.tomdunkley.dailypuzzles.ui.screens.challenge.ChallengeWaitingScreen
 import com.tomdunkley.dailypuzzles.ui.screens.friends.FriendsScreen
+import com.tomdunkley.dailypuzzles.ui.screens.challenges.ChallengesScreen
 import com.tomdunkley.dailypuzzles.ui.screens.home.HomeScreen
 import com.tomdunkley.dailypuzzles.ui.screens.leaderboard.LeaderboardScreen
 import com.tomdunkley.dailypuzzles.ui.screens.numbers.NumbersChallengeScreen
@@ -70,8 +71,6 @@ fun DailyPuzzlesNavHost() {
     val appViewModel: AppViewModel = viewModel()
     val hasPendingFriendRequests by appViewModel.hasPendingFriendRequests.collectAsState()
     val newTrophyCount by appViewModel.newTrophyCount.collectAsState()
-    val pendingChallengeCount by PendingChallengesStore.pendingCount.collectAsState()
-
     LaunchedEffect(authState) {
         if (authState is AuthState.SignedIn) appViewModel.refreshFriendRequestBadge()
     }
@@ -152,7 +151,7 @@ fun DailyPuzzlesNavHost() {
                                     }
                                 },
                                 icon = {
-                                    val showBadge = (item.route == Routes.SETTINGS && (hasPendingFriendRequests || pendingChallengeCount > 0)) ||
+                                    val showBadge = (item.route == Routes.SETTINGS && hasPendingFriendRequests) ||
                                         (item.route == Routes.ACHIEVEMENTS && newTrophyCount > 0)
                                     BadgedBox(badge = { if (showBadge) Badge(modifier = Modifier.size(10.dp)) }) {
                                         Icon(item.icon, contentDescription = item.label)
@@ -201,6 +200,17 @@ fun DailyPuzzlesNavHost() {
                             launchSingleTop = true
                         }
                     },
+                    onChallengesClick = { navController.navigate(Routes.CHALLENGES) },
+                )
+            }
+            composable(Routes.CHALLENGES) {
+                ChallengesScreen(
+                    onBack = { navController.popBackStack() },
+                    onGoToChallenge = { friendId -> navController.navigate(Routes.challenge(friendId)) },
+                    onViewScore = { challengeId, userId ->
+                        navController.navigate(Routes.scoreDetail(challengeId, userId))
+                    },
+                    onStartGame = { game -> navController.navigate(Routes.challengeStart(game)) },
                 )
             }
             composable(Routes.BOGGLE) {
@@ -412,7 +422,7 @@ fun DailyPuzzlesNavHost() {
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
                         navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
-                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                            popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
                 )
@@ -430,7 +440,7 @@ fun DailyPuzzlesNavHost() {
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
                         navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
-                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                            popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
                 )
@@ -448,7 +458,7 @@ fun DailyPuzzlesNavHost() {
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
                         navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
-                            popUpTo(Routes.CHALLENGE) { inclusive = false }
+                            popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
                 )

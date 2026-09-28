@@ -60,6 +60,7 @@ data class ChallengeSummaryGameDto(
     @SerialName("last_challenge_id") val lastChallengeId: String? = null,
     @SerialName("last_result") val lastResult: LastChallengeResultDto? = null,
     @SerialName("expires_at_epoch") val expiresAtEpoch: Long? = null,
+    @SerialName("updated_at_epoch") val updatedAtEpoch: Long? = null,
 )
 
 @Serializable
