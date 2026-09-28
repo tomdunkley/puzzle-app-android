@@ -1,5 +1,6 @@
 package com.tomdunkley.dailypuzzles.data.network.dto
 
+import com.tomdunkley.dailypuzzles.data.roots.RootsCell
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -95,6 +96,13 @@ data class ScoreDetailDto(
     val distance: Int? = null,
     @SerialName("duration_seconds") val durationSeconds: Int? = null,
     val steps: List<NumbersStepDto>? = null,
+    // routes
+    @SerialName("grid_size") val gridSize: Int? = null,
+    @SerialName("start_cell") val startCell: RootsCell? = null,
+    @SerialName("end_cell") val endCell: RootsCell? = null,
+    @SerialName("row_clues") val rowClues: List<Int>? = null,
+    @SerialName("col_clues") val colClues: List<Int>? = null,
+    val solution: List<RootsCell>? = null,
     // challenge results only
     val seed: String? = null,
     @SerialName("opponent_name") val opponentName: String? = null,

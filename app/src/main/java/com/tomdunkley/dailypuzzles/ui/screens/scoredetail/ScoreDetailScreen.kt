@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -52,6 +53,7 @@ import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.BoggleBoardView
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
 import com.tomdunkley.dailypuzzles.ui.components.RootsSolidColor
+import com.tomdunkley.dailypuzzles.ui.screens.roots.RootsGridCanvas
 import com.tomdunkley.dailypuzzles.ui.components.SectionTopBar
 import com.tomdunkley.dailypuzzles.ui.components.WordsSolidColor
 import com.tomdunkley.dailypuzzles.ui.screens.boggle.scoreForWord
@@ -172,7 +174,7 @@ fun ScoreDetailScreen(
                         }
                     }
                 }
-                val centeredLayout = isNumbers || isRoutes
+                val centeredLayout = isNumbers || isRoutes || state.detail.locked
                 Column(
                     modifier = if (centeredLayout) {
                         Modifier.weight(1f).padding(vertical = 12.dp)
@@ -331,7 +333,31 @@ private fun ColumnScope.RoutesDetailContent(detail: ScoreDetailDto) {
         modifier = Modifier.fillMaxWidth(),
     )
     if (detail.locked) {
-        LockedNotice("Complete today's Routes puzzle to see the result.")
+        LockedNotice("Complete today's Routes puzzle to see the board.")
+        return
+    }
+    val n = detail.gridSize
+    val startCell = detail.startCell
+    val endCell = detail.endCell
+    val rowClues = detail.rowClues
+    val colClues = detail.colClues
+    val solution = detail.solution
+    if (n != null && startCell != null && endCell != null && rowClues != null && colClues != null && solution != null) {
+        RootsGridCanvas(
+            n = n,
+            startCell = startCell,
+            endCell = endCell,
+            rowClues = rowClues,
+            colClues = colClues,
+            path = solution,
+            crossMarkers = emptySet(),
+            tickMarkers = emptySet(),
+            interactive = false,
+            onDragStart = {},
+            onCellDrag = {},
+            onTapCell = {},
+            modifier = Modifier.fillMaxWidth(0.85f).aspectRatio(1f),
+        )
     }
 }
 
