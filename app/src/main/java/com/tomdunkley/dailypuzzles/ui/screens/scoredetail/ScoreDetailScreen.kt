@@ -47,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 import com.tomdunkley.dailypuzzles.data.network.dto.AllWordDto
+import com.tomdunkley.dailypuzzles.data.network.dto.NumbersStepDto
 import com.tomdunkley.dailypuzzles.util.formatDisplayDate
 import com.tomdunkley.dailypuzzles.data.network.dto.ScoreDetailDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
@@ -77,6 +78,7 @@ fun ScoreDetailScreen(
     val allWordsState by viewModel.allWordsState.collectAsState()
     val context = LocalContext.current
     var showAllWordsDialog by remember { mutableStateOf(false) }
+    var showSolutionDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(puzzleId, userId) { viewModel.load(puzzleId, userId) }
     val loadedDetail = (uiState as? ScoreDetailUiState.Loaded)?.detail
@@ -212,6 +214,15 @@ fun ScoreDetailScreen(
                         Text("VIEW ALL POSSIBLE WORDS")
                     }
                 }
+                if (isNumbers && !state.detail.locked && !state.detail.solutionSteps.isNullOrEmpty()) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        onClick = { showSolutionDialog = true },
+                    ) {
+                        Text("VIEW SOLUTION")
+                    }
+                }
                 if (state.isOwnScore && !isRoutes) {
                     Button(
                         modifier = Modifier.fillMaxWidth(),
@@ -259,6 +270,13 @@ fun ScoreDetailScreen(
                     AllWordsDialog(
                         state = allWordsState,
                         onClose = { showAllWordsDialog = false },
+                    )
+                }
+                if (showSolutionDialog) {
+                    SolutionDialog(
+                        steps = state.detail.solutionSteps ?: emptyList(),
+                        target = state.detail.target ?: 0,
+                        onClose = { showSolutionDialog = false },
                     )
                 }
             }
@@ -316,6 +334,50 @@ private fun AllWordsDialog(state: AllWordsState, onClose: () -> Unit) {
                 ) {
                     Text("CLOSE")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SolutionDialog(steps: List<NumbersStepDto>, target: Int, onClose: () -> Unit) {
+    Dialog(onDismissRequest = onClose) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Solution to $target", style = MaterialTheme.typography.titleLarge)
+                if (steps.isEmpty()) {
+                    Text(
+                        "No solution needed — $target is one of the starting numbers.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        steps.forEach { step ->
+                            Text(
+                                "${step.a} ${numbersOpSymbol(step.op)} ${step.b} = ${step.result}",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                    onClick = onClose,
+                ) { Text("CLOSE") }
             }
         }
     }
