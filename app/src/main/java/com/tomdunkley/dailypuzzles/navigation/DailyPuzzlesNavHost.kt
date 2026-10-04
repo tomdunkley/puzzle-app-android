@@ -60,6 +60,7 @@ import com.tomdunkley.dailypuzzles.ui.screens.settings.AccountSettingsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.AvatarPickerScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.ChangePasswordScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.ForgotPasswordScreen
+import com.tomdunkley.dailypuzzles.ui.screens.cryptic.CrypticClueScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.SettingsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.verify.VerifyEmailScreen
 
@@ -325,7 +326,11 @@ fun DailyPuzzlesNavHost() {
                 AccountSettingsScreen(
                     onBack = { navController.popBackStack() },
                     onChangePasswordClick = { navController.navigate(Routes.CHANGE_PASSWORD) },
+                    onCrypticClueClick = { navController.navigate(Routes.CRYPTIC_CLUE) },
                 )
+            }
+            composable(Routes.CRYPTIC_CLUE) {
+                CrypticClueScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.AVATAR_PICKER) {
                 AvatarPickerScreen(onBack = { navController.popBackStack() })

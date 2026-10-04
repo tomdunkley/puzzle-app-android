@@ -33,6 +33,7 @@ object Routes {
     const val ROUTES_CHALLENGE = "routes_challenge/{challengeId}"
     const val CHALLENGE_WAITING = "challenge_waiting/{challengeId}/{opponentName}/{bothPlayed}/{myUserId}"
     const val CHALLENGE_START = "challenge_start/{game}"
+    const val CRYPTIC_CLUE = "cryptic_clue"
 
     fun scoreDetail(puzzleId: String, userId: String) = "score_detail/$puzzleId/$userId"
     fun userProfile(userId: String) = "user_profile/$userId"

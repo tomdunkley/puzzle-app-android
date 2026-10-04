@@ -34,6 +34,8 @@ import com.tomdunkley.dailypuzzles.data.network.dto.CreateChallengeRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.DevLoginRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.FriendChallengeSummaryResponseDto
 import com.tomdunkley.dailypuzzles.data.network.dto.PendingChallengesResponseDto
+import com.tomdunkley.dailypuzzles.data.network.dto.SubmitCrypticClueRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.SuggestCrypticWordsResponseDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -168,6 +170,12 @@ interface ApiService {
         @Path("challengeId") challengeId: String,
         @Path("targetUserId") targetUserId: String,
     ): ScoreDetailDto
+
+    @POST("v1/dev/cryptic-clues")
+    suspend fun submitCrypticClue(@Body body: SubmitCrypticClueRequestDto)
+
+    @GET("v1/dev/cryptic-clues/suggest-words")
+    suspend fun suggestCrypticWords(): SuggestCrypticWordsResponseDto
 
     @POST("v1/dev/reset-progress")
     suspend fun resetDevProgress()

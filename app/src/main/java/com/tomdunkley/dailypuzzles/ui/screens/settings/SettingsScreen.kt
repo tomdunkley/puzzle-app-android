@@ -339,6 +339,7 @@ private fun SignedInSettings(
 fun AccountSettingsScreen(
     onBack: () -> Unit,
     onChangePasswordClick: () -> Unit,
+    onCrypticClueClick: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(),
 ) {
     Scaffold(
@@ -443,6 +444,13 @@ fun AccountSettingsScreen(
                     if (state.profile.isDeveloper) {
                         HorizontalDivider()
                         Text("DEVELOPER", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                            onClick = onCrypticClueClick,
+                        ) {
+                            Text("CRYPTIC CLUE")
+                        }
                         OutlinedButton(
                             modifier = Modifier.fillMaxWidth(),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
