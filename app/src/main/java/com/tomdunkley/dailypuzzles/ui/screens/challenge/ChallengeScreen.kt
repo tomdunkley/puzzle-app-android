@@ -37,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.remember
+import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
 import com.tomdunkley.dailypuzzles.ui.components.NumbersSolidColor
@@ -55,6 +57,7 @@ fun ChallengeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val navEvent by viewModel.navEvent.collectAsState()
     val isCreating by viewModel.isCreatingChallenge.collectAsState()
+    val inProgressId = remember { InProgressChallengeStore.getInProgressChallengeId() }
 
     LaunchedEffect(friendId) { viewModel.load(friendId) }
 
@@ -107,15 +110,21 @@ fun ChallengeScreen(
 
                 state.games.forEachIndexed { index, game ->
                     if (index > 0) Spacer(Modifier.height(12.dp))
+                    val isResumable = game.challengeId != null && game.challengeId == inProgressId
                     GameChallengeSection(
                         game = game,
                         friendId = friendId,
                         friendName = state.friendProfile.displayName,
                         isCreating = isCreating,
+                        isResumable = isResumable,
                         onChallenge = { viewModel.createChallenge(friendId, game.game) },
                         onPlay = {
-                            val pd = game.puzzleData ?: return@GameChallengeSection
-                            viewModel.playExistingChallenge(game.game, game.challengeId!!, pd)
+                            if (isResumable) {
+                                viewModel.resumeChallenge(game.game, game.challengeId!!)
+                            } else {
+                                val pd = game.puzzleData ?: return@GameChallengeSection
+                                viewModel.playExistingChallenge(game.game, game.challengeId!!, pd)
+                            }
                         },
                         onViewMyResult = { id -> onViewResult(id, state.myUserId) },
                         onViewTheirResult = { id -> onViewResult(id, friendId) },
@@ -133,6 +142,7 @@ private fun GameChallengeSection(
     friendId: String,
     friendName: String,
     isCreating: Boolean,
+    isResumable: Boolean = false,
     onChallenge: () -> Unit,
     onPlay: () -> Unit,
     onViewMyResult: (challengeId: String) -> Unit,
@@ -238,7 +248,7 @@ private fun GameChallengeSection(
                     containerColor = MaterialTheme.colorScheme.onSurface,
                     contentColor = MaterialTheme.colorScheme.surface,
                 ),
-            ) { Text(if (game.puzzleData != null) "RESPOND TO CHALLENGE" else "PLAY") }
+            ) { Text(if (isResumable) "RESUME" else if (game.puzzleData != null) "RESPOND TO CHALLENGE" else "PLAY") }
             "waiting" -> Button(
                 onClick = { onViewMyResult(game.challengeId!!) },
                 modifier = Modifier.fillMaxWidth(),

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
 import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
+import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePuzzleDataDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
@@ -70,6 +71,11 @@ class ChallengesViewModel : ViewModel() {
         ChallengeGameStore.pendingOpponentAvatarId = friend.avatarId
         ChallengeGameStore.pendingOpponentAvatarColorId = friend.avatarColorId
         ChallengeGameStore.pendingOpponentAvatarIconColor = friend.avatarIconColor
+        _navEvent.value = ChallengesNavEvent.StartGame(game)
+    }
+
+    fun resumeChallenge(game: String) {
+        InProgressChallengeStore.loadIntoChallengeGameStore()
         _navEvent.value = ChallengesNavEvent.StartGame(game)
     }
 

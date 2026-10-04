@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
+import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 
 @Composable
 fun NumbersChallengeScreen(
@@ -20,6 +21,17 @@ fun NumbersChallengeScreen(
     LaunchedEffect(Unit) {
         val puzzle = ChallengeGameStore.pendingPuzzleData as? ChallengeGameStore.PuzzleData.Numbers
         if (puzzle != null) {
+            InProgressChallengeStore.save(
+                challengeId = challengeId,
+                game = "numbers",
+                puzzleData = puzzle,
+                seed = ChallengeGameStore.pendingSeed,
+                opponentName = ChallengeGameStore.pendingOpponentName,
+                opponentAvatarId = ChallengeGameStore.pendingOpponentAvatarId,
+                opponentAvatarColorId = ChallengeGameStore.pendingOpponentAvatarColorId,
+                opponentAvatarIconColor = ChallengeGameStore.pendingOpponentAvatarIconColor,
+                myUserId = ChallengeGameStore.pendingMyUserId,
+            )
             viewModel.setupChallengeMode(challengeId, puzzle.numbers, puzzle.target)
             viewModel.startGame()
             ChallengeGameStore.clear()
@@ -28,6 +40,7 @@ fun NumbersChallengeScreen(
 
     LaunchedEffect(challengePlayResult) {
         val result = challengePlayResult ?: return@LaunchedEffect
+        InProgressChallengeStore.clear()
         onChallengeComplete(challengeId, result.bothPlayed)
     }
 

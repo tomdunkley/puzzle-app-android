@@ -57,6 +57,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.derivedStateOf
 import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
+import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
 import com.tomdunkley.dailypuzzles.data.network.dto.FriendSummaryDto
 import com.tomdunkley.dailypuzzles.ui.components.AvatarIcon
@@ -122,6 +123,8 @@ fun ChallengesScreen(
         CompletedChallengesStore.markSeen(challengeId)
         onViewScore(challengeId, userId)
     }
+
+    val inProgressId = remember { InProgressChallengeStore.getInProgressChallengeId() }
 
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -191,19 +194,25 @@ fun ChallengesScreen(
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     myTurn.forEach { (fcd, game) ->
                                         val cardKey = "open_${fcd.friend.userId}_${game.game}"
+                                        val isResumable = game.challengeId != null && game.challengeId == inProgressId
                                         FriendGameCard(
                                             friend = fcd.friend,
                                             game = game,
                                             myUserId = state.myUserId,
                                             isExpanded = expandedCards[cardKey] == true,
                                             onToggle = { expandedCards[cardKey] = expandedCards[cardKey] != true },
+                                            actionLabel = if (isResumable) "RESUME" else null,
                                             onAction = {
-                                                val pd = game.puzzleData
-                                                val id = game.challengeId
-                                                if (pd != null && id != null) {
-                                                    viewModel.playExistingChallenge(game.game, id, pd, fcd.friend)
+                                                if (isResumable) {
+                                                    viewModel.resumeChallenge(game.game)
                                                 } else {
-                                                    onGoToChallenge(fcd.friend.userId)
+                                                    val pd = game.puzzleData
+                                                    val id = game.challengeId
+                                                    if (pd != null && id != null) {
+                                                        viewModel.playExistingChallenge(game.game, id, pd, fcd.friend)
+                                                    } else {
+                                                        onGoToChallenge(fcd.friend.userId)
+                                                    }
                                                 }
                                             },
                                             onViewScore = wrappedOnViewScore,
@@ -419,6 +428,7 @@ private fun FriendGameCard(
     onToggle: () -> Unit,
     onAction: () -> Unit,
     onViewScore: (challengeId: String, userId: String) -> Unit,
+    actionLabel: String? = null,
 ) {
     val color = gameColor(game.game)
     val lastResult = game.lastResult
@@ -550,7 +560,7 @@ private fun FriendGameCard(
                     onClick = onAction,
                     modifier = Modifier.fillMaxWidth(),
                     colors = BlackButtonColors,
-                ) { Text(if (hasData) "RESPOND TO CHALLENGE" else "PLAY") }
+                ) { Text(actionLabel ?: if (hasData) "RESPOND TO CHALLENGE" else "PLAY") }
                 if (game.lastChallengeId != null) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
                     PreviousChallengeContent(game, myUserId, friend.userId, onViewScore)

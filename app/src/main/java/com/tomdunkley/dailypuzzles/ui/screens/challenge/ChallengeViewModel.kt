@@ -3,6 +3,7 @@ package com.tomdunkley.dailypuzzles.ui.screens.challenge
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
+import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePuzzleDataDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
 import com.tomdunkley.dailypuzzles.data.network.dto.CreateChallengeRequestDto
@@ -133,6 +134,11 @@ class ChallengeViewModel : ViewModel() {
         ChallengeGameStore.pendingOpponentAvatarId = profile?.avatarId
         ChallengeGameStore.pendingOpponentAvatarColorId = profile?.avatarColorId
         ChallengeGameStore.pendingOpponentAvatarIconColor = profile?.avatarIconColor
+        _navEvent.value = ChallengeNavEvent.StartGame(game, challengeId)
+    }
+
+    fun resumeChallenge(game: String, challengeId: String) {
+        InProgressChallengeStore.loadIntoChallengeGameStore()
         _navEvent.value = ChallengeNavEvent.StartGame(game, challengeId)
     }
 
