@@ -53,7 +53,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.derivedStateOf
 import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
@@ -134,6 +137,7 @@ fun ChallengesScreen(
         onStartGame(event.game)
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         topBar = { SectionTopBar(title = "Challenges", onBack = onBack) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -306,22 +310,31 @@ fun ChallengesScreen(
                     )
                 }
 
-                // Show unseen result cards one at a time
-                if (currentResultItem != null) {
-                    val (fcd, game) = currentResultItem
-                    ResultQueueDialog(
-                        friendName = fcd.friend.displayName,
-                        game = game,
-                        myUserId = state.myUserId,
-                        friendUserId = fcd.friend.userId,
-                        onViewMyResult = { wrappedOnViewScore(game.lastChallengeId!!, state.myUserId) },
-                        onViewTheirResult = { wrappedOnViewScore(game.lastChallengeId!!, fcd.friend.userId) },
-                        onContinue = { resultQueueIndex++ },
-                    )
-                }
             }
         }
     }
+
+    // Full-screen result overlay — shown on top of the Scaffold
+    val loadedState = uiState as? ChallengesUiState.Loaded
+    AnimatedVisibility(
+        visible = currentResultItem != null,
+        enter = slideInVertically { it } + fadeIn(),
+        exit = slideOutVertically { it } + fadeOut(),
+    ) {
+        if (currentResultItem != null && loadedState != null) {
+            val (fcd, game) = currentResultItem
+            ResultQueueScreen(
+                friendName = fcd.friend.displayName,
+                game = game,
+                myUserId = loadedState.myUserId,
+                friendUserId = fcd.friend.userId,
+                onViewMyResult = { wrappedOnViewScore(game.lastChallengeId!!, loadedState.myUserId) },
+                onViewTheirResult = { wrappedOnViewScore(game.lastChallengeId!!, fcd.friend.userId) },
+                onContinue = { resultQueueIndex++ },
+            )
+        }
+    }
+    } // end outer Box
 }
 
 @Composable
@@ -630,7 +643,7 @@ private fun FriendGameCard(
 }
 
 @Composable
-private fun ResultQueueDialog(
+private fun ResultQueueScreen(
     friendName: String,
     game: ChallengeSummaryGameDto,
     myUserId: String,
@@ -646,57 +659,54 @@ private fun ResultQueueDialog(
         "draw" -> "Draw with $friendName"
         else -> "Challenge complete vs $friendName"
     }
-    Dialog(onDismissRequest = onContinue) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+    Scaffold(
+        topBar = { SectionTopBar(title = gameName(game.game), onBack = onContinue) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = outcomeText,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            if (lastResult != null) {
                 Text(
-                    text = gameName(game.game),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = gameColor(game.game),
-                )
-                Text(
-                    text = outcomeText,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    text = "${lastResult.mySummary}  vs  ${lastResult.theirSummary}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
-                if (lastResult != null) {
-                    Text(
-                        text = "${lastResult.mySummary}  vs  ${lastResult.theirSummary}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                if (game.lastChallengeId != null) {
-                    Button(
-                        onClick = onViewMyResult,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface,
-                        ),
-                    ) { Text("VIEW YOUR RESULT") }
-                    OutlinedButton(
-                        onClick = onViewTheirResult,
-                        modifier = Modifier.fillMaxWidth(),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                    ) { Text("VIEW THEIR RESULT") }
-                }
+            }
+            Spacer(Modifier.weight(1f))
+            if (game.lastChallengeId != null) {
+                Button(
+                    onClick = onViewMyResult,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface,
+                    ),
+                ) { Text("VIEW YOUR RESULT") }
                 OutlinedButton(
-                    onClick = onContinue,
+                    onClick = onViewTheirResult,
                     modifier = Modifier.fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                ) { Text("CONTINUE") }
+                ) { Text("VIEW THEIR RESULT") }
             }
+            OutlinedButton(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+            ) { Text("CONTINUE") }
         }
     }
 }
