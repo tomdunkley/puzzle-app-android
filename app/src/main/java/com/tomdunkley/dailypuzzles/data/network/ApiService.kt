@@ -19,6 +19,7 @@ import com.tomdunkley.dailypuzzles.data.network.dto.ScoreSubmissionResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.SendFriendRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TokenPairDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UpdateProfileRequestDto
+import com.tomdunkley.dailypuzzles.data.network.dto.RegisterFcmTokenRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserProfileDto
 import com.tomdunkley.dailypuzzles.data.network.dto.UserSearchResultDto
 import com.tomdunkley.dailypuzzles.data.network.dto.AchievementSummaryDto
@@ -90,6 +91,9 @@ interface ApiService {
 
     @GET("v1/users/{userId}/profile")
     suspend fun getPublicProfile(@Path("userId") userId: String): PublicUserProfileDto
+
+    @POST("v1/users/me/fcm-token")
+    suspend fun registerFcmToken(@Body body: RegisterFcmTokenRequestDto)
 
     @PATCH("v1/users/me")
     suspend fun updateMyProfile(@Body body: UpdateProfileRequestDto): UserProfileDto

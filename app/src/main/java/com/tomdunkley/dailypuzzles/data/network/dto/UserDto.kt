@@ -4,6 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class RegisterFcmTokenRequestDto(
+    @SerialName("token") val token: String,
+)
+
+@Serializable
 data class StreakInfoDto(
     val current: Int,
     val longest: Int,

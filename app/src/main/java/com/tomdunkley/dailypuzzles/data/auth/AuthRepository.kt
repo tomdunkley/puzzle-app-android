@@ -1,10 +1,12 @@
 package com.tomdunkley.dailypuzzles.data.auth
 
+import com.google.firebase.messaging.FirebaseMessaging
 import com.tomdunkley.dailypuzzles.data.boggle.BoggleProgressStore
 import com.tomdunkley.dailypuzzles.data.developer.DeveloperStore
 import com.tomdunkley.dailypuzzles.data.roots.RootsProgressStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.network.ApiService
+import com.tomdunkley.dailypuzzles.data.network.dto.RegisterFcmTokenRequestDto
 import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChangePasswordRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.DevLoginRequestDto
@@ -16,9 +18,12 @@ import com.tomdunkley.dailypuzzles.data.network.dto.ResetPasswordRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.SetPasswordRequestDto
 import com.tomdunkley.dailypuzzles.data.network.dto.TokenPairDto
 import com.tomdunkley.dailypuzzles.data.network.dto.VerifyEmailRequestDto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /** App-wide sign-in state, backed by encrypted on-device token storage. A singleton
  * (like ApiClient) rather than a ViewModel, since auth state needs to be visible
@@ -179,6 +184,14 @@ object AuthRepository {
             AuthState.SignedIn(profile.displayName)
         } else {
             AuthState.SignedInUnverified(profile.displayName)
+        }
+        // Register FCM token for push notifications — fire and forget
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching {
+                    ApiClient.authenticatedService.registerFcmToken(RegisterFcmTokenRequestDto(token))
+                }
+            }
         }
     }
 }
