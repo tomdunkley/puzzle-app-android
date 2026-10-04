@@ -373,6 +373,13 @@ private fun PuzzleCard(puzzle: Puzzle, status: PuzzleStatus, onClick: () -> Unit
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (status == PuzzleStatus.IN_PROGRESS) {
+                    Text(
+                        text = "RESUME",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = PAUSE_YELLOW,
+                    )
+                }
             }
         }
     }
