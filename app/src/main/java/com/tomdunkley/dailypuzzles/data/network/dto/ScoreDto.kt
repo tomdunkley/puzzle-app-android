@@ -98,6 +98,7 @@ data class ScoreDetailDto(
     @SerialName("solution_steps") val solutionSteps: List<NumbersStepDto>? = null,
     // challenge results only
     val seed: String? = null,
+    @SerialName("opponent_user_id") val opponentUserId: String? = null,
     @SerialName("opponent_name") val opponentName: String? = null,
     @SerialName("opponent_avatar_id") val opponentAvatarId: String? = null,
     @SerialName("opponent_avatar_color_id") val opponentAvatarColorId: String? = null,

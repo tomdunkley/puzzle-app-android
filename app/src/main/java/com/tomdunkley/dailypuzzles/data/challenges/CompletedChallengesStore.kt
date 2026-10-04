@@ -33,4 +33,6 @@ object CompletedChallengesStore {
             _unseenCount.value = (_unseenCount.value - 1).coerceAtLeast(0)
         }
     }
+
+    fun isUnseen(challengeId: String): Boolean = !seenIds.contains(challengeId)
 }

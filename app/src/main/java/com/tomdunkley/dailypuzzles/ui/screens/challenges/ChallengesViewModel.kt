@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
 import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengePuzzleDataDto
 import com.tomdunkley.dailypuzzles.data.network.dto.ChallengeSummaryGameDto
 import com.tomdunkley.dailypuzzles.data.network.dto.CreateChallengeRequestDto
@@ -141,6 +142,12 @@ class ChallengesViewModel : ViewModel() {
                     fcd.games.mapNotNull { it.lastChallengeId }
                 }
                 CompletedChallengesStore.updateFromLoad(completedIds)
+                // Update the home-screen badge with current pending (my turn) count
+                val pendingCount = challengeData.sumOf { fcd -> fcd.games.count { it.status == "open" } }
+                val pendingByFriend = challengeData.associate { fcd ->
+                    fcd.friend.userId to fcd.games.count { it.status == "open" }
+                }.filterValues { it > 0 }
+                PendingChallengesStore.update(pendingCount, pendingByFriend)
                 _uiState.value = ChallengesUiState.Loaded(myUserId, friendList, challengeData)
             }.onFailure {
                 _uiState.value = ChallengesUiState.Error(it.toUserMessage("Couldn't load challenges"))
