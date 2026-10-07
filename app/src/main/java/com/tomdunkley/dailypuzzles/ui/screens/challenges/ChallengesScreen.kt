@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Button
@@ -92,7 +91,7 @@ private fun gameName(game: String) = when (game) {
 fun ChallengesScreen(
     onBack: () -> Unit,
     onGoToChallenge: (friendId: String) -> Unit,
-    onViewScore: (challengeId: String, userId: String) -> Unit = { _, _ -> },
+    onViewScore: (challengeId: String, userId: String, game: String) -> Unit = { _, _, _ -> },
     onStartGame: (game: String) -> Unit = {},
     viewModel: ChallengesViewModel = viewModel(),
 ) {
@@ -123,9 +122,9 @@ fun ChallengesScreen(
         LaunchedEffect(id) { CompletedChallengesStore.markSeen(id) }
     }
 
-    val wrappedOnViewScore: (String, String) -> Unit = { challengeId, userId ->
+    val wrappedOnViewScore: (String, String, String) -> Unit = { challengeId, userId, game ->
         CompletedChallengesStore.markSeen(challengeId)
-        onViewScore(challengeId, userId)
+        onViewScore(challengeId, userId, game)
     }
 
     val inProgressId = remember { InProgressChallengeStore.getInProgressChallengeId() }
@@ -325,12 +324,14 @@ fun ChallengesScreen(
         if (currentResultItem != null && loadedState != null) {
             val (fcd, game) = currentResultItem
             ResultQueueScreen(
-                friendName = fcd.friend.displayName,
+                friend = fcd.friend,
                 game = game,
-                myUserId = loadedState.myUserId,
-                friendUserId = fcd.friend.userId,
-                onViewMyResult = { wrappedOnViewScore(game.lastChallengeId!!, loadedState.myUserId) },
-                onViewTheirResult = { wrappedOnViewScore(game.lastChallengeId!!, fcd.friend.userId) },
+                myDisplayName = loadedState.myDisplayName,
+                myAvatarId = loadedState.myAvatarId,
+                myAvatarColorId = loadedState.myAvatarColorId,
+                myAvatarIconColor = loadedState.myAvatarIconColor,
+                onViewMyResult = { wrappedOnViewScore(game.lastChallengeId!!, loadedState.myUserId, game.game) },
+                onViewTheirResult = { wrappedOnViewScore(game.lastChallengeId!!, fcd.friend.userId, game.game) },
                 onContinue = { resultQueueIndex++ },
             )
         }
@@ -359,20 +360,20 @@ private fun CollapsibleSectionHeader(text: String, expanded: Boolean, onToggle: 
                 onClick = onToggle,
             )
             .padding(bottom = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            imageVector = if (expanded) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp),
+        )
         Text(
             text = text,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Icon(
-            imageVector = if (expanded) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowLeft,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(22.dp),
         )
     }
 }
@@ -382,7 +383,7 @@ private fun ColumnScope.PreviousChallengeContent(
     game: ChallengeSummaryGameDto,
     myUserId: String,
     friendUserId: String,
-    onViewScore: (challengeId: String, userId: String) -> Unit,
+    onViewScore: (challengeId: String, userId: String, gameId: String) -> Unit,
 ) {
     val lastResult = game.lastResult
     val outcomeText = when (lastResult?.outcome) {
@@ -422,8 +423,8 @@ private fun ColumnScope.PreviousChallengeContent(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            OutlinedButton(onClick = { onViewScore(game.lastChallengeId!!, myUserId) }) { Text("YOUR RESULT") }
-            OutlinedButton(onClick = { onViewScore(game.lastChallengeId!!, friendUserId) }) { Text("THEIR RESULT") }
+            OutlinedButton(onClick = { onViewScore(game.lastChallengeId!!, myUserId, game.game) }) { Text("YOUR RESULT") }
+            OutlinedButton(onClick = { onViewScore(game.lastChallengeId!!, friendUserId, game.game) }) { Text("THEIR RESULT") }
         }
     }
 }
@@ -441,7 +442,7 @@ private fun FriendGameCard(
     isExpanded: Boolean,
     onToggle: () -> Unit,
     onAction: () -> Unit,
-    onViewScore: (challengeId: String, userId: String) -> Unit,
+    onViewScore: (challengeId: String, userId: String, gameId: String) -> Unit,
     actionLabel: String? = null,
 ) {
     val color = gameColor(game.game)
@@ -534,10 +535,10 @@ private fun FriendGameCard(
                 }
                 if (game.challengeId != null) {
                     Button(
-                        onClick = { onViewScore(game.challengeId, myUserId) },
+                        onClick = { onViewScore(game.challengeId, myUserId, game.game) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = BlackButtonColors,
-                    ) { Text("VIEW YOUR RESULT") }
+                    ) { Text("VIEW YOUR BOARD") }
                 }
                 // Previous challenge below a divider
                 if (game.lastChallengeId != null) {
@@ -622,8 +623,8 @@ private fun FriendGameCard(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         if (game.lastChallengeId != null) {
-                            OutlinedButton(onClick = { onViewScore(game.lastChallengeId, myUserId) }) { Text("YOUR RESULT") }
-                            OutlinedButton(onClick = { onViewScore(game.lastChallengeId, friend.userId) }) { Text("THEIR RESULT") }
+                            OutlinedButton(onClick = { onViewScore(game.lastChallengeId, myUserId, game.game) }) { Text("YOUR RESULT") }
+                            OutlinedButton(onClick = { onViewScore(game.lastChallengeId, friend.userId, game.game) }) { Text("THEIR RESULT") }
                         }
                     }
                 }
@@ -645,20 +646,22 @@ private fun FriendGameCard(
 
 @Composable
 private fun ResultQueueScreen(
-    friendName: String,
+    friend: FriendSummaryDto,
     game: ChallengeSummaryGameDto,
-    myUserId: String,
-    friendUserId: String,
+    myDisplayName: String,
+    myAvatarId: String?,
+    myAvatarColorId: String?,
+    myAvatarIconColor: String?,
     onViewMyResult: () -> Unit,
     onViewTheirResult: () -> Unit,
     onContinue: () -> Unit,
 ) {
     val lastResult = game.lastResult
     val outcomeText = when (lastResult?.outcome) {
-        "win" -> "You won against $friendName"
-        "loss" -> "You lost to $friendName"
-        "draw" -> "Draw with $friendName"
-        else -> "Challenge complete vs $friendName"
+        "win" -> "You won!"
+        "loss" -> "You lost"
+        "draw" -> "It's a draw"
+        else -> "Challenge complete"
     }
     Scaffold(
         topBar = { SectionTopBar(title = gameName(game.game), onBack = onContinue) },
@@ -668,26 +671,37 @@ private fun ResultQueueScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Spacer(Modifier.weight(1f))
             Text(
                 text = outcomeText,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(16.dp))
             if (lastResult != null) {
-                Text(
-                    text = "${lastResult.mySummary}  vs  ${lastResult.theirSummary}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AvatarIcon(myAvatarId, myAvatarColorId, avatarIconColor = myAvatarIconColor, size = 40.dp)
+                        Text(myDisplayName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(lastResult.mySummary, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Text("vs", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AvatarIcon(friend.avatarId, friend.avatarColorId, avatarIconColor = friend.avatarIconColor, size = 40.dp)
+                        Text(friend.displayName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(lastResult.theirSummary, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
             }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
             if (game.lastChallengeId != null) {
                 Button(
                     onClick = onViewMyResult,
@@ -696,18 +710,20 @@ private fun ResultQueueScreen(
                         containerColor = MaterialTheme.colorScheme.onSurface,
                         contentColor = MaterialTheme.colorScheme.surface,
                     ),
-                ) { Text("VIEW YOUR RESULT") }
+                ) { Text("VIEW YOUR BOARD") }
+                Spacer(Modifier.height(8.dp))
                 OutlinedButton(
                     onClick = onViewTheirResult,
                     modifier = Modifier.fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                ) { Text("VIEW THEIR RESULT") }
+                ) { Text("VIEW THEIR BOARD") }
+                Spacer(Modifier.height(8.dp))
             }
             OutlinedButton(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-            ) { Text("CONTINUE") }
+            ) { Text("BACK TO CHALLENGES") }
         }
     }
 }

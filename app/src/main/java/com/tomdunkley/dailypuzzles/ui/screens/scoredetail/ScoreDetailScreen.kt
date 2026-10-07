@@ -71,6 +71,7 @@ fun ScoreDetailScreen(
     isSignedIn: Boolean,
     onBack: () -> Unit,
     onSignInClick: () -> Unit,
+    gameHint: String = "",
     onViewProfile: ((String) -> Unit)? = null,
     viewModel: ScoreDetailViewModel = viewModel(),
 ) {
@@ -106,7 +107,15 @@ fun ScoreDetailScreen(
         val seedPart = if (dateOrSeed.isNotEmpty()) "$dateOrSeed  ·  " else ""
         "${seedPart}vs ${loadedDetail.opponentName}"
     } else null
-    val topBarColor = when (loadedDetail?.game) {
+    val effectiveGame = gameHint.ifEmpty {
+        when {
+            puzzleId.startsWith("boggle") -> "boggle"
+            puzzleId.startsWith("numbers") -> "numbers"
+            puzzleId.startsWith("routes") -> "routes"
+            else -> null
+        }
+    } ?: loadedDetail?.game
+    val topBarColor = when (effectiveGame) {
         "numbers" -> NumbersSolidColor.copy(alpha = 0.15f)
         "routes" -> RootsSolidColor.copy(alpha = 0.15f)
         else -> WordsSolidColor.copy(alpha = 0.15f)

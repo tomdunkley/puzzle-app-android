@@ -2,6 +2,7 @@ package com.tomdunkley.dailypuzzles.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
 import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 import com.tomdunkley.dailypuzzles.data.network.ApiClient
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
@@ -25,7 +26,10 @@ class AppViewModel : ViewModel() {
         }
         viewModelScope.launch {
             runCatching { ApiClient.authenticatedService.getPendingChallenges() }
-                .onSuccess { PendingChallengesStore.update(it.count, it.byFriend) }
+                .onSuccess {
+                    PendingChallengesStore.update(it.count, it.byFriend)
+                    CompletedChallengesStore.updateFromLoad(it.completedIds)
+                }
                 .onFailure { }
         }
     }

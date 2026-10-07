@@ -72,4 +72,5 @@ data class FriendChallengeSummaryResponseDto(
 data class PendingChallengesResponseDto(
     val count: Int,
     @SerialName("by_friend") val byFriend: Map<String, Int>,
+    @SerialName("completed_ids") val completedIds: List<String> = emptyList(),
 )

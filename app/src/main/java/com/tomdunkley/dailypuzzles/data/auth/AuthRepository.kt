@@ -51,6 +51,16 @@ object AuthRepository {
             tokenStore.emailVerified -> AuthState.SignedIn(displayName)
             else -> AuthState.SignedInUnverified(displayName)
         }
+        // Re-register FCM token on session restore — onNewToken may have fired before login
+        if (tokenStore.refreshToken != null) {
+            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    runCatching {
+                        ApiClient.authenticatedService.registerFcmToken(RegisterFcmTokenRequestDto(token))
+                    }
+                }
+            }
+        }
     }
 
     suspend fun signInWithGoogle(idToken: String): Result<Unit> = runCatching {

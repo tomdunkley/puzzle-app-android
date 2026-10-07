@@ -25,24 +25,26 @@ object Routes {
     const val FORGOT_PASSWORD = "forgot_password"
     const val CHANGE_PASSWORD = "change_password"
     const val AVATAR_PICKER = "avatar_picker"
-    const val SCORE_DETAIL = "score_detail/{puzzleId}/{userId}"
+    const val SCORE_DETAIL = "score_detail/{puzzleId}/{userId}?gameHint={gameHint}"
     const val USER_PROFILE = "user_profile/{userId}"
     const val CHALLENGE = "challenge/{friendId}"
     const val BOGGLE_CHALLENGE = "boggle_challenge/{challengeId}"
     const val NUMBERS_CHALLENGE = "numbers_challenge/{challengeId}"
     const val ROUTES_CHALLENGE = "routes_challenge/{challengeId}"
-    const val CHALLENGE_WAITING = "challenge_waiting/{challengeId}/{opponentName}/{bothPlayed}/{myUserId}"
+    const val CHALLENGE_WAITING = "challenge_waiting/{challengeId}/{opponentName}/{bothPlayed}/{myUserId}/{game}"
     const val CHALLENGE_START = "challenge_start/{game}"
 
-    fun scoreDetail(puzzleId: String, userId: String) = "score_detail/$puzzleId/$userId"
+    fun scoreDetail(puzzleId: String, userId: String, gameHint: String = "") =
+        if (gameHint.isEmpty()) "score_detail/$puzzleId/$userId"
+        else "score_detail/$puzzleId/$userId?gameHint=$gameHint"
     fun userProfile(userId: String) = "user_profile/$userId"
     fun challenge(friendId: String) = "challenge/$friendId"
     fun challengeStart(game: String) = "challenge_start/$game"
     fun boggleChallenge(challengeId: String) = "boggle_challenge/$challengeId"
     fun numbersChallenge(challengeId: String) = "numbers_challenge/$challengeId"
     fun routesChallenge(challengeId: String) = "routes_challenge/$challengeId"
-    fun challengeWaiting(challengeId: String, opponentName: String, bothPlayed: Boolean, myUserId: String) =
-        "challenge_waiting/$challengeId/${opponentName.replace("/", "_")}/$bothPlayed/$myUserId"
+    fun challengeWaiting(challengeId: String, opponentName: String, bothPlayed: Boolean, myUserId: String, game: String) =
+        "challenge_waiting/$challengeId/${opponentName.replace("/", "_")}/$bothPlayed/$myUserId/$game"
 }
 
 data class BottomNavItem(

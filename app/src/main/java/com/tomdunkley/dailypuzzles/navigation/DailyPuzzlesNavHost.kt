@@ -207,8 +207,8 @@ fun DailyPuzzlesNavHost() {
                 ChallengesScreen(
                     onBack = { navController.popBackStack() },
                     onGoToChallenge = { friendId -> navController.navigate(Routes.challenge(friendId)) },
-                    onViewScore = { challengeId, userId ->
-                        navController.navigate(Routes.scoreDetail(challengeId, userId))
+                    onViewScore = { challengeId, userId, game ->
+                        navController.navigate(Routes.scoreDetail(challengeId, userId, game))
                     },
                     onStartGame = { game -> navController.navigate(Routes.challengeStart(game)) },
                 )
@@ -347,11 +347,13 @@ fun DailyPuzzlesNavHost() {
                 arguments = listOf(
                     navArgument("puzzleId") { type = NavType.StringType },
                     navArgument("userId") { type = NavType.StringType },
+                    navArgument("gameHint") { type = NavType.StringType; defaultValue = "" },
                 ),
             ) { backStackEntry ->
                 ScoreDetailScreen(
                     puzzleId = backStackEntry.arguments?.getString("puzzleId").orEmpty(),
                     userId = backStackEntry.arguments?.getString("userId").orEmpty(),
+                    gameHint = backStackEntry.arguments?.getString("gameHint").orEmpty(),
                     isSignedIn = authState is AuthState.SignedIn,
                     onBack = { navController.popBackStack() },
                     onSignInClick = {
@@ -421,7 +423,7 @@ fun DailyPuzzlesNavHost() {
                     onChallengeComplete = { id, bothPlayed ->
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
-                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId, "boggle")) {
                             popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
@@ -439,7 +441,7 @@ fun DailyPuzzlesNavHost() {
                     onChallengeComplete = { id, bothPlayed ->
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
-                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId, "numbers")) {
                             popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
@@ -457,7 +459,7 @@ fun DailyPuzzlesNavHost() {
                     onChallengeComplete = { id, bothPlayed ->
                         val opponentName = ChallengeGameStore.pendingOpponentName ?: "Opponent"
                         val myUserId = ChallengeGameStore.pendingMyUserId ?: ""
-                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId)) {
+                        navController.navigate(Routes.challengeWaiting(id, opponentName, bothPlayed, myUserId, "routes")) {
                             popUpTo(Routes.CHALLENGE_START) { inclusive = true }
                         }
                     },
@@ -470,6 +472,7 @@ fun DailyPuzzlesNavHost() {
                     navArgument("opponentName") { type = NavType.StringType },
                     navArgument("bothPlayed") { type = NavType.BoolType },
                     navArgument("myUserId") { type = NavType.StringType },
+                    navArgument("game") { type = NavType.StringType },
                 ),
             ) { backStackEntry ->
                 ChallengeWaitingScreen(
@@ -477,9 +480,10 @@ fun DailyPuzzlesNavHost() {
                     opponentName = backStackEntry.arguments?.getString("opponentName").orEmpty(),
                     bothPlayed = backStackEntry.arguments?.getBoolean("bothPlayed") ?: false,
                     myUserId = backStackEntry.arguments?.getString("myUserId").orEmpty(),
+                    game = backStackEntry.arguments?.getString("game").orEmpty(),
                     onBack = { navController.popBackStack() },
-                    onViewMyResult = { challengeId, userId ->
-                        navController.navigate(Routes.scoreDetail(challengeId, userId))
+                    onViewMyResult = { challengeId, userId, game ->
+                        navController.navigate(Routes.scoreDetail(challengeId, userId, game))
                     },
                 )
             }

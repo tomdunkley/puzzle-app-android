@@ -34,6 +34,10 @@ sealed interface ChallengesUiState {
     data class Error(val message: String) : ChallengesUiState
     data class Loaded(
         val myUserId: String,
+        val myDisplayName: String,
+        val myAvatarId: String?,
+        val myAvatarColorId: String?,
+        val myAvatarIconColor: String?,
         val friends: List<FriendSummaryDto>,
         val challengeData: List<FriendChallengeData>,
     ) : ChallengesUiState
@@ -130,9 +134,9 @@ class ChallengesViewModel : ViewModel() {
             _uiState.value = ChallengesUiState.Loading
             runCatching {
                 val service = AuthRepository.apiServiceForCurrentSession()
-                val me = async { service.getMyProfile() }
+                val meDeferred = async { service.getMyProfile() }
                 val friends = async { service.getFriends() }
-                val myUserId = me.await().userId
+                val meProfile = meDeferred.await()
                 val friendList = friends.await()
                 val challengeData = friendList.map { friend ->
                     async {
@@ -142,19 +146,27 @@ class ChallengesViewModel : ViewModel() {
                         FriendChallengeData(friend, games)
                     }
                 }.awaitAll()
-                Triple(myUserId, friendList, challengeData)
-            }.onSuccess { (myUserId, friendList, challengeData) ->
+                Pair(meProfile, Pair(friendList, challengeData))
+            }.onSuccess { (meProfile, rest) ->
+                val (friendList, challengeData) = rest
                 val completedIds = challengeData.flatMap { fcd ->
                     fcd.games.mapNotNull { it.lastChallengeId }
                 }
                 CompletedChallengesStore.updateFromLoad(completedIds)
-                // Update the home-screen badge with current pending (my turn) count
                 val pendingCount = challengeData.sumOf { fcd -> fcd.games.count { it.status == "open" } }
                 val pendingByFriend = challengeData.associate { fcd ->
                     fcd.friend.userId to fcd.games.count { it.status == "open" }
                 }.filterValues { it > 0 }
                 PendingChallengesStore.update(pendingCount, pendingByFriend)
-                _uiState.value = ChallengesUiState.Loaded(myUserId, friendList, challengeData)
+                _uiState.value = ChallengesUiState.Loaded(
+                    myUserId = meProfile.userId,
+                    myDisplayName = meProfile.displayName,
+                    myAvatarId = meProfile.avatarId,
+                    myAvatarColorId = meProfile.avatarColorId,
+                    myAvatarIconColor = meProfile.avatarIconColor,
+                    friends = friendList,
+                    challengeData = challengeData,
+                )
             }.onFailure {
                 _uiState.value = ChallengesUiState.Error(it.toUserMessage("Couldn't load challenges"))
             }

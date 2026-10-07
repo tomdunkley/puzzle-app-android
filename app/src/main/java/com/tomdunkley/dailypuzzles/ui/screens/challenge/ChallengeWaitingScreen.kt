@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -37,14 +38,18 @@ fun ChallengeWaitingScreen(
     opponentName: String,
     bothPlayed: Boolean,
     myUserId: String,
+    game: String = "",
     onBack: () -> Unit,
-    onViewMyResult: (challengeId: String, userId: String) -> Unit,
+    onViewMyResult: (challengeId: String, userId: String, game: String) -> Unit,
     viewModel: ChallengeWaitingViewModel = viewModel(),
 ) {
     val resultState by viewModel.resultState.collectAsState()
 
     LaunchedEffect(challengeId, myUserId, bothPlayed) {
-        if (bothPlayed) viewModel.loadResult(challengeId, myUserId)
+        if (bothPlayed) {
+            viewModel.loadResult(challengeId, myUserId)
+            CompletedChallengesStore.markSeen(challengeId)
+        }
     }
 
     Scaffold(
@@ -57,7 +62,7 @@ fun ChallengeWaitingScreen(
             verticalArrangement = Arrangement.Center,
         ) {
             if (!bothPlayed) {
-                WaitingContent(opponentName, challengeId, myUserId, onBack, onViewMyResult)
+                WaitingContent(opponentName, challengeId, myUserId, game, onBack, onViewMyResult)
             } else {
                 when (val state = resultState) {
                     is ChallengeResultUiState.Idle, is ChallengeResultUiState.Loading ->
@@ -70,13 +75,18 @@ fun ChallengeWaitingScreen(
                             textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(16.dp))
-                        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = onBack,
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                        ) {
                             Text("BACK TO CHALLENGES")
                         }
                     }
                     is ChallengeResultUiState.Loaded -> ResultContent(
                         result = state,
                         challengeId = challengeId,
+                        game = game,
                         onViewResult = onViewMyResult,
                         onContinue = onBack,
                     )
@@ -91,8 +101,9 @@ private fun WaitingContent(
     opponentName: String,
     challengeId: String,
     myUserId: String,
+    game: String,
     onBack: () -> Unit,
-    onViewMyResult: (String, String) -> Unit,
+    onViewMyResult: (String, String, String) -> Unit,
 ) {
     Text(
         text = "Waiting for $opponentName...",
@@ -109,17 +120,18 @@ private fun WaitingContent(
     )
     Spacer(Modifier.height(32.dp))
     Button(
-        onClick = { onViewMyResult(challengeId, myUserId) },
+        onClick = { onViewMyResult(challengeId, myUserId, game) },
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.onSurface,
             contentColor = MaterialTheme.colorScheme.surface,
         ),
-    ) { Text("VIEW YOUR RESULT") }
+    ) { Text("VIEW YOUR BOARD") }
     Spacer(Modifier.height(12.dp))
     OutlinedButton(
         onClick = onBack,
         modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
     ) { Text("BACK TO CHALLENGES") }
 }
 
@@ -127,7 +139,8 @@ private fun WaitingContent(
 private fun ResultContent(
     result: ChallengeResultUiState.Loaded,
     challengeId: String,
-    onViewResult: (challengeId: String, userId: String) -> Unit,
+    game: String,
+    onViewResult: (challengeId: String, userId: String, game: String) -> Unit,
     onContinue: () -> Unit,
 ) {
     val outcomeText = when (result.outcome) {
@@ -145,7 +158,7 @@ private fun ResultContent(
     ScoreSummaryRow(result.myResult, result.opponentResult)
     Spacer(Modifier.height(24.dp))
     Button(
-        onClick = { onViewResult(challengeId, result.myResult.userId) },
+        onClick = { onViewResult(challengeId, result.myResult.userId, game) },
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.onSurface,
@@ -156,7 +169,7 @@ private fun ResultContent(
     if (result.opponentResult.opponentUserId != null || result.myResult.opponentUserId != null) {
         val opponentId = result.myResult.opponentUserId ?: ""
         OutlinedButton(
-            onClick = { onViewResult(challengeId, opponentId) },
+            onClick = { onViewResult(challengeId, opponentId, game) },
             modifier = Modifier.fillMaxWidth(),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
         ) { Text("VIEW THEIR BOARD") }
