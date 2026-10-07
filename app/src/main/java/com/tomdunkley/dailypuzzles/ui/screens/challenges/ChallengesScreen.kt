@@ -43,7 +43,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -98,10 +97,10 @@ fun ChallengesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val navEvent by viewModel.navEvent.collectAsState()
     var showFriendPicker by remember { mutableStateOf(false) }
-    var myTurnExpanded by remember { mutableStateOf(true) }
-    var waitingExpanded by remember { mutableStateOf(false) }
-    var previousExpanded by remember { mutableStateOf(false) }
-    val expandedCards = remember { mutableStateMapOf<String, Boolean>() }
+    var myTurnExpanded by viewModel::myTurnExpanded
+    var waitingExpanded by viewModel::waitingExpanded
+    var previousExpanded by viewModel::previousExpanded
+    val expandedCards = viewModel.expandedCards
 
     // Result queue: unseen completed challenges to show one by one
     var resultQueueIndex by remember { mutableStateOf(0) }

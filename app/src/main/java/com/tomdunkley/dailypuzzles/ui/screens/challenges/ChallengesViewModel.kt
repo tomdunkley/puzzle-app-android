@@ -1,5 +1,9 @@
 package com.tomdunkley.dailypuzzles.ui.screens.challenges
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
@@ -55,6 +59,11 @@ class ChallengesViewModel : ViewModel() {
     val isCreating: StateFlow<Boolean> = _isCreating.asStateFlow()
 
     private val myUserId: String get() = (_uiState.value as? ChallengesUiState.Loaded)?.myUserId ?: ""
+
+    var myTurnExpanded by mutableStateOf(true)
+    var waitingExpanded by mutableStateOf(false)
+    var previousExpanded by mutableStateOf(false)
+    val expandedCards = mutableStateMapOf<String, Boolean>()
 
     fun clearNavEvent() { _navEvent.value = null }
 
