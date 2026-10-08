@@ -702,13 +702,10 @@ private fun ResultQueueScreen(
             }
             Spacer(Modifier.height(24.dp))
             if (game.lastChallengeId != null) {
-                Button(
+                OutlinedButton(
                     onClick = onViewMyResult,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface,
-                        contentColor = MaterialTheme.colorScheme.surface,
-                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
                 ) { Text("VIEW YOUR BOARD") }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
@@ -718,10 +715,13 @@ private fun ResultQueueScreen(
                 ) { Text("VIEW THEIR BOARD") }
                 Spacer(Modifier.height(8.dp))
             }
-            OutlinedButton(
+            Button(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
+                ),
             ) { Text("BACK TO CHALLENGES") }
         }
     }

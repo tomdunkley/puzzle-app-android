@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <!-- Blue circle background -->
+    <path android:fillColor="#1976D2"
+          android:pathData="M20,2C10.059,2,2,10.059,2,20C2,29.941,10.059,38,20,38C29.941,38,38,29.941,38,20C38,10.059,29.941,2,20,2Z"/>
+    <!-- Calculator: outer rect + 3 rows of buttons -->
+    <path android:fillColor="#FFFFFF"
+          android:pathData="M12,10H28V30H12ZM14,12V18H26V12ZM14,20H19V22H14ZM21,20H26V22H21ZM14,24H19V26H14ZM21,24H26V26H21Z"
+          android:fillType="evenOdd"/>
+</vector>

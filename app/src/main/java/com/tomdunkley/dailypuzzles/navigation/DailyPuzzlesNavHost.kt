@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tomdunkley.dailypuzzles.MainViewModel
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
 import com.tomdunkley.dailypuzzles.data.auth.AuthState
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
@@ -64,15 +65,26 @@ import com.tomdunkley.dailypuzzles.ui.screens.settings.SettingsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.verify.VerifyEmailScreen
 
 @Composable
-fun DailyPuzzlesNavHost() {
+fun DailyPuzzlesNavHost(mainViewModel: MainViewModel = viewModel()) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val authState by AuthRepository.state.collectAsState()
     val appViewModel: AppViewModel = viewModel()
     val hasPendingFriendRequests by appViewModel.hasPendingFriendRequests.collectAsState()
     val newTrophyCount by appViewModel.newTrophyCount.collectAsState()
+    val pendingNavigation by mainViewModel.pendingNavigation.collectAsState()
     LaunchedEffect(authState) {
         if (authState is AuthState.SignedIn) appViewModel.refreshFriendRequestBadge()
+    }
+    LaunchedEffect(pendingNavigation) {
+        val dest = pendingNavigation ?: return@LaunchedEffect
+        if (dest == "challenges") {
+            navController.navigate(Routes.CHALLENGES) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+            }
+        }
+        mainViewModel.clearNavigation()
     }
 
     // Boggle and Numbers both hide the bottom bar while actively playing (Playing/

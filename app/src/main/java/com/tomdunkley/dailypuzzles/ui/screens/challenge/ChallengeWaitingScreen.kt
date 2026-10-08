@@ -157,13 +157,10 @@ private fun ResultContent(
     Spacer(Modifier.height(16.dp))
     ScoreSummaryRow(result.myResult, result.opponentResult)
     Spacer(Modifier.height(24.dp))
-    Button(
+    OutlinedButton(
         onClick = { onViewResult(challengeId, result.myResult.userId, game) },
         modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.onSurface,
-            contentColor = MaterialTheme.colorScheme.surface,
-        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
     ) { Text("VIEW YOUR BOARD") }
     Spacer(Modifier.height(8.dp))
     if (result.opponentResult.opponentUserId != null || result.myResult.opponentUserId != null) {
@@ -175,10 +172,13 @@ private fun ResultContent(
         ) { Text("VIEW THEIR BOARD") }
         Spacer(Modifier.height(8.dp))
     }
-    OutlinedButton(
+    Button(
         onClick = onContinue,
         modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = MaterialTheme.colorScheme.surface,
+        ),
     ) { Text("BACK TO CHALLENGES") }
 }
 

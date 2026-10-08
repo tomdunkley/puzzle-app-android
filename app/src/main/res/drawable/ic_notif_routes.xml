@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <!-- Green circle background -->
+    <path android:fillColor="#2E7D32"
+          android:pathData="M20,2C10.059,2,2,10.059,2,20C2,29.941,10.059,38,20,38C29.941,38,38,29.941,38,20C38,10.059,29.941,2,20,2Z"/>
+    <!-- Start node (top-left), zigzag line, end node (bottom-right) -->
+    <path android:fillColor="#FFFFFF"
+          android:pathData="M11,11H16V16H11ZM24,24H29V29H24Z"/>
+    <path android:fillColor="#00000000"
+          android:strokeColor="#FFFFFF"
+          android:strokeWidth="2.5"
+          android:pathData="M13.5,16L13.5,24L26.5,24L26.5,16"/>
+</vector>

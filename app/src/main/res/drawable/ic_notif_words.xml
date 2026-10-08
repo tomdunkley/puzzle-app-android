@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <!-- Orange circle background -->
+    <path android:fillColor="#E65100"
+          android:pathData="M20,2C10.059,2,2,10.059,2,20C2,29.941,10.059,38,20,38C29.941,38,38,29.941,38,20C38,10.059,29.941,2,20,2Z"/>
+    <!-- 2×2 white letter-tile grid -->
+    <path android:fillColor="#FFFFFF"
+          android:pathData="M11,11H18V18H11ZM22,11H29V18H22ZM11,22H18V29H11ZM22,22H29V29H22Z"/>
+</vector>
