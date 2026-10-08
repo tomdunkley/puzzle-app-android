@@ -15,6 +15,7 @@ import com.tomdunkley.dailypuzzles.data.numbers.NumbersProgressStore
 import com.tomdunkley.dailypuzzles.data.challenges.CompletedChallengesStore
 import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
 import com.tomdunkley.dailypuzzles.data.trophies.TrophySeenStore
+import com.tomdunkley.dailypuzzles.data.TutorialStore
 
 class DailyPuzzlesApp : Application() {
     override fun onCreate() {
@@ -32,6 +33,7 @@ class DailyPuzzlesApp : Application() {
         TrophySeenStore.init(this)
         CompletedChallengesStore.init(this)
         InProgressChallengeStore.init(this)
+        TutorialStore.init(this)
         BoggleDictionary.init(this)
         SoundFeedback.init()
     }

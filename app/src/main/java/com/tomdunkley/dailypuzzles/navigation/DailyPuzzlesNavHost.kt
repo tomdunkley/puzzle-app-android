@@ -63,6 +63,8 @@ import com.tomdunkley.dailypuzzles.ui.screens.settings.ChangePasswordScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.ForgotPasswordScreen
 import com.tomdunkley.dailypuzzles.ui.screens.settings.SettingsScreen
 import com.tomdunkley.dailypuzzles.ui.screens.verify.VerifyEmailScreen
+import com.tomdunkley.dailypuzzles.ui.screens.tutorial.GameTutorialScreen
+import com.tomdunkley.dailypuzzles.data.TutorialStore
 
 @Composable
 fun DailyPuzzlesNavHost(mainViewModel: MainViewModel = viewModel()) {
@@ -118,6 +120,9 @@ fun DailyPuzzlesNavHost(mainViewModel: MainViewModel = viewModel()) {
     }
 
     val hideBottomBar = currentRoute == Routes.VERIFY_EMAIL ||
+        currentRoute == Routes.BOGGLE_TUTORIAL ||
+        currentRoute == Routes.NUMBERS_TUTORIAL ||
+        currentRoute == Routes.ROUTES_TUTORIAL ||
         (currentRoute == Routes.BOGGLE && !boggleShowBottomBar) ||
         (currentRoute == Routes.BOGGLE_UNLIMITED && !boggleUnlimitedShowBottomBar) ||
         (currentRoute == Routes.NUMBERS && !numbersShowBottomBar) ||
@@ -194,9 +199,15 @@ fun DailyPuzzlesNavHost(mainViewModel: MainViewModel = viewModel()) {
                     isSignedIn = authState is AuthState.SignedIn,
                     onPuzzleClick = { puzzleId ->
                         when (puzzleId) {
-                            "boggle" -> navController.navigate(Routes.BOGGLE)
-                            "numbers" -> navController.navigate(Routes.NUMBERS)
-                            "routes" -> navController.navigate(Routes.ROOTS)
+                            "boggle" -> navController.navigate(
+                                if (TutorialStore.hasSeenTutorial("boggle")) Routes.BOGGLE else Routes.BOGGLE_TUTORIAL
+                            )
+                            "numbers" -> navController.navigate(
+                                if (TutorialStore.hasSeenTutorial("numbers")) Routes.NUMBERS else Routes.NUMBERS_TUTORIAL
+                            )
+                            "routes" -> navController.navigate(
+                                if (TutorialStore.hasSeenTutorial("routes")) Routes.ROOTS else Routes.ROUTES_TUTORIAL
+                            )
                         }
                     },
                     onUnlimitedPuzzleClick = { puzzleId ->
@@ -223,6 +234,42 @@ fun DailyPuzzlesNavHost(mainViewModel: MainViewModel = viewModel()) {
                         navController.navigate(Routes.scoreDetail(challengeId, userId, game))
                     },
                     onStartGame = { game -> navController.navigate(Routes.challengeStart(game)) },
+                )
+            }
+            composable(Routes.BOGGLE_TUTORIAL) {
+                GameTutorialScreen(
+                    game = "boggle",
+                    onBack = { navController.popBackStack() },
+                    onDone = {
+                        TutorialStore.markSeen("boggle")
+                        navController.navigate(Routes.BOGGLE) {
+                            popUpTo(Routes.BOGGLE_TUTORIAL) { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable(Routes.NUMBERS_TUTORIAL) {
+                GameTutorialScreen(
+                    game = "numbers",
+                    onBack = { navController.popBackStack() },
+                    onDone = {
+                        TutorialStore.markSeen("numbers")
+                        navController.navigate(Routes.NUMBERS) {
+                            popUpTo(Routes.NUMBERS_TUTORIAL) { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable(Routes.ROUTES_TUTORIAL) {
+                GameTutorialScreen(
+                    game = "routes",
+                    onBack = { navController.popBackStack() },
+                    onDone = {
+                        TutorialStore.markSeen("routes")
+                        navController.navigate(Routes.ROOTS) {
+                            popUpTo(Routes.ROUTES_TUTORIAL) { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(Routes.BOGGLE) {

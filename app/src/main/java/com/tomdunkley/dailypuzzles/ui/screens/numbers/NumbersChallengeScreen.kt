@@ -1,9 +1,16 @@
 package com.tomdunkley.dailypuzzles.ui.screens.numbers
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
 import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
@@ -44,14 +51,22 @@ fun NumbersChallengeScreen(
         onChallengeComplete(challengeId, result.bothPlayed)
     }
 
-    NumbersUnlimitedScreen(
-        onBack = onBack,
-        onShowBottomBarChange = onShowBottomBarChange,
-        viewModel = viewModel,
-        challengeSeed = ChallengeGameStore.pendingSeed,
-        challengeOpponentName = ChallengeGameStore.pendingOpponentName,
-        challengeOpponentAvatarId = ChallengeGameStore.pendingOpponentAvatarId,
-        challengeOpponentAvatarColorId = ChallengeGameStore.pendingOpponentAvatarColorId,
-        challengeOpponentAvatarIconColor = ChallengeGameStore.pendingOpponentAvatarIconColor,
-    )
+    Box(Modifier.fillMaxSize()) {
+        NumbersUnlimitedScreen(
+            onBack = onBack,
+            onShowBottomBarChange = onShowBottomBarChange,
+            viewModel = viewModel,
+            challengeSeed = ChallengeGameStore.pendingSeed,
+            challengeOpponentName = ChallengeGameStore.pendingOpponentName,
+            challengeOpponentAvatarId = ChallengeGameStore.pendingOpponentAvatarId,
+            challengeOpponentAvatarColorId = ChallengeGameStore.pendingOpponentAvatarColorId,
+            challengeOpponentAvatarIconColor = ChallengeGameStore.pendingOpponentAvatarIconColor,
+        )
+        if (challengePlayResult != null) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center,
+            ) { CircularProgressIndicator() }
+        }
+    }
 }

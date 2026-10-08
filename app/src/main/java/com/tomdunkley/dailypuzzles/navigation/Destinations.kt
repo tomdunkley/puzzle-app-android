@@ -33,6 +33,9 @@ object Routes {
     const val ROUTES_CHALLENGE = "routes_challenge/{challengeId}"
     const val CHALLENGE_WAITING = "challenge_waiting/{challengeId}/{opponentName}/{bothPlayed}/{myUserId}/{game}"
     const val CHALLENGE_START = "challenge_start/{game}"
+    const val BOGGLE_TUTORIAL = "boggle_tutorial"
+    const val NUMBERS_TUTORIAL = "numbers_tutorial"
+    const val ROUTES_TUTORIAL = "routes_tutorial"
 
     fun scoreDetail(puzzleId: String, userId: String, gameHint: String = "") =
         if (gameHint.isEmpty()) "score_detail/$puzzleId/$userId"
