@@ -5,8 +5,7 @@ import android.content.SharedPreferences
 
 object TutorialStore {
 
-    // TODO: set to false to restore "show once" behavior after testing
-    private const val ALWAYS_SHOW = true
+    private const val ALWAYS_SHOW = false
 
     private lateinit var prefs: SharedPreferences
 

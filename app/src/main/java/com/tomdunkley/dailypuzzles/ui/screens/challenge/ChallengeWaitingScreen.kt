@@ -165,11 +165,12 @@ private fun ResultContent(
     Spacer(Modifier.height(8.dp))
     if (result.opponentResult.opponentUserId != null || result.myResult.opponentUserId != null) {
         val opponentId = result.myResult.opponentUserId ?: ""
+        val theirButtonText = if (game == "numbers") "VIEW SOLUTION" else "VIEW THEIR BOARD"
         OutlinedButton(
             onClick = { onViewResult(challengeId, opponentId, game) },
             modifier = Modifier.fillMaxWidth(),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-        ) { Text("VIEW THEIR BOARD") }
+        ) { Text(theirButtonText) }
         Spacer(Modifier.height(8.dp))
     }
     Button(

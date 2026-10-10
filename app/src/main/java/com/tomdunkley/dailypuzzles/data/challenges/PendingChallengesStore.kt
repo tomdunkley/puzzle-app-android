@@ -17,4 +17,8 @@ object PendingChallengesStore {
     }
 
     fun pendingCountForFriend(friendId: String): Int = _byFriend.value[friendId] ?: 0
+
+    fun decrement() {
+        _pendingCount.value = maxOf(0, _pendingCount.value - 1)
+    }
 }

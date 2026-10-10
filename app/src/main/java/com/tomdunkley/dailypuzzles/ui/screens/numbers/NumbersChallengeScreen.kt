@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tomdunkley.dailypuzzles.data.challenges.ChallengeGameStore
 import com.tomdunkley.dailypuzzles.data.challenges.InProgressChallengeStore
+import com.tomdunkley.dailypuzzles.data.challenges.PendingChallengesStore
 
 @Composable
 fun NumbersChallengeScreen(
@@ -24,6 +25,7 @@ fun NumbersChallengeScreen(
     viewModel: NumbersUnlimitedViewModel = viewModel(),
 ) {
     val challengePlayResult by viewModel.challengePlayResult.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         val puzzle = ChallengeGameStore.pendingPuzzleData as? ChallengeGameStore.PuzzleData.Numbers
@@ -48,6 +50,7 @@ fun NumbersChallengeScreen(
     LaunchedEffect(challengePlayResult) {
         val result = challengePlayResult ?: return@LaunchedEffect
         InProgressChallengeStore.clear()
+        PendingChallengesStore.decrement()
         onChallengeComplete(challengeId, result.bothPlayed)
     }
 
@@ -62,7 +65,7 @@ fun NumbersChallengeScreen(
             challengeOpponentAvatarColorId = ChallengeGameStore.pendingOpponentAvatarColorId,
             challengeOpponentAvatarIconColor = ChallengeGameStore.pendingOpponentAvatarIconColor,
         )
-        if (challengePlayResult != null) {
+        if (challengePlayResult != null || uiState is NumbersUiState.Results) {
             Box(
                 modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center,

@@ -5,10 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.tomdunkley.dailypuzzles.data.auth.AuthRepository
@@ -43,16 +40,6 @@ class PuzzleFirebaseMessagingService : FirebaseMessagingService() {
         else -> null
     }
 
-    private fun drawableToBitmap(context: Context, resId: Int): Bitmap? {
-        val drawable = ContextCompat.getDrawable(context, resId) ?: return null
-        val size = (context.resources.displayMetrics.density * 40).toInt()
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
-        drawable.draw(canvas)
-        return bitmap
-    }
-
     private fun showNotification(title: String, body: String, game: String?, navigateTo: String?) {
         val channelId = "challenges"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -66,16 +53,13 @@ class PuzzleFirebaseMessagingService : FirebaseMessagingService() {
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
+        val smallIconRes = gameDrawableRes(game) ?: R.drawable.ic_notification
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(smallIconRes)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-
-        gameDrawableRes(game)?.let { resId ->
-            drawableToBitmap(this, resId)?.let { builder.setLargeIcon(it) }
-        }
 
         manager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
